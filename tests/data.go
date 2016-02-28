@@ -1,31 +1,12 @@
 package tests
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/opt"
 )
-
-type testType interface {
-	json.Marshaler
-	json.Unmarshaler
-}
-
-var testCases = []struct {
-	Decoded testType
-	Encoded string
-}{
-	{&primitiveTypesValue, primitiveTypesString},
-	{&structsValue, structsString},
-	{&omitEmptyValue, omitEmptyString},
-	{&snakeStructValue, snakeStructString},
-	{&omitEmptyDefaultValue, omitEmptyDefaultString},
-	{&optsValue, optsString},
-	{&rawValue, rawString},
-}
 
 type PrimitiveTypes struct {
 	String string

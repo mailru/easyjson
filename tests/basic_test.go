@@ -3,7 +3,27 @@ package tests
 import (
 	"reflect"
 	"testing"
+
+	"encoding/json"
 )
+
+type testType interface {
+	json.Marshaler
+	json.Unmarshaler
+}
+
+var testCases = []struct {
+	Decoded testType
+	Encoded string
+}{
+	{&primitiveTypesValue, primitiveTypesString},
+	{&structsValue, structsString},
+	{&omitEmptyValue, omitEmptyString},
+	{&snakeStructValue, snakeStructString},
+	{&omitEmptyDefaultValue, omitEmptyDefaultString},
+	{&optsValue, optsString},
+	{&rawValue, rawString},
+}
 
 func TestMarshal(t *testing.T) {
 	for i, test := range testCases {

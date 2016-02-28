@@ -1,3 +1,5 @@
+// +build none
+
 package optional
 
 import (
