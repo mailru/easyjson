@@ -89,13 +89,21 @@ ffjson seems to behave weird if used concurrently: for large request pooling hur
 
 easyjson is similar in performance for small requests and 2-5x times faster for large ones if used with a writer.
 
+### easyjson vs. go/codec
+
+github.com/ugorji/go/codec library provides compile-time helpers for JSON generation. In this case, helpers are not exactly marshallers as they are encoding-independent.
+
+easyjson is generally ~2x faster for non-concurrent benchmarks and about 3x faster for concurrent encoding (without marshalling to a writer).
+
+As an attempt to measure marshalling performance of 'go/codec' (as opposed to allocations/memcpy/writer interface invocations), a benchmark was done with resetting lenght of a byte slice rather than resetting the whole slice to nil. However, the optimization in this exact form may not be applicable in practice, since the memory is not freed between marshalling operations.
+
 ### easyjson vs 'ujson' python module
 ujson is using C code for parsing, so it is interesting to see how plain golang compares to that. It is imporant to note that the resulting object for python is slower to access, since the library parses JSON object into dictionaries.
 
 easyjson seems to be slightly faster for unmarshalling (finally!) and 2-3x faster for marshalling.
 
 ### benchmark figures
-The data was measured on 28 February, 2016 using current ffjson and golang 1.6
+The data was measured on 4 February, 2016 using current ffjson and golang 1.6. Data for go/codec was added on 4 March 2016, benchmarked on the same machine.
 
 #### Unmarshalling
 | lib    | json size | MB/s | allocs/op | B/op
@@ -108,6 +116,9 @@ The data was measured on 28 February, 2016 using current ffjson and golang 1.6
 |--------|-----------|------|-----------|-------
 |ffjson  | regular   | 66   | 141       | 9985
 |ffjson  | small     | 17.6 | 10        | 488
+|--------|-----------|------|-----------|-------
+|codec   | regular   | 55   | 434       | 19299
+|codec   | small     | 29   | 7         | 336
 |--------|-----------|------|-----------|-------
 |ujson   | regular   | 103  | N/A       | N/A
 
@@ -131,9 +142,17 @@ The data was measured on 28 February, 2016 using current ffjson and golang 1.6
 |ffjson    | large     | 134  | 7317      | 818k
 |ffjson**  | large     | 125  | 7320      | 827k
 |----------|-----------|------|-----------|-------
+|codec     | regular   | 80   | 17        | 33601
+|codec***  | regular   | 108  | 9         | 1153
+|codec     | small     | 42   | 3         | 304
+|codec***  | small     | 56   | 1         | 48
+|codec     | large     | 73   | 483       | 2.5M
+|codec***  | large     | 103  | 451       | 66007
+|----------|-----------|------|-----------|-------
 |ujson     | regular   | 92   | N/A       | N/A
-\* marshalling to a writer
-\** using `ffjson.Pool()`
+\* marshalling to a writer,
+\*\* using `ffjson.Pool()`,
+\*\*\* reusing output slice instead of resetting it to nil
 
 #### Marshalling, concurrent.
 | lib      | json size | MB/s  | allocs/op | B/op
@@ -154,7 +173,16 @@ The data was measured on 28 February, 2016 using current ffjson and golang 1.6
 |ffjson**  | small     | 282  | 4         | 128
 |ffjson    | large     | 438  | 7330      | 1.0M
 |ffjson**  | large     | 131  | 7319      | 820k
-\* marshalling to a writer
-\** using `ffjson.Pool()`
+|----------|-----------|------|-----------|-------
+|codec     | regular   | 183  | 17        | 33603
+|codec***  | regular   | 671  | 9         | 1157
+|codec     | small     | 147  | 3         | 304
+|codec***  | small     | 299  | 1         | 48
+|codec     | large     | 190  | 483       | 2.5M
+|codec***  | large     | 752  | 451       | 77574
+\* marshalling to a writer,
+\*\* using `ffjson.Pool()`,
+\*\*\* reusing output slice instead of resetting it to nil
+
 
 
