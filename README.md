@@ -93,7 +93,7 @@ easyjson is similar in performance for small requests and 2-5x times faster for 
 
 github.com/ugorji/go/codec library provides compile-time helpers for JSON generation. In this case, helpers are not exactly marshallers as they are encoding-independent.
 
-easyjson is generally ~2x faster for non-concurrent benchmarks and about 3x faster for concurrent encoding (without marshalling to a writer).
+easyjson is generally ~2x faster for non-concurrent benchmarks and about 3x faster for concurrent encoding (without marshalling to a writer). Unsafe option for generated helpers was used.
 
 As an attempt to measure marshalling performance of 'go/codec' (as opposed to allocations/memcpy/writer interface invocations), a benchmark was done with resetting lenght of a byte slice rather than resetting the whole slice to nil. However, the optimization in this exact form may not be applicable in practice, since the memory is not freed between marshalling operations.
 
