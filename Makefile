@@ -6,7 +6,7 @@ all: test
 
 .root/src/$(PKG): 	
 	mkdir -p $@
-	ln -st $@ $$PWD/*
+	for i in $$PWD/* ; do ln -s $$i $@/`basename $$i` ; done 
 
 root: .root/src/$(PKG)
 
@@ -25,9 +25,10 @@ generate: root build
 
 test: generate root
 	go test $(PKG)/{tests,jlexer,gen}
+	@go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
 	@go test -benchmem -bench . $(PKG)/benchmark
 	@go test -benchmem -tags use_ffjson -bench . $(PKG)/benchmark
-	@go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
+	@go test -benchmem -tags use_codec -bench . $(PKG)/benchmark
 	benchmark/ujson.sh
 
 

@@ -8,7 +8,7 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 )
 
-func BenchmarkUnmarshalRequestFF(b *testing.B) {
+func BenchmarkFF_Unmarshal_M(b *testing.B) {
 	b.SetBytes(int64(len(largeStructText)))
 	for i := 0; i < b.N; i++ {
 		var s LargeStruct
@@ -19,96 +19,7 @@ func BenchmarkUnmarshalRequestFF(b *testing.B) {
 	}
 }
 
-func BenchmarkMarshalRequestFF(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&largeStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-	}
-	b.SetBytes(l)
-}
-
-func BenchmarkMarshalSmallRequestFF(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&smallStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-	}
-	b.SetBytes(l)
-}
-
-func BenchmarkMarshalRequestFFPool(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&largeStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-		ffjson.Pool(data)
-	}
-	b.SetBytes(l)
-}
-
-func BenchmarkMarshalXLRequestFF(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&xlStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-	}
-	b.SetBytes(l)
-}
-
-func BenchmarkMarshalXLRequestFFPool(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&xlStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-		ffjson.Pool(data)
-	}
-	b.SetBytes(l)
-}
-
-func BenchmarkMarshalXLRequestFFPoolParallel(b *testing.B) {
-	var l int64
-	for i := 0; i < b.N; i++ {
-		data, err := ffjson.MarshalFast(&xlStructData)
-		if err != nil {
-			b.Error(err)
-		}
-		l = int64(len(data))
-		ffjson.Pool(data)
-	}
-	b.SetBytes(l)
-}
-func BenchmarkMarshalRequestFFPoolParallel(b *testing.B) {
-	var l int64
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			data, err := ffjson.MarshalFast(&largeStructData)
-			if err != nil {
-				b.Error(err)
-			}
-			l = int64(len(data))
-			ffjson.Pool(data)
-		}
-	})
-	b.SetBytes(l)
-}
-
-func BenchmarkUnmarshalSmallRequestFF(b *testing.B) {
+func BenchmarkFF_Unmarshal_S(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var s Entities
 		err := ffjson.UnmarshalFast(smallStructText, &s)
@@ -119,7 +30,96 @@ func BenchmarkUnmarshalSmallRequestFF(b *testing.B) {
 	b.SetBytes(int64(len(smallStructText)))
 }
 
-func BenchmarkMarshalSmallRequestPoolFF(b *testing.B) {
+func BenchmarkFF_Marshal_M(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&largeStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+	}
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_S(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&smallStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+	}
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_M_Pool(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&largeStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+		ffjson.Pool(data)
+	}
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_L(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&xlStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+	}
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_L_Pool(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&xlStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+		ffjson.Pool(data)
+	}
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_L_Pool_Parallel(b *testing.B) {
+	var l int64
+	for i := 0; i < b.N; i++ {
+		data, err := ffjson.MarshalFast(&xlStructData)
+		if err != nil {
+			b.Error(err)
+		}
+		l = int64(len(data))
+		ffjson.Pool(data)
+	}
+	b.SetBytes(l)
+}
+func BenchmarkFF_Marshal_M_Pool_Parallel(b *testing.B) {
+	var l int64
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			data, err := ffjson.MarshalFast(&largeStructData)
+			if err != nil {
+				b.Error(err)
+			}
+			l = int64(len(data))
+			ffjson.Pool(data)
+		}
+	})
+	b.SetBytes(l)
+}
+
+func BenchmarkFF_Marshal_S_Pool(b *testing.B) {
 	var l int64
 	for i := 0; i < b.N; i++ {
 		data, err := ffjson.MarshalFast(&smallStructData)
@@ -132,7 +132,7 @@ func BenchmarkMarshalSmallRequestPoolFF(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalSmallRequestPoolFFParallel(b *testing.B) {
+func BenchmarkFF_Marshal_S_Pool_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -147,7 +147,7 @@ func BenchmarkMarshalSmallRequestPoolFFParallel(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalSmallRequestFFParallel(b *testing.B) {
+func BenchmarkFF_Marshal_S_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -161,7 +161,7 @@ func BenchmarkMarshalSmallRequestFFParallel(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalRequestFFParallel(b *testing.B) {
+func BenchmarkFF_Marshal_M_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -175,7 +175,7 @@ func BenchmarkMarshalRequestFFParallel(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalXLRequestFFParallel(b *testing.B) {
+func BenchmarkFF_Marshal_L_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

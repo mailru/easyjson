@@ -9,7 +9,7 @@ import (
 	"github.com/mailru/easyjson/jwriter"
 )
 
-func BenchmarkUnmarshalRequestEJ(b *testing.B) {
+func BenchmarkEJ_Unmarshal_M(b *testing.B) {
 	b.SetBytes(int64(len(largeStructText)))
 	for i := 0; i < b.N; i++ {
 		var s LargeStruct
@@ -20,7 +20,19 @@ func BenchmarkUnmarshalRequestEJ(b *testing.B) {
 	}
 }
 
-func BenchmarkMarshalRequestEJ(b *testing.B) {
+func BenchmarkEJ_Unmarshal_S(b *testing.B) {
+	b.SetBytes(int64(len(smallStructText)))
+
+	for i := 0; i < b.N; i++ {
+		var s Entities
+		err := s.UnmarshalJSON(smallStructText)
+		if err != nil {
+			b.Error(err)
+		}
+	}
+}
+
+func BenchmarkEJ_Marshal_M(b *testing.B) {
 	var l int64
 	for i := 0; i < b.N; i++ {
 		data, err := easyjson.Marshal(&largeStructData)
@@ -32,7 +44,7 @@ func BenchmarkMarshalRequestEJ(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalXLRequestEJ(b *testing.B) {
+func BenchmarkEJ_Marshal_L(b *testing.B) {
 	var l int64
 	for i := 0; i < b.N; i++ {
 		data, err := easyjson.Marshal(&xlStructData)
@@ -44,7 +56,7 @@ func BenchmarkMarshalXLRequestEJ(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalXLRequestToWriterEJ(b *testing.B) {
+func BenchmarkEJ_Marshal_L_ToWriter(b *testing.B) {
 	var l int64
 	out := &DummyWriter{}
 	for i := 0; i < b.N; i++ {
@@ -60,7 +72,7 @@ func BenchmarkMarshalXLRequestToWriterEJ(b *testing.B) {
 	b.SetBytes(l)
 
 }
-func BenchmarkMarshalRequestEJParallel(b *testing.B) {
+func BenchmarkEJ_Marshal_M_Parallel(b *testing.B) {
 	b.SetBytes(int64(len(largeStructText)))
 
 	b.RunParallel(func(pb *testing.PB) {
@@ -73,7 +85,7 @@ func BenchmarkMarshalRequestEJParallel(b *testing.B) {
 	})
 }
 
-func BenchmarkMarshalToWriterEJ(b *testing.B) {
+func BenchmarkEJ_Marshal_M_ToWriter(b *testing.B) {
 	var l int64
 	out := &DummyWriter{}
 	for i := 0; i < b.N; i++ {
@@ -89,7 +101,7 @@ func BenchmarkMarshalToWriterEJ(b *testing.B) {
 	b.SetBytes(l)
 
 }
-func BenchmarkMarshalRequestToWriterEJParallel(b *testing.B) {
+func BenchmarkEJ_Marshal_M_ToWriter_Parallel(b *testing.B) {
 	out := &DummyWriter{}
 
 	b.RunParallel(func(pb *testing.PB) {
@@ -111,7 +123,7 @@ func BenchmarkMarshalRequestToWriterEJParallel(b *testing.B) {
 
 }
 
-func BenchmarkMarshalXLRequestEJParallel(b *testing.B) {
+func BenchmarkEJ_Marshal_L_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -125,7 +137,7 @@ func BenchmarkMarshalXLRequestEJParallel(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalXLRequestToWriterEJParallel(b *testing.B) {
+func BenchmarkEJ_Marshal_L_ToWriter_Parallel(b *testing.B) {
 	out := &DummyWriter{}
 	b.RunParallel(func(pb *testing.PB) {
 		var l int64
@@ -145,19 +157,7 @@ func BenchmarkMarshalXLRequestToWriterEJParallel(b *testing.B) {
 	})
 }
 
-func BenchmarkUnmarshalSmallRequestEJ(b *testing.B) {
-	b.SetBytes(int64(len(smallStructText)))
-
-	for i := 0; i < b.N; i++ {
-		var s Entities
-		err := s.UnmarshalJSON(smallStructText)
-		if err != nil {
-			b.Error(err)
-		}
-	}
-}
-
-func BenchmarkMarshalSmallRequestEJ(b *testing.B) {
+func BenchmarkEJ_Marshal_S(b *testing.B) {
 	var l int64
 	for i := 0; i < b.N; i++ {
 		data, err := smallStructData.MarshalJSON()
@@ -169,7 +169,7 @@ func BenchmarkMarshalSmallRequestEJ(b *testing.B) {
 	b.SetBytes(l)
 }
 
-func BenchmarkMarshalSmallRequestEJParallel(b *testing.B) {
+func BenchmarkEJ_Marshal_S_Parallel(b *testing.B) {
 	var l int64
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
