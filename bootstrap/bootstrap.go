@@ -40,12 +40,26 @@ func (g *Generator) writeStub() error {
 	}
 	defer f.Close()
 
+	if g.BuildTags != "" {
+		fmt.Fprintln(f, "// +build ", g.BuildTags)
+		fmt.Fprintln(f)
+	}
+
 	fmt.Fprintln(f, "package ", g.PkgName)
 	fmt.Fprintln(f)
+	fmt.Fprintln(f, "import (")
+	fmt.Fprintln(f, `  "`+pkgWriter+`"`)
+	fmt.Fprintln(f, `  "`+pkgLexer+`"`)
+	fmt.Fprintln(f, ")")
 
 	for _, t := range g.Types {
-		fmt.Fprintln(f, "func (*", t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
-		fmt.Fprintln(f, "func (*", t, ") UnmarshalJSON([]byte) error { return nil }")
+		if !g.NoStdMarshalers {
+			fmt.Fprintln(f, "func (*", t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
+			fmt.Fprintln(f, "func (*", t, ") UnmarshalJSON([]byte) error { return nil }")
+		}
+
+		fmt.Fprintln(f, "func (*", t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
+		fmt.Fprintln(f, "func (*", t, ") UnmarshalEasyJSON(l *jlexer.Lexer) {}")
 	}
 	return nil
 }
@@ -121,7 +135,7 @@ func (g *Generator) Run() error {
 		defer os.Remove(f.Name()) // will not remove after rename
 	}
 
-	cmd := exec.Command("go", "run", path)
+	cmd := exec.Command("go", "run", "-tags", g.BuildTags, path)
 	cmd.Stdout = f
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
