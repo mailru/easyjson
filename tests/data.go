@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/opt"
@@ -200,3 +201,10 @@ var rawString = `{` +
 	`"Field":{"a" : "b"},` +
 	`"Field2":"test"` +
 	`}`
+
+type StdMarshaler struct {
+	T time.Time
+}
+
+var stdMarshalerValue = StdMarshaler{T: time.Date(2016, 01, 02, 14, 15, 10, 0, time.UTC)}
+var stdMarshalerString = `{"T":"2016-01-02T14:15:10Z"}`

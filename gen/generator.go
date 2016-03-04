@@ -29,8 +29,9 @@ type Generator struct {
 
 	varCounter int
 
-	omitEmpty bool
-	namer     FieldNamer
+	noStdMarshalers bool
+	omitEmpty       bool
+	namer           FieldNamer
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -83,6 +84,12 @@ func (g *Generator) SetFieldNamer(n FieldNamer) {
 // UseSnakeCase sets snake_case field naming strategy.
 func (g *Generator) UseSnakeCase() {
 	g.namer = SnakeCaseFieldNamer{}
+}
+
+// NoStdMarshalers instructs not to generate standard MarshalJSON/UnmarshalJSON
+// methods (only the custom interface).
+func (g *Generator) NoStdMarshalers() {
+	g.noStdMarshalers = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.

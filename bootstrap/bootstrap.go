@@ -20,8 +20,9 @@ type Generator struct {
 	PkgPath, PkgName string
 	Types            []string
 
-	SnakeCase bool
-	OmitEmpty bool
+	NoStdMarshalers bool
+	SnakeCase       bool
+	OmitEmpty       bool
 
 	OutName   string
 	BuildTags string
@@ -77,6 +78,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.OmitEmpty {
 		fmt.Fprintln(f, "  g.OmitEmpty()")
+	}
+	if g.NoStdMarshalers {
+		fmt.Fprintln(f, "  g.NoStdMarshalers()")
 	}
 	for _, v := range g.Types {
 		fmt.Fprintln(f, "  g.Add(pkg."+v+"{})")

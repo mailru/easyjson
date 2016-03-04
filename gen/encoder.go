@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -36,6 +37,12 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 	marshalerIface := reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
 		fmt.Fprintln(g.out, ws+"("+in+").MarshalEasyJSON(out)")
+		return nil
+	}
+
+	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
+	if reflect.PtrTo(t).Implements(marshalerIface) {
+		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
 		return nil
 	}
 
@@ -198,11 +205,13 @@ func (g *Generator) genStructMarshaller(t reflect.Type) error {
 	fname := g.getStructEncoderName(t)
 	typ := g.getType(t)
 
-	fmt.Fprintln(g.out, "func (v *"+typ+") MarshalJSON() ([]byte, error) {")
-	fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
-	fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
-	fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), w.Error")
-	fmt.Fprintln(g.out, "}")
+	if !g.noStdMarshalers {
+		fmt.Fprintln(g.out, "func (v *"+typ+") MarshalJSON() ([]byte, error) {")
+		fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
+		fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
+		fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), w.Error")
+		fmt.Fprintln(g.out, "}")
+	}
 
 	fmt.Fprintln(g.out, "func (v *"+typ+") MarshalEasyJSON(w *jwriter.Writer) {")
 	fmt.Fprintln(g.out, "  "+fname+"(w, v)")

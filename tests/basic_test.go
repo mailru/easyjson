@@ -23,6 +23,7 @@ var testCases = []struct {
 	{&omitEmptyDefaultValue, omitEmptyDefaultString},
 	{&optsValue, optsString},
 	{&rawValue, rawString},
+	{&stdMarshalerValue, stdMarshalerString},
 }
 
 func TestMarshal(t *testing.T) {

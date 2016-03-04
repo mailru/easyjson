@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -39,6 +40,14 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 	unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(unmarshalerIface) {
 		fmt.Fprintln(g.out, ws+"("+out+").UnmarshalEasyJSON(in)")
+		return nil
+	}
+
+	unmarshalerIface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+	if reflect.PtrTo(t).Implements(unmarshalerIface) {
+		fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
+		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
 
@@ -224,11 +233,14 @@ func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
 	fname := g.getStructDecoderName(t)
 	typ := g.getType(t)
 
-	fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalJSON(data []byte) error {")
-	fmt.Fprintln(g.out, "  r := jlexer.Lexer{Data: data}")
-	fmt.Fprintln(g.out, "  "+fname+"(&r, v)")
-	fmt.Fprintln(g.out, "  return r.Error()")
-	fmt.Fprintln(g.out, "}")
+	if !g.noStdMarshalers {
+		fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalJSON(data []byte) error {")
+		fmt.Fprintln(g.out, "  r := jlexer.Lexer{Data: data}")
+		fmt.Fprintln(g.out, "  "+fname+"(&r, v)")
+		fmt.Fprintln(g.out, "  return r.Error()")
+		fmt.Fprintln(g.out, "}")
+	}
+
 	fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalEasyJSON(l *jlexer.Lexer) {")
 	fmt.Fprintln(g.out, "  "+fname+"(l, v)")
 	fmt.Fprintln(g.out, "}")
