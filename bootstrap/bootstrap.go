@@ -127,7 +127,7 @@ func (g *Generator) Run() error {
 		defer os.Remove(path)
 	}
 
-	f, err := ioutil.TempFile("", "easyjson-out")
+	f, err := os.Create(g.OutName + ".tmp")
 	if err != nil {
 		return err
 	}
