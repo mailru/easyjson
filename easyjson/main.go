@@ -17,6 +17,7 @@ var omitEmpty = flag.Bool("omit_empty", false, "omit empty fields by default")
 var allStructs = flag.Bool("all", false, "generate un-/marshallers for all structs in a file")
 var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files")
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshallers/unmarshallers methods")
+var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
 
 func generate(fname string) (err error) {
 	p := parser.Parser{AllStructs: *allStructs}
@@ -42,6 +43,7 @@ func generate(fname string) (err error) {
 		LeaveTemps:      *leaveTemps,
 		OutName:         outName,
 		StubsOnly:       *stubs,
+		NoFormat:        *noformat,
 	}
 
 	if err := g.Run(); err != nil {
@@ -54,8 +56,13 @@ func main() {
 	flag.Parse()
 
 	files := flag.Args()
-	if len(files) == 0 {
-		files = []string{os.Getenv("GOFILE")}
+
+	gofile := os.Getenv("GOFILE")
+	if len(files) == 0 && gofile != "" {
+		files = []string{gofile}
+	} else if len(files) == 0 {
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	for _, fname := range files {
