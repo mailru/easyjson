@@ -15,20 +15,20 @@ func (g *Generator) getStructEncoderName(t reflect.Type) string {
 }
 
 var primitiveEncoders = map[reflect.Kind]string{
-	reflect.String:  "out.String",
-	reflect.Bool:    "out.Bool",
-	reflect.Int:     "out.Int",
-	reflect.Int8:    "out.Int8",
-	reflect.Int16:   "out.Int16",
-	reflect.Int32:   "out.Int32",
-	reflect.Int64:   "out.Int64",
-	reflect.Uint:    "out.Uint",
-	reflect.Uint8:   "out.Uint8",
-	reflect.Uint16:  "out.Uint16",
-	reflect.Uint32:  "out.Uint32",
-	reflect.Uint64:  "out.Uint64",
-	reflect.Float32: "out.Float32",
-	reflect.Float64: "out.Float64",
+	reflect.String:  "out.String(string(%v))",
+	reflect.Bool:    "out.Bool(bool(%v))",
+	reflect.Int:     "out.Int(int(%v))",
+	reflect.Int8:    "out.Int8(int8(%v))",
+	reflect.Int16:   "out.Int16(int16(%v))",
+	reflect.Int32:   "out.Int32(int32(%v))",
+	reflect.Int64:   "out.Int64(int64(%v))",
+	reflect.Uint:    "out.Uint(uint(%v))",
+	reflect.Uint8:   "out.Uint8(uint8(%v))",
+	reflect.Uint16:  "out.Uint16(uint16(%v))",
+	reflect.Uint32:  "out.Uint32(uint32(%v))",
+	reflect.Uint64:  "out.Uint64(uint64(%v))",
+	reflect.Float32: "out.Float32(float32(%v))",
+	reflect.Float64: "out.Float64(float64(%v))",
 }
 
 func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error {
@@ -48,7 +48,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 
 	// Check whether type is primitive, needs to be done after interface check.
 	if enc := primitiveEncoders[t.Kind()]; enc != "" {
-		fmt.Fprintln(g.out, ws+enc+"("+in+")")
+		fmt.Fprintf(g.out, ws+enc+"\n", in)
 		return nil
 	}
 

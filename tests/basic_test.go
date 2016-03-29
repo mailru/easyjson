@@ -17,6 +17,7 @@ var testCases = []struct {
 	Encoded string
 }{
 	{&primitiveTypesValue, primitiveTypesString},
+	{&namedPrimitiveTypesValue, namedPrimitiveTypesString},
 	{&structsValue, structsString},
 	{&omitEmptyValue, omitEmptyString},
 	{&snakeStructValue, snakeStructString},

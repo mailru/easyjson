@@ -78,19 +78,115 @@ var primitiveTypesString = "{" +
 
 	"}"
 
+type (
+	NamedString string
+	NamedBool   bool
+
+	NamedInt   int
+	NamedInt8  int8
+	NamedInt16 int16
+	NamedInt32 int32
+	NamedInt64 int64
+
+	NamedUint   uint
+	NamedUint8  uint8
+	NamedUint16 uint16
+	NamedUint32 uint32
+	NamedUint64 uint64
+
+	NamedFloat32 float32
+	NamedFloat64 float64
+
+	NamedStrPtr *string
+)
+
+type NamedPrimitiveTypes struct {
+	String NamedString
+	Bool   NamedBool
+
+	Int   NamedInt
+	Int8  NamedInt8
+	Int16 NamedInt16
+	Int32 NamedInt32
+	Int64 NamedInt64
+
+	Uint   NamedUint
+	Uint8  NamedUint8
+	Uint16 NamedUint16
+	Uint32 NamedUint32
+	Uint64 NamedUint64
+
+	Float32 NamedFloat32
+	Float64 NamedFloat64
+
+	Ptr    NamedStrPtr
+	PtrNil NamedStrPtr
+}
+
+var namedPrimitiveTypesValue = NamedPrimitiveTypes{
+	String: "test",
+	Bool:   true,
+
+	Int:   math.MinInt32,
+	Int8:  math.MinInt8,
+	Int16: math.MinInt16,
+	Int32: math.MinInt32,
+	Int64: math.MinInt64,
+
+	Uint:   math.MaxUint32,
+	Uint8:  math.MaxUint8,
+	Uint16: math.MaxUint16,
+	Uint32: math.MaxUint32,
+	Uint64: math.MaxUint64,
+
+	Float32: 1.5,
+	Float64: math.MaxFloat64,
+
+	Ptr: NamedStrPtr(&str),
+}
+
+var namedPrimitiveTypesString = "{" +
+	`"String":"test",` +
+	`"Bool":true,` +
+
+	`"Int":` + fmt.Sprint(math.MinInt32) + `,` +
+	`"Int8":` + fmt.Sprint(math.MinInt8) + `,` +
+	`"Int16":` + fmt.Sprint(math.MinInt16) + `,` +
+	`"Int32":` + fmt.Sprint(math.MinInt32) + `,` +
+	`"Int64":` + fmt.Sprint(int64(math.MinInt64)) + `,` +
+
+	`"Uint":` + fmt.Sprint(math.MaxUint32) + `,` +
+	`"Uint8":` + fmt.Sprint(math.MaxUint8) + `,` +
+	`"Uint16":` + fmt.Sprint(math.MaxUint16) + `,` +
+	`"Uint32":` + fmt.Sprint(math.MaxUint32) + `,` +
+	`"Uint64":` + fmt.Sprint(uint64(math.MaxUint64)) + `,` +
+
+	`"Float32":` + fmt.Sprint(1.5) + `,` +
+	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
+
+	`"Ptr":"bla",` +
+	`"PtrNil":null` +
+	"}"
+
 type SubStruct struct {
 	Value     string
 	Value2    string
 	unexpored bool
 }
 
+type SubStructAlias SubStruct
+
 type Structs struct {
 	SubStruct
 	Value2 int
 
-	Sub1      SubStruct `json:"substruct"`
-	Sub2      *SubStruct
-	SubNil    *SubStruct
+	Sub1   SubStruct `json:"substruct"`
+	Sub2   *SubStruct
+	SubNil *SubStruct
+
+	SubA1 SubStructAlias
+	SubA2 *SubStructAlias
+
 	Anonymous struct {
 		V string
 		I int
@@ -107,6 +203,10 @@ var structsValue = Structs{
 
 	Sub1: SubStruct{Value: "test1", Value2: "v"},
 	Sub2: &SubStruct{Value: "test2", Value2: "v2"},
+
+	SubA1: SubStructAlias{Value: "test3", Value2: "v3"},
+	SubA2: &SubStructAlias{Value: "test4", Value2: "v4"},
+
 	Anonymous: struct {
 		V string
 		I int
@@ -118,9 +218,14 @@ var structsValue = Structs{
 
 var structsString = "{" +
 	`"Value2":5,` +
+
 	`"substruct":{"Value":"test1","Value2":"v"},` +
 	`"Sub2":{"Value":"test2","Value2":"v2"},` +
 	`"SubNil":null,` +
+
+	`"SubA1":{"Value":"test3","Value2":"v3"},` +
+	`"SubA2":{"Value":"test4","Value2":"v4"},` +
+
 	`"Anonymous":{"V":"bla","I":5},` +
 	`"Anonymous1":{"V":"bla1"},` +
 

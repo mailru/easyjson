@@ -53,7 +53,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 
 	// Check whether type is primitive, needs to be done after interface check.
 	if dec := primitiveDecoders[t.Kind()]; dec != "" {
-		fmt.Fprintln(g.out, ws+out+" = "+dec)
+		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
 	}
 
