@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"encoding/json"
+	"github.com/mailru/easyjson"
 )
 
 type testType interface {
@@ -54,5 +55,35 @@ func TestUnmarshal(t *testing.T) {
 		if !reflect.DeepEqual(v, test.Decoded) {
 			t.Errorf("[%d, %T] UnmarshalJSON(): got \n%+v\n\t\t want \n%+v", i, test.Decoded, v, test.Encoded)
 		}
+	}
+}
+
+func TestRawMessageSTD(t *testing.T) {
+	type T struct {
+		F    easyjson.RawMessage
+		Fnil easyjson.RawMessage
+	}
+
+	val := T{F: easyjson.RawMessage([]byte(`"test"`))}
+	str := `{"F":"test","Fnil":null}`
+
+	data, err := json.Marshal(val)
+	if err != nil {
+		t.Errorf("json.Marshal() error: %v", err)
+	}
+	got := string(data)
+	if got != str {
+		t.Errorf("json.Marshal() = %v; want %v", got, str)
+	}
+
+	wantV := T{F: easyjson.RawMessage([]byte(`"test"`)), Fnil: easyjson.RawMessage([]byte("null"))}
+	var gotV T
+
+	err = json.Unmarshal([]byte(str), &gotV)
+	if err != nil {
+		t.Errorf("json.Unmarshal() error: %v", err)
+	}
+	if !reflect.DeepEqual(gotV, wantV) {
+		t.Errorf("json.Unmarshal() = %v; want %v", gotV, wantV)
 	}
 }
