@@ -112,8 +112,12 @@ func (g *Generator) addType(t reflect.Type) {
 
 // Add requests to generate (un-)marshallers and en-/decoding functions for the type of given object.
 func (g *Generator) Add(obj interface{}) {
-	g.addType(reflect.TypeOf(obj))
-	g.marshallers[reflect.TypeOf(obj)] = true
+	t := reflect.TypeOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	g.addType(t)
+	g.marshallers[t] = true
 }
 
 // printHeader prints package declaration and imports.

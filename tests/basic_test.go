@@ -26,6 +26,7 @@ var testCases = []struct {
 	{&optsValue, optsString},
 	{&rawValue, rawString},
 	{&stdMarshalerValue, stdMarshalerString},
+	{&unexportedStructValue, unexportedStructString},
 }
 
 func TestMarshal(t *testing.T) {
