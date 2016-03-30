@@ -5,9 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
-	"strconv"
 )
 
 // Marshaler is an easyjson-compatible marshaler interface.
@@ -59,14 +60,14 @@ func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bo
 }
 
 // Unmarshal decodes the JSON in data into the object.
-func Unmarshal(v Unmarshaler, data []byte) error {
+func Unmarshal(data []byte, v Unmarshaler) error {
 	l := jlexer.Lexer{Data: data}
 	v.UnmarshalEasyJSON(&l)
 	return l.Error()
 }
 
 // UnmarshalFromReader reads all the data in the reader and decodes as JSON into the object.
-func UnmarshalFromReader(v Unmarshaler, r io.Reader) error {
+func UnmarshalFromReader(r io.Reader, v Unmarshaler) error {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
