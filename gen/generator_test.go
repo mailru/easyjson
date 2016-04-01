@@ -16,6 +16,8 @@ func TestCamelToSnake(t *testing.T) {
 		{"SomeHTTPStuff", "some_http_stuff"},
 		{"WriteJSON", "write_json"},
 		{"HTTP2Server", "http2_server"},
+		{"Some_Mixed_Case", "some_mixed_case"},
+		{"do_nothing", "do_nothing"},
 
 		{"JSONHTTPRPCServer", "jsonhttprpc_server"}, // nothing can be done here without a dictionary
 	} {

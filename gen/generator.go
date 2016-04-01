@@ -303,6 +303,7 @@ func camelToSnake(name string) string {
 
 	multipleUpper := false
 	var lastUpper rune
+	var beforeUpper rune
 
 	for _, c := range name {
 		// Non-lowercase character after uppercase is considered to be uppercase too.
@@ -316,7 +317,7 @@ func camelToSnake(name string) string {
 			firstInRow := !multipleUpper
 			lastInRow := !isUpper
 
-			if ret.Len() > 0 && (firstInRow || lastInRow) {
+			if ret.Len() > 0 && (firstInRow || lastInRow) && beforeUpper != '_' {
 				ret.WriteByte('_')
 			}
 			ret.WriteRune(unicode.ToLower(lastUpper))
@@ -332,6 +333,7 @@ func camelToSnake(name string) string {
 
 		ret.WriteRune(c)
 		lastUpper = 0
+		beforeUpper = c
 		multipleUpper = false
 	}
 
