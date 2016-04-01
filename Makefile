@@ -17,7 +17,11 @@ build:
 	go build -i -o .root/bin/easyjson $(PKG)/easyjson
 
 generate: root build
-	.root/bin/easyjson -stubs .root/src/$(PKG)/tests/{snake,omitempty,data}.go
+	.root/bin/easyjson -stubs \
+		.root/src/$(PKG)/tests/snake.go \
+		.root/src/$(PKG)/tests/data.go \
+		.root/src/$(PKG)/tests/omitempty.go
+
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/data.go 
 	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go 
 	.root/bin/easyjson -omit_empty .root/src/$(PKG)/tests/omitempty.go 
@@ -25,10 +29,14 @@ generate: root build
 
 test: generate root
 	go test $(PKG)/{tests,jlexer,gen}
-	@go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
+	go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
+
+bench-other: generate root
 	@go test -benchmem -bench . $(PKG)/benchmark
 	@go test -benchmem -tags use_ffjson -bench . $(PKG)/benchmark
 	@go test -benchmem -tags use_codec -bench . $(PKG)/benchmark
+
+bench-python:
 	benchmark/ujson.sh
 
 
