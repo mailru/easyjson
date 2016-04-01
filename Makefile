@@ -28,7 +28,10 @@ generate: root build
 	.root/bin/easyjson -build_tags=use_easyjson .root/src/$(PKG)/benchmark/data.go
 
 test: generate root
-	go test $(PKG)/{tests,jlexer,gen}
+	go test \
+		$(PKG)/tests \
+		$(PKG)/jlexer \
+		$(PKG)/gen
 	go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
 
 bench-other: generate root
