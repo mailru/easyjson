@@ -212,6 +212,10 @@ func (g *Generator) pkgAlias(pkgPath string) string {
 
 // getType return the textual type name of given type that can be used in generated code.
 func (g *Generator) getType(t reflect.Type) string {
+	if t.Kind() == reflect.Ptr {
+		return "*" + g.getType(t.Elem())
+	}
+
 	if t.Name() == "" || t.PkgPath() == "" {
 		return t.String()
 	} else if t.PkgPath() == g.pkgPath {

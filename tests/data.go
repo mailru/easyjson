@@ -184,6 +184,12 @@ type Structs struct {
 	Sub2   *SubStruct
 	SubNil *SubStruct
 
+	SubSlice    []SubStruct
+	SubSliceNil []SubStruct
+
+	SubPtrSlice    []*SubStruct
+	SubPtrSliceNil []*SubStruct
+
 	SubA1 SubStructAlias
 	SubA2 *SubStructAlias
 
@@ -194,6 +200,10 @@ type Structs struct {
 	Anonymous1 *struct {
 		V string
 	}
+
+	AnonymousSlice    []struct{ V int }
+	AnonymousPtrSlice []*struct{ V int }
+
 	unexported bool
 }
 
@@ -204,6 +214,16 @@ var structsValue = Structs{
 	Sub1: SubStruct{Value: "test1", Value2: "v"},
 	Sub2: &SubStruct{Value: "test2", Value2: "v2"},
 
+	SubSlice: []SubStruct{
+		{Value: "s1"},
+		{Value: "s2"},
+	},
+
+	SubPtrSlice: []*SubStruct{
+		{Value: "p1"},
+		{Value: "p2"},
+	},
+
 	SubA1: SubStructAlias{Value: "test3", Value2: "v3"},
 	SubA2: &SubStructAlias{Value: "test4", Value2: "v4"},
 
@@ -211,9 +231,13 @@ var structsValue = Structs{
 		V string
 		I int
 	}{V: "bla", I: 5},
+
 	Anonymous1: &struct {
 		V string
 	}{V: "bla1"},
+
+	AnonymousSlice:    []struct{ V int }{{1}, {2}},
+	AnonymousPtrSlice: []*struct{ V int }{{3}, {4}},
 }
 
 var structsString = "{" +
@@ -223,11 +247,20 @@ var structsString = "{" +
 	`"Sub2":{"Value":"test2","Value2":"v2"},` +
 	`"SubNil":null,` +
 
+	`"SubSlice":[{"Value":"s1","Value2":""},{"Value":"s2","Value2":""}],` +
+	`"SubSliceNil":[],` +
+
+	`"SubPtrSlice":[{"Value":"p1","Value2":""},{"Value":"p2","Value2":""}],` +
+	`"SubPtrSliceNil":[],` +
+
 	`"SubA1":{"Value":"test3","Value2":"v3"},` +
 	`"SubA2":{"Value":"test4","Value2":"v4"},` +
 
 	`"Anonymous":{"V":"bla","I":5},` +
 	`"Anonymous1":{"V":"bla1"},` +
+
+	`"AnonymousSlice":[{"V":1},{"V":2}],` +
+	`"AnonymousPtrSlice":[{"V":3},{"V":4}],` +
 
 	// Embedded fields go last.
 	`"Value":"test"` +
