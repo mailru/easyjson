@@ -17,7 +17,7 @@ func getPkgPath(fname string) (string, error) {
 	}
 
 	for _, p := range strings.Split(os.Getenv("GOPATH"), ":") {
-		prefix := p + "/src/"
+		prefix := path.Join(p, "src") + "/"
 		if rel := strings.TrimPrefix(fname, prefix); rel != fname {
 			return path.Dir(rel), nil
 		}
