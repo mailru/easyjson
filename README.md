@@ -1,4 +1,4 @@
-# easyjson
+# easyjson [![Build Status](https://travis-ci.org/mailru/easyjson.svg?branch=master)](https://travis-ci.org/mailru/easyjson)
 
 easyjson allows to (un-)marshal JSON golang structs without the use of reflection by generating marshaller code.  
 
@@ -14,13 +14,17 @@ This will generate `<file>_easyjson.go` with marshaller/unmarshaller methods for
 
 ## options
 ```
-Usage of easyjson:
+Usage of .root/bin/easyjson:
   -all
         generate un-/marshallers for all structs in a file
   -build_tags string
         build tags to add to generated file
   -leave_temps
         do not delete temporary files
+  -no_std_marshalers
+        don't generate MarshalJSON/UnmarshalJSON methods
+  -noformat
+        do not run 'gofmt -w' on output file
   -omit_empty
         omit empty fields by default
   -snake_case
@@ -63,7 +67,7 @@ The buffer code is in `easyjson/buffer` package the exact values can be tweaked 
 
 ## limitations
 * The library is at an early stage, there are likely to be some bugs and some features of 'encoding/json' may not be supported. Please report such cases, so that they may be fixed sooner.
-* Unsafe package is used by the code. While a non-unsafe version of easyjson can be made in the future, using unsafe package simplifies a lot of code by allowing to use 'switch' for filling out structs and working around limitations of standard functions like 'strconv.ParseInt'.
+* Unsafe package is used by the code. While a non-unsafe version of easyjson can be made in the future, using unsafe package simplifies a lot of code by allowing no-copy []byte to string conversion within the library. This is used only during parsing and all the returned values are allocated properly.
 * Floats are currently formatted with default precision for 'strconv' package. It is obvious that it is not always the correct way to handle it, but there aren't enough use-cases for floats at hand to do anything better.
 * During parsing, parts of JSON that are skipped over are not syntactically validated more than required to skip matching parentheses.
 * No true streaming support for encoding/decoding. For many use-cases and protocols, data length is typically known on input and needs to be known before sending the data.
