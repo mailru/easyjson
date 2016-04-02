@@ -112,13 +112,22 @@ func TestSkipRecursive(t *testing.T) {
 	}{
 		{toParse: "5, 4", left: ", 4"},
 		{toParse: "[5, 6], 4", left: ", 4"},
+		{toParse: "[5, [7,8]]: 4", left: ": 4"},
+
+		{toParse: `{"a":1}, 4`, left: ", 4"},
+		{toParse: `{"a":1, "b":{"c": 5}, "e":[12,15]}, 4`, left: ", 4"},
+
+		// array start/end chars in a string
 		{toParse: `[5, "]"], 4`, left: ", 4"},
 		{toParse: `[5, "\"]"], 4`, left: ", 4"},
-		{toParse: "[5, [7,8]]: 4", left: ": 4"},
-		{toParse: `{"a":1}, 4`, left: ", 4"},
+		{toParse: `[5, "["], 4`, left: ", 4"},
+		{toParse: `[5, "\"["], 4`, left: ", 4"},
+
+		// object start/end chars in a string
 		{toParse: `{"a}":1}, 4`, left: ", 4"},
 		{toParse: `{"a\"}":1}, 4`, left: ", 4"},
-		{toParse: `{"a":1, "b":{"c": 5}, "e":[12,15]}, 4`, left: ", 4"},
+		{toParse: `{"a{":1}, 4`, left: ", 4"},
+		{toParse: `{"a\"{":1}, 4`, left: ", 4"},
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 

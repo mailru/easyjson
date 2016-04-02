@@ -482,7 +482,7 @@ func (r *Lexer) SkipRecursive() {
 
 	for i, c := range r.Data[r.pos:] {
 		switch {
-		case c == start:
+		case c == start && !inQuotes:
 			level++
 		case c == end && !inQuotes:
 			level--
