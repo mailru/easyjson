@@ -158,14 +158,14 @@ func (b *Buffer) Size() int {
 func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
 	var n int
 	for _, buf := range b.bufs {
-		if err != nil {
+		if err == nil {
 			n, err = w.Write(buf)
 			written += n
 		}
 		putBuf(buf)
 	}
 
-	if err != nil {
+	if err == nil {
 		n, err = w.Write(b.Buf)
 		written += n
 	}

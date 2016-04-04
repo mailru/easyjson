@@ -31,7 +31,8 @@ test: generate root
 	go test \
 		$(PKG)/tests \
 		$(PKG)/jlexer \
-		$(PKG)/gen
+		$(PKG)/gen \
+		$(PKG)/buffer
 	go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
 
 bench-other: generate root
