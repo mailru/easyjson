@@ -185,7 +185,11 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
 
-	for _, f := range getStructFields(t) {
+	fs, err := getStructFields(t)
+	if err != nil {
+		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
+	}
+	for _, f := range fs {
 		if err := g.genStructFieldEncoder(t, f); err != nil {
 			return err
 		}

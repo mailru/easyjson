@@ -162,7 +162,11 @@ func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect
 	return
 }
 
-func getStructFields(t reflect.Type) []reflect.StructField {
+func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
+	if t.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("got %v; expected a struct", t)
+	}
+
 	var efields []reflect.StructField
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -170,7 +174,16 @@ func getStructFields(t reflect.Type) []reflect.StructField {
 			continue
 		}
 
-		efields = mergeStructFields(efields, getStructFields(f.Type))
+		t1 := f.Type
+		if t1.Kind() == reflect.Ptr {
+			t1 = t1.Elem()
+		}
+
+		fs, err := getStructFields(t1)
+		if err != nil {
+			return nil, fmt.Errorf("error processing embedded field: %v", err)
+		}
+		efields = mergeStructFields(efields, fs)
 	}
 
 	var fields []reflect.StructField
@@ -185,7 +198,7 @@ func getStructFields(t reflect.Type) []reflect.StructField {
 			fields = append(fields, f)
 		}
 	}
-	return mergeStructFields(efields, fields)
+	return mergeStructFields(efields, fields), nil
 }
 
 func (g *Generator) genStructDecoder(t reflect.Type) error {
@@ -197,6 +210,16 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
+
+	// Init embedded pointer fields.
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if !f.Anonymous || f.Type.Kind() != reflect.Ptr {
+			continue
+		}
+		fmt.Fprintln(g.out, "  out."+f.Name+" = new("+g.getType(f.Type.Elem())+")")
+	}
+
 	fmt.Fprintln(g.out, "  in.Delim('{')")
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
 	fmt.Fprintln(g.out, "    key := in.UnsafeString()")
@@ -208,7 +231,12 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "    }")
 	fmt.Fprintln(g.out, "    switch key {")
 
-	for _, f := range getStructFields(t) {
+	fs, err := getStructFields(t)
+	if err != nil {
+		return fmt.Errorf("cannot generate decoder for %v: %v", t, err)
+	}
+
+	for _, f := range fs {
 		if err := g.genStructFieldDecoder(t, f); err != nil {
 			return err
 		}

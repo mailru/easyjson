@@ -174,10 +174,16 @@ type SubStruct struct {
 	unexpored bool
 }
 
+type SubP struct {
+	V string
+}
+
 type SubStructAlias SubStruct
 
 type Structs struct {
 	SubStruct
+	*SubP
+
 	Value2 int
 
 	Sub1   SubStruct `json:"substruct"`
@@ -209,7 +215,9 @@ type Structs struct {
 
 var structsValue = Structs{
 	SubStruct: SubStruct{Value: "test"},
-	Value2:    5,
+	SubP:      &SubP{V: "subp"},
+
+	Value2: 5,
 
 	Sub1: SubStruct{Value: "test1", Value2: "v"},
 	Sub2: &SubStruct{Value: "test2", Value2: "v2"},
@@ -263,6 +271,7 @@ var structsString = "{" +
 	`"AnonymousPtrSlice":[{"V":3},{"V":4}],` +
 
 	// Embedded fields go last.
+	`"V":"subp",` +
 	`"Value":"test"` +
 	"}"
 
