@@ -156,11 +156,11 @@ func (w *Writer) String(s string) {
 			}
 		}
 		if escape != 0 {
-			w.Buffer.AppendString(s[p:])
+			w.Buffer.AppendString(s[p:i])
 			w.Buffer.AppendByte('\\')
 			w.Buffer.AppendByte(escape)
 		} else {
-			w.Buffer.AppendString(s[p:])
+			w.Buffer.AppendString(s[p:i])
 			w.Buffer.AppendString(`\u00`)
 			w.Buffer.AppendByte(hex(c >> 4))
 			w.Buffer.AppendByte(hex(c))
