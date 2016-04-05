@@ -141,7 +141,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	}
 }
 
-func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField, last bool) error {
 	jsonName := g.namer.GetJSONFieldName(t, f)
 	omitEmpty := g.omitEmpty
 
@@ -154,19 +154,22 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	}
 
 	if !omitEmpty {
-		fmt.Fprintln(g.out, "  if !first { out.RawByte(',') }")
-		fmt.Fprintln(g.out, "  first = false")
 		fmt.Fprintf(g.out, "  out.RawString(%q)\n", strconv.Quote(jsonName)+":")
-		return g.genTypeEncoder(f.Type, "in."+f.Name, 1)
+		err := g.genTypeEncoder(f.Type, "in."+f.Name, 1)
+		if !last {
+			fmt.Fprintln(g.out, "  out.RawByte(',')")
+		}
+		return err
 	}
 
 	fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
-	fmt.Fprintln(g.out, "    if !first { out.RawByte(',') }")
-	fmt.Fprintln(g.out, "    first = false")
 
 	fmt.Fprintf(g.out, "    out.RawString(%q)\n", strconv.Quote(jsonName)+":")
 	if err := g.genTypeEncoder(f.Type, "in."+f.Name, 2); err != nil {
 		return err
+	}
+	if !last {
+		fmt.Fprintln(g.out, "  out.RawByte(',')")
 	}
 	fmt.Fprintln(g.out, "  }")
 	return nil
@@ -182,15 +185,13 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in *"+typ+") {")
 	fmt.Fprintln(g.out, "  out.RawByte('{')")
-	fmt.Fprintln(g.out, "  first := true")
-	fmt.Fprintln(g.out, "  _ = first")
 
 	fs, err := getStructFields(t)
 	if err != nil {
 		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
 	}
-	for _, f := range fs {
-		if err := g.genStructFieldEncoder(t, f); err != nil {
+	for i, f := range fs {
+		if err := g.genStructFieldEncoder(t, f, i == len(fs)-1); err != nil {
 			return err
 		}
 	}
