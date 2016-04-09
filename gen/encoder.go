@@ -146,9 +146,16 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	omitEmpty := g.omitEmpty
 
 	for i, s := range strings.Split(f.Tag.Get("json"), ",") {
-		if i > 0 && s == "omitempty" {
+		if i == 0 {
+			if s == "-" {
+				return nil
+			}
+			continue
+		}
+
+		if s == "omitempty" {
 			omitEmpty = true
-		} else if i > 0 && s == "!omitempty" {
+		} else if s == "!omitempty" {
 			omitEmpty = false
 		}
 	}
