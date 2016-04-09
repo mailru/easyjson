@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"encoding/json"
+
 	"github.com/mailru/easyjson"
 )
 
@@ -27,6 +28,7 @@ var testCases = []struct {
 	{&rawValue, rawString},
 	{&stdMarshalerValue, stdMarshalerString},
 	{&unexportedStructValue, unexportedStructString},
+	{&excludedFieldValue, excludedFieldString},
 }
 
 func TestMarshal(t *testing.T) {
