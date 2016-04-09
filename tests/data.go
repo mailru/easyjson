@@ -362,3 +362,14 @@ type unexportedStruct struct {
 
 var unexportedStructValue = unexportedStruct{"test"}
 var unexportedStructString = `{"Value":"test"}`
+
+type ExcludedField struct {
+	Process      bool `json:"process"`
+	DoNotProcess bool `json:"-"`
+}
+
+var excludedFieldValue = ExcludedField{
+	Process:      true,
+	DoNotProcess: false,
+}
+var excludedFieldString = `{"process":true}`
