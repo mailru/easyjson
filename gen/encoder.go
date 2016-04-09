@@ -73,7 +73,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		enc := g.getStructEncoderName(t)
 		g.addType(t)
 
-		fmt.Fprintln(g.out, ws+enc+"(out, &"+in+")")
+		fmt.Fprintln(g.out, ws+enc+"(out, "+in+")")
 
 	case reflect.Ptr:
 		fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
@@ -180,7 +180,7 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	fname := g.getStructEncoderName(t)
 	typ := g.getType(t)
 
-	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in *"+typ+") {")
+	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
 	fmt.Fprintln(g.out, "  out.RawByte('{')")
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
@@ -210,14 +210,14 @@ func (g *Generator) genStructMarshaller(t reflect.Type) error {
 	typ := g.getType(t)
 
 	if !g.noStdMarshalers {
-		fmt.Fprintln(g.out, "func (v *"+typ+") MarshalJSON() ([]byte, error) {")
+		fmt.Fprintln(g.out, "func (v "+typ+") MarshalJSON() ([]byte, error) {")
 		fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
 		fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
 		fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), w.Error")
 		fmt.Fprintln(g.out, "}")
 	}
 
-	fmt.Fprintln(g.out, "func (v *"+typ+") MarshalEasyJSON(w *jwriter.Writer) {")
+	fmt.Fprintln(g.out, "func (v "+typ+") MarshalEasyJSON(w *jwriter.Writer) {")
 	fmt.Fprintln(g.out, "  "+fname+"(w, v)")
 	fmt.Fprintln(g.out, "}")
 
