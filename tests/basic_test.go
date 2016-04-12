@@ -29,6 +29,7 @@ var testCases = []struct {
 	{&stdMarshalerValue, stdMarshalerString},
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
+	{&mapsValue, mapsString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -56,7 +57,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(v, test.Decoded) {
-			t.Errorf("[%d, %T] UnmarshalJSON(): got \n%+v\n\t\t want \n%+v", i, test.Decoded, v, test.Encoded)
+			t.Errorf("[%d, %T] UnmarshalJSON(): got \n%+v\n\t\t want \n%+v", i, test.Decoded, v, test.Decoded)
 		}
 	}
 }

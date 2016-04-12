@@ -373,3 +373,20 @@ var excludedFieldValue = ExcludedField{
 	DoNotProcess: false,
 }
 var excludedFieldString = `{"process":true}`
+
+type Maps struct {
+	Map          map[string]string
+	InterfaceMap map[string]interface{}
+	NilMap       map[string]string
+}
+
+var mapsValue = Maps{
+	Map:          map[string]string{"A": "b"}, // only one item since map iteration is randomized
+	InterfaceMap: map[string]interface{}{"G": 1},
+}
+
+var mapsString = `{` +
+	`"Map":{"A":"b"},` +
+	`"InterfaceMap":{"G":1},` +
+	`"NilMap":null` +
+	`}`

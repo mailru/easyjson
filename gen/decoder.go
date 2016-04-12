@@ -108,24 +108,28 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 		elem := t.Elem()
 		tmpVar := g.uniqueVarName()
 
-		fmt.Fprintln(g.out, ws+"in.Delim('{')")
-		fmt.Fprintln(g.out, ws+"if !in.IsDelim('}') {")
-		fmt.Fprintln(g.out, ws+out+" = make("+g.getType(t)+")")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
 		fmt.Fprintln(g.out, ws+"} else {")
-		fmt.Fprintln(g.out, ws+out+" = nil")
+		fmt.Fprintln(g.out, ws+"  in.Delim('{')")
+		fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
+		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+")")
+		fmt.Fprintln(g.out, ws+"  } else {")
+		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
+		fmt.Fprintln(g.out, ws+"  }")
+
+		fmt.Fprintln(g.out, ws+"  for !in.IsDelim('}') {")
+		fmt.Fprintln(g.out, ws+"    key := in.String()")
+		fmt.Fprintln(g.out, ws+"    in.WantColon()")
+		fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
+
+		g.genTypeDecoder(elem, tmpVar, indent+2)
+
+		fmt.Fprintln(g.out, ws+"    ("+out+")[key] = "+tmpVar)
+		fmt.Fprintln(g.out, ws+"    in.WantComma()")
+		fmt.Fprintln(g.out, ws+"  }")
+		fmt.Fprintln(g.out, ws+"  in.Delim('}')")
 		fmt.Fprintln(g.out, ws+"}")
-
-		fmt.Fprintln(g.out, ws+"for !in.IsDelim('}') {")
-		fmt.Fprintln(g.out, ws+"  key := in.String()")
-		fmt.Fprintln(g.out, ws+"  in.WantColon()")
-		fmt.Fprintln(g.out, ws+"  var "+tmpVar+" "+g.getType(elem))
-
-		g.genTypeDecoder(elem, tmpVar, indent+1)
-
-		fmt.Fprintln(g.out, ws+"  ("+out+")[key] = "+tmpVar)
-		fmt.Fprintln(g.out, ws+"  in.WantComma()")
-		fmt.Fprintln(g.out, ws+"}")
-		fmt.Fprintln(g.out, ws+"in.Delim('}')")
 
 	case reflect.Interface:
 		if t.NumMethod() != 0 {

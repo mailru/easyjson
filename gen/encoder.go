@@ -91,17 +91,22 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		}
 		tmpVar := g.uniqueVarName()
 
-		fmt.Fprintln(g.out, ws+"out.RawByte('{')")
-		fmt.Fprintln(g.out, ws+tmpVar+"_first := true")
-		fmt.Fprintln(g.out, ws+"for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
-		fmt.Fprintln(g.out, ws+"  if !"+tmpVar+"_first { out.RawByte(',') }")
-		fmt.Fprintln(g.out, ws+"  "+tmpVar+"_first = false")
-		fmt.Fprintln(g.out, ws+"  out.String("+tmpVar+"_name)")
+		fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
+		fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
+		fmt.Fprintln(g.out, ws+"  "+tmpVar+"_first := true")
+		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
+		fmt.Fprintln(g.out, ws+"    if !"+tmpVar+"_first { out.RawByte(',') }")
+		fmt.Fprintln(g.out, ws+"    "+tmpVar+"_first = false")
+		fmt.Fprintln(g.out, ws+"    out.String("+tmpVar+"_name)")
+		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
-		g.genTypeEncoder(t.Elem(), tmpVar+"_value", indent+1)
+		g.genTypeEncoder(t.Elem(), tmpVar+"_value", indent+2)
 
+		fmt.Fprintln(g.out, ws+"  }")
+		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
 		fmt.Fprintln(g.out, ws+"}")
-		fmt.Fprintln(g.out, ws+"out.RawByte('}')")
 
 	case reflect.Interface:
 		if t.NumMethod() != 0 {
