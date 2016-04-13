@@ -214,6 +214,10 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
+	fmt.Fprintln(g.out, "  if in.IsNull() {")
+	fmt.Fprintln(g.out, "    in.Skip()")
+	fmt.Fprintln(g.out, "    return")
+	fmt.Fprintln(g.out, "  }")
 
 	// Init embedded pointer fields.
 	for i := 0; i < t.NumField(); i++ {
