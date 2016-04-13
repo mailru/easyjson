@@ -382,7 +382,7 @@ type Maps struct {
 
 var mapsValue = Maps{
 	Map:          map[string]string{"A": "b"}, // only one item since map iteration is randomized
-	InterfaceMap: map[string]interface{}{"G": 1},
+	InterfaceMap: map[string]interface{}{"G": float64(1)},
 }
 
 var mapsString = `{` +
