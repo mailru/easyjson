@@ -99,7 +99,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
 		fmt.Fprintln(g.out, ws+"    if !"+tmpVar+"_first { out.RawByte(',') }")
 		fmt.Fprintln(g.out, ws+"    "+tmpVar+"_first = false")
-		fmt.Fprintln(g.out, ws+"    out.String("+tmpVar+"_name)")
+		fmt.Fprintln(g.out, ws+"    out.String(string("+tmpVar+"_name))")
 		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
 		g.genTypeEncoder(t.Elem(), tmpVar+"_value", indent+2)
