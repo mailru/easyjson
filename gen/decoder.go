@@ -34,7 +34,21 @@ var primitiveDecoders = map[reflect.Kind]string{
 	reflect.Float64: "in.Float64()",
 }
 
-func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error {
+var primitiveStringDecoders = map[reflect.Kind]string{
+	reflect.Int:    "in.IntStr()",
+	reflect.Int8:   "in.Int8Str()",
+	reflect.Int16:  "in.Int16Str()",
+	reflect.Int32:  "in.Int32Str()",
+	reflect.Int64:  "in.Int64Str()",
+	reflect.Uint:   "in.UintStr()",
+	reflect.Uint8:  "in.Uint8Str()",
+	reflect.Uint16: "in.Uint16Str()",
+	reflect.Uint32: "in.Uint32Str()",
+	reflect.Uint64: "in.Uint64Str()",
+}
+
+// genTypeDecoder generates decoding code for the type t.
+func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
 	unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
@@ -52,7 +66,10 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 	}
 
 	// Check whether type is primitive, needs to be done after interface check.
-	if dec := primitiveDecoders[t.Kind()]; dec != "" {
+	if dec := primitiveStringDecoders[t.Kind()]; dec != "" && tags.asString {
+		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
+		return nil
+	} else if dec := primitiveDecoders[t.Kind()]; dec != "" {
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
 	}
@@ -76,7 +93,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 		fmt.Fprintln(g.out, ws+"for !in.IsDelim(']') {")
 		fmt.Fprintln(g.out, ws+"  var "+tmpVar+" "+g.getType(elem))
 
-		g.genTypeDecoder(elem, tmpVar, indent+1)
+		g.genTypeDecoder(elem, tmpVar, tags, indent+1)
 
 		fmt.Fprintln(g.out, ws+"  "+out+" = append("+out+", "+tmpVar+")")
 		fmt.Fprintln(g.out, ws+"  in.WantComma()")
@@ -96,7 +113,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = new("+g.getType(t.Elem())+")")
 
-		g.genTypeDecoder(t.Elem(), "*"+out, indent+1)
+		g.genTypeDecoder(t.Elem(), "*"+out, tags, indent+1)
 
 		fmt.Fprintln(g.out, ws+"}")
 
@@ -123,7 +140,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 		fmt.Fprintln(g.out, ws+"    in.WantColon()")
 		fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-		g.genTypeDecoder(elem, tmpVar, indent+2)
+		g.genTypeDecoder(elem, tmpVar, tags, indent+2)
 
 		fmt.Fprintln(g.out, ws+"    ("+out+")[key] = "+tmpVar)
 		fmt.Fprintln(g.out, ws+"    in.WantComma()")
@@ -146,9 +163,10 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, indent int) error
 
 func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
 	jsonName := g.namer.GetJSONFieldName(t, f)
+	tags := parseFieldTags(f)
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
-	return g.genTypeDecoder(f.Type, "out."+f.Name, 3)
+	return g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3)
 }
 
 func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect.StructField) {

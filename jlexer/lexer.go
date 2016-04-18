@@ -663,6 +663,94 @@ func (r *Lexer) Int() int {
 	return int(r.Int64())
 }
 
+func (r *Lexer) Uint8Str() uint8 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 8)
+	return uint8(n)
+}
+
+func (r *Lexer) Uint16Str() uint16 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 16)
+	return uint16(n)
+}
+
+func (r *Lexer) Uint32Str() uint32 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 32)
+	return uint32(n)
+}
+
+func (r *Lexer) Uint64Str() uint64 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 64)
+	return n
+}
+
+func (r *Lexer) UintStr() uint {
+	return uint(r.Uint64Str())
+}
+
+func (r *Lexer) Int8Str() int8 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 8)
+	return int8(n)
+}
+
+func (r *Lexer) Int16Str() int16 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 16)
+	return int16(n)
+}
+
+func (r *Lexer) Int32Str() int32 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 32)
+	return int32(n)
+}
+
+func (r *Lexer) Int64Str() int64 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 64)
+	return n
+}
+
+func (r *Lexer) IntStr() int {
+	return int(r.Int64Str())
+}
+
 func (r *Lexer) Float32() float32 {
 	s := r.number()
 	if !r.Ok() {

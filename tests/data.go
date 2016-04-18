@@ -25,6 +25,18 @@ type PrimitiveTypes struct {
 	Uint32 uint32
 	Uint64 uint64
 
+	IntString   int   `json:",string"`
+	Int8String  int8  `json:",string"`
+	Int16String int16 `json:",string"`
+	Int32String int32 `json:",string"`
+	Int64String int64 `json:",string"`
+
+	UintString   uint   `json:",string"`
+	Uint8String  uint8  `json:",string"`
+	Uint16String uint16 `json:",string"`
+	Uint32String uint32 `json:",string"`
+	Uint64String uint64 `json:",string"`
+
 	Float32 float32
 	Float64 float64
 
@@ -49,6 +61,18 @@ var primitiveTypesValue = PrimitiveTypes{
 	Uint32: math.MaxUint32,
 	Uint64: math.MaxUint64,
 
+	IntString:   math.MinInt32,
+	Int8String:  math.MinInt8,
+	Int16String: math.MinInt16,
+	Int32String: math.MinInt32,
+	Int64String: math.MinInt64,
+
+	UintString:   math.MaxUint32,
+	Uint8String:  math.MaxUint8,
+	Uint16String: math.MaxUint16,
+	Uint32String: math.MaxUint32,
+	Uint64String: math.MaxUint64,
+
 	Float32: 1.5,
 	Float64: math.MaxFloat64,
 
@@ -69,6 +93,18 @@ var primitiveTypesString = "{" +
 	`"Uint16":` + fmt.Sprint(math.MaxUint16) + `,` +
 	`"Uint32":` + fmt.Sprint(math.MaxUint32) + `,` +
 	`"Uint64":` + fmt.Sprint(uint64(math.MaxUint64)) + `,` +
+
+	`"IntString":"` + fmt.Sprint(math.MinInt32) + `",` +
+	`"Int8String":"` + fmt.Sprint(math.MinInt8) + `",` +
+	`"Int16String":"` + fmt.Sprint(math.MinInt16) + `",` +
+	`"Int32String":"` + fmt.Sprint(math.MinInt32) + `",` +
+	`"Int64String":"` + fmt.Sprint(int64(math.MinInt64)) + `",` +
+
+	`"UintString":"` + fmt.Sprint(math.MaxUint32) + `",` +
+	`"Uint8String":"` + fmt.Sprint(math.MaxUint8) + `",` +
+	`"Uint16String":"` + fmt.Sprint(math.MaxUint16) + `",` +
+	`"Uint32String":"` + fmt.Sprint(math.MaxUint32) + `",` +
+	`"Uint64String":"` + fmt.Sprint(uint64(math.MaxUint64)) + `",` +
 
 	`"Float32":` + fmt.Sprint(1.5) + `,` +
 	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
