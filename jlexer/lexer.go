@@ -53,6 +53,12 @@ func (r *Lexer) fetchToken() {
 	r.token.kind = tokenUndef
 	r.start = r.pos
 
+	// Check if r.Data has r.pos element
+	// If it doesn't, it mean corrupted input data
+	if len(r.Data) < r.pos {
+		r.errParse("Unexpected end of data")
+		return
+	}
 	// Determine the type of a token by skipping whitespace and reading the
 	// first character.
 	for _, c := range r.Data[r.pos:] {
