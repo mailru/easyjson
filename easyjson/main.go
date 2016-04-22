@@ -7,6 +7,10 @@ import (
 	"strings"
 
 	"github.com/mailru/easyjson/bootstrap"
+	// Reference the gen package to be friendly to vendoring tools,
+	// as it is an indirect dependency.
+	// (The temporary bootstrapping code uses it.)
+	_ "github.com/mailru/easyjson/gen"
 	"github.com/mailru/easyjson/parser"
 )
 
