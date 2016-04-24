@@ -14,7 +14,7 @@ import (
 const minSliceBytes = 64
 
 func (g *Generator) getStructDecoderName(t reflect.Type) string {
-	return g.functionName("easyjson_decode_", t)
+	return g.functionName("decode_", t)
 }
 
 var primitiveDecoders = map[reflect.Kind]string{

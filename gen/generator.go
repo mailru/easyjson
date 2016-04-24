@@ -3,6 +3,7 @@ package gen
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"path"
 	"reflect"
@@ -23,9 +24,10 @@ type FieldNamer interface {
 type Generator struct {
 	out *bytes.Buffer
 
-	pkgName   string
-	pkgPath   string
-	buildTags string
+	pkgName    string
+	pkgPath    string
+	buildTags  string
+	funcPrefix string
 
 	varCounter int
 
@@ -51,8 +53,8 @@ type Generator struct {
 }
 
 // NewGenerator initializes and returns a Generator.
-func NewGenerator() *Generator {
-	return &Generator{
+func NewGenerator(filename string) *Generator {
+	ret := &Generator{
 		imports: map[string]string{
 			pkgWriter:       "jwriter",
 			pkgLexer:        "jlexer",
@@ -63,6 +65,14 @@ func NewGenerator() *Generator {
 		typesSeen:     make(map[reflect.Type]bool),
 		functionNames: make(map[string]reflect.Type),
 	}
+
+	// Use a file-unique prefix on all auxiliary functions to avoid
+	// name clashes.
+	hash := fnv.New32()
+	hash.Write([]byte(filename))
+	ret.funcPrefix = fmt.Sprintf("easyjson_%x_", hash.Sum32())
+
+	return ret
 }
 
 // SetPkg sets the name and path of output package.
@@ -257,6 +267,7 @@ func safeName(t reflect.Type) string {
 //
 // Method is used to track encoder/decoder names for the type.
 func (g *Generator) functionName(prefix string, t reflect.Type) string {
+	prefix = g.funcPrefix + prefix
 	name := prefix + safeName(t)
 
 	// Most of the names will be unique, try a shortcut first.

@@ -95,7 +95,7 @@ func (g *Generator) writeMain() (path string, err error) {
 	fmt.Fprintln(f, ")")
 	fmt.Fprintln(f)
 	fmt.Fprintln(f, "func main() {")
-	fmt.Fprintln(f, "  g := gen.NewGenerator()")
+	fmt.Fprintf(f, "  g := gen.NewGenerator(%q)\n", filepath.Base(g.OutName))
 	fmt.Fprintf(f, "  g.SetPkg(%q, %q)\n", g.PkgName, g.PkgPath)
 	if g.BuildTags != "" {
 		fmt.Fprintf(f, "  g.SetBuildTags(%q)\n", g.BuildTags)

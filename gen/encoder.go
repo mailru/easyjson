@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Generator) getStructEncoderName(t reflect.Type) string {
-	return g.functionName("easyjson_encode_", t)
+	return g.functionName("encode_", t)
 }
 
 var primitiveEncoders = map[reflect.Kind]string{
