@@ -95,7 +95,7 @@ func (g *Generator) writeMain() (path string, err error) {
 	fmt.Fprintln(f, ")")
 	fmt.Fprintln(f)
 	fmt.Fprintln(f, "func main() {")
-	fmt.Fprintln(f, "  g := gen.NewGenerator()")
+	fmt.Fprintf(f, "  g := gen.NewGenerator(%q)\n", filepath.Base(g.OutName))
 	fmt.Fprintf(f, "  g.SetPkg(%q, %q)\n", g.PkgName, g.PkgPath)
 	if g.BuildTags != "" {
 		fmt.Fprintf(f, "  g.SetBuildTags(%q)\n", g.BuildTags)
@@ -119,9 +119,13 @@ func (g *Generator) writeMain() (path string, err error) {
 	fmt.Fprintln(f, "  }")
 	fmt.Fprintln(f, "}")
 
-	p := f.Name()
-	os.Rename(p, p+".go")
-	return p + ".go", f.Close()
+	src := f.Name()
+	if err := f.Close(); err != nil {
+		return src, err
+	}
+
+	dest := src + ".go"
+	return dest, os.Rename(src, dest)
 }
 
 func (g *Generator) Run() error {
@@ -144,7 +148,6 @@ func (g *Generator) Run() error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 	if !g.LeaveTemps {
 		defer os.Remove(f.Name()) // will not remove after rename
 	}
@@ -155,6 +158,8 @@ func (g *Generator) Run() error {
 	if err = cmd.Run(); err != nil {
 		return err
 	}
+
+	f.Close()
 
 	if !g.NoFormat {
 		cmd = exec.Command("gofmt", "-w", f.Name())

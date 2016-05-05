@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Generator) getStructEncoderName(t reflect.Type) string {
-	return g.functionName("easyjson_encode_", t)
+	return g.functionName("encode_", t)
 }
 
 var primitiveEncoders = map[reflect.Kind]string{
@@ -31,7 +31,53 @@ var primitiveEncoders = map[reflect.Kind]string{
 	reflect.Float64: "out.Float64(float64(%v))",
 }
 
-func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error {
+var primitiveStringEncoders = map[reflect.Kind]string{
+	reflect.Int:    "out.IntStr(int(%v))",
+	reflect.Int8:   "out.Int8Str(int8(%v))",
+	reflect.Int16:  "out.Int16Str(int16(%v))",
+	reflect.Int32:  "out.Int32Str(int32(%v))",
+	reflect.Int64:  "out.Int64Str(int64(%v))",
+	reflect.Uint:   "out.UintStr(uint(%v))",
+	reflect.Uint8:  "out.Uint8Str(uint8(%v))",
+	reflect.Uint16: "out.Uint16Str(uint16(%v))",
+	reflect.Uint32: "out.Uint32Str(uint32(%v))",
+	reflect.Uint64: "out.Uint64Str(uint64(%v))",
+}
+
+// fieldTags contains parsed version of json struct field tags.
+type fieldTags struct {
+	name string
+
+	omit        bool
+	omitEmpty   bool
+	noOmitEmpty bool
+	asString    bool
+}
+
+// parseFieldTags parses the json field tag into a structure.
+func parseFieldTags(f reflect.StructField) fieldTags {
+	var ret fieldTags
+
+	for i, s := range strings.Split(f.Tag.Get("json"), ",") {
+		switch {
+		case i == 0 && s == "-":
+			ret.omit = true
+		case i == 0:
+			ret.name = s
+		case s == "omitempty":
+			ret.omitEmpty = true
+		case s == "!omitempty":
+			ret.noOmitEmpty = true
+		case s == "string":
+			ret.asString = true
+		}
+	}
+
+	return ret
+}
+
+// genTypeEncoder generates code that encodes in of type t into the writer.
+func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
 	marshalerIface := reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()
@@ -47,7 +93,10 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 	}
 
 	// Check whether type is primitive, needs to be done after interface check.
-	if enc := primitiveEncoders[t.Kind()]; enc != "" {
+	if enc := primitiveStringEncoders[t.Kind()]; enc != "" && tags.asString {
+		fmt.Fprintf(g.out, ws+enc+"\n", in)
+		return nil
+	} else if enc := primitiveEncoders[t.Kind()]; enc != "" {
 		fmt.Fprintf(g.out, ws+enc+"\n", in)
 		return nil
 	}
@@ -64,7 +113,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		fmt.Fprintln(g.out, ws+"    out.RawByte(',')")
 		fmt.Fprintln(g.out, ws+"  }")
 
-		g.genTypeEncoder(elem, vVar, indent+1)
+		g.genTypeEncoder(elem, vVar, tags, indent+1)
 
 		fmt.Fprintln(g.out, ws+"}")
 		fmt.Fprintln(g.out, ws+"out.RawByte(']')")
@@ -80,7 +129,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		fmt.Fprintln(g.out, ws+`  out.RawString("null")`)
 		fmt.Fprintln(g.out, ws+"} else {")
 
-		g.genTypeEncoder(t.Elem(), "*"+in, indent+1)
+		g.genTypeEncoder(t.Elem(), "*"+in, tags, indent+1)
 
 		fmt.Fprintln(g.out, ws+"}")
 
@@ -91,17 +140,22 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, indent int) error 
 		}
 		tmpVar := g.uniqueVarName()
 
-		fmt.Fprintln(g.out, ws+"out.RawByte('{')")
-		fmt.Fprintln(g.out, ws+tmpVar+"_first := true")
-		fmt.Fprintln(g.out, ws+"for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
-		fmt.Fprintln(g.out, ws+"  if !"+tmpVar+"_first { out.RawByte(',') }")
-		fmt.Fprintln(g.out, ws+"  "+tmpVar+"_first = false")
-		fmt.Fprintln(g.out, ws+"  out.String("+tmpVar+"_name)")
+		fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
+		fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
+		fmt.Fprintln(g.out, ws+"  "+tmpVar+"_first := true")
+		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
+		fmt.Fprintln(g.out, ws+"    if !"+tmpVar+"_first { out.RawByte(',') }")
+		fmt.Fprintln(g.out, ws+"    "+tmpVar+"_first = false")
+		fmt.Fprintln(g.out, ws+"    out.String(string("+tmpVar+"_name))")
+		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
-		g.genTypeEncoder(t.Elem(), tmpVar+"_value", indent+1)
+		g.genTypeEncoder(t.Elem(), tmpVar+"_value", tags, indent+2)
 
+		fmt.Fprintln(g.out, ws+"  }")
+		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
 		fmt.Fprintln(g.out, ws+"}")
-		fmt.Fprintln(g.out, ws+"out.RawByte('}')")
 
 	case reflect.Interface:
 		if t.NumMethod() != 0 {
@@ -143,28 +197,16 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 
 func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField) error {
 	jsonName := g.namer.GetJSONFieldName(t, f)
-	omitEmpty := g.omitEmpty
+	tags := parseFieldTags(f)
 
-	for i, s := range strings.Split(f.Tag.Get("json"), ",") {
-		if i == 0 {
-			if s == "-" {
-				return nil
-			}
-			continue
-		}
-
-		if s == "omitempty" {
-			omitEmpty = true
-		} else if s == "!omitempty" {
-			omitEmpty = false
-		}
+	if tags.omit {
+		return nil
 	}
-
-	if !omitEmpty {
+	if !tags.omitEmpty && !g.omitEmpty || tags.noOmitEmpty {
 		fmt.Fprintln(g.out, "  if !first { out.RawByte(',') }")
 		fmt.Fprintln(g.out, "  first = false")
 		fmt.Fprintf(g.out, "  out.RawString(%q)\n", strconv.Quote(jsonName)+":")
-		return g.genTypeEncoder(f.Type, "in."+f.Name, 1)
+		return g.genTypeEncoder(f.Type, "in."+f.Name, tags, 1)
 	}
 
 	fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
@@ -172,7 +214,7 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	fmt.Fprintln(g.out, "    first = false")
 
 	fmt.Fprintf(g.out, "    out.RawString(%q)\n", strconv.Quote(jsonName)+":")
-	if err := g.genTypeEncoder(f.Type, "in."+f.Name, 2); err != nil {
+	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2); err != nil {
 		return err
 	}
 	fmt.Fprintln(g.out, "  }")

@@ -46,10 +46,15 @@ func (w *Writer) RawString(s string) {
 // RawByte appends raw binary data to the buffer or sets the error if it is given. Useful for
 // calling with results of MarshalJSON-like functions.
 func (w *Writer) Raw(data []byte, err error) {
-	if w.Error == nil && err != nil {
+	switch {
+	case w.Error != nil:
+		return
+	case err != nil:
 		w.Error = err
-	} else if w.Error == nil {
+	case len(data) > 0:
 		w.Buffer.AppendBytes(data)
+	default:
+		w.RawString("null")
 	}
 }
 
@@ -101,6 +106,76 @@ func (w *Writer) Int(n int) {
 func (w *Writer) Int64(n int64) {
 	w.Buffer.EnsureSpace(21)
 	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, n, 10)
+}
+
+func (w *Writer) Uint8Str(n uint8) {
+	w.Buffer.EnsureSpace(3)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendUint(w.Buffer.Buf, uint64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Uint16Str(n uint16) {
+	w.Buffer.EnsureSpace(5)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendUint(w.Buffer.Buf, uint64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Uint32Str(n uint32) {
+	w.Buffer.EnsureSpace(10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendUint(w.Buffer.Buf, uint64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) UintStr(n uint) {
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendUint(w.Buffer.Buf, uint64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Uint64Str(n uint64) {
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendUint(w.Buffer.Buf, n, 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Int8Str(n int8) {
+	w.Buffer.EnsureSpace(4)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Int16Str(n int16) {
+	w.Buffer.EnsureSpace(6)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Int32Str(n int32) {
+	w.Buffer.EnsureSpace(11)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) IntStr(n int) {
+	w.Buffer.EnsureSpace(21)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Int64Str(n int64) {
+	w.Buffer.EnsureSpace(21)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, n, 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
 }
 
 func (w *Writer) Float32(n float32) {

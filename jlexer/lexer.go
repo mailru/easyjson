@@ -53,6 +53,12 @@ func (r *Lexer) fetchToken() {
 	r.token.kind = tokenUndef
 	r.start = r.pos
 
+	// Check if r.Data has r.pos element
+	// If it doesn't, it mean corrupted input data
+	if len(r.Data) < r.pos {
+		r.errParse("Unexpected end of data")
+		return
+	}
 	// Determine the type of a token by skipping whitespace and reading the
 	// first character.
 	for _, c := range r.Data[r.pos:] {
@@ -661,6 +667,94 @@ func (r *Lexer) Int64() int64 {
 
 func (r *Lexer) Int() int {
 	return int(r.Int64())
+}
+
+func (r *Lexer) Uint8Str() uint8 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 8)
+	return uint8(n)
+}
+
+func (r *Lexer) Uint16Str() uint16 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 16)
+	return uint16(n)
+}
+
+func (r *Lexer) Uint32Str() uint32 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 32)
+	return uint32(n)
+}
+
+func (r *Lexer) Uint64Str() uint64 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n uint64
+	n, r.err = strconv.ParseUint(s, 10, 64)
+	return n
+}
+
+func (r *Lexer) UintStr() uint {
+	return uint(r.Uint64Str())
+}
+
+func (r *Lexer) Int8Str() int8 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 8)
+	return int8(n)
+}
+
+func (r *Lexer) Int16Str() int16 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 16)
+	return int16(n)
+}
+
+func (r *Lexer) Int32Str() int32 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 32)
+	return int32(n)
+}
+
+func (r *Lexer) Int64Str() int64 {
+	s := r.UnsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	var n int64
+	n, r.err = strconv.ParseInt(s, 10, 64)
+	return n
+}
+
+func (r *Lexer) IntStr() int {
+	return int(r.Int64Str())
 }
 
 func (r *Lexer) Float32() float32 {

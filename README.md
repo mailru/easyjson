@@ -67,6 +67,7 @@ The buffer code is in `easyjson/buffer` package the exact values can be tweaked 
 
 ## limitations
 * The library is at an early stage, there are likely to be some bugs and some features of 'encoding/json' may not be supported. Please report such cases, so that they may be fixed sooner.
+* Object keys are case-sensitive (unlike encodin/json). Case-insentive behavior will be implemented as an option (case-insensitive matching is slower).
 * Unsafe package is used by the code. While a non-unsafe version of easyjson can be made in the future, using unsafe package simplifies a lot of code by allowing no-copy []byte to string conversion within the library. This is used only during parsing and all the returned values are allocated properly.
 * Floats are currently formatted with default precision for 'strconv' package. It is obvious that it is not always the correct way to handle it, but there aren't enough use-cases for floats at hand to do anything better.
 * During parsing, parts of JSON that are skipped over are not syntactically validated more than required to skip matching parentheses.

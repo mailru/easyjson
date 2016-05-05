@@ -29,6 +29,7 @@ var testCases = []struct {
 	{&stdMarshalerValue, stdMarshalerString},
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
+	{&mapsValue, mapsString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -56,7 +57,7 @@ func TestUnmarshal(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(v, test.Decoded) {
-			t.Errorf("[%d, %T] UnmarshalJSON(): got \n%+v\n\t\t want \n%+v", i, test.Decoded, v, test.Encoded)
+			t.Errorf("[%d, %T] UnmarshalJSON(): got \n%+v\n\t\t want \n%+v", i, test.Decoded, v, test.Decoded)
 		}
 	}
 }
@@ -88,5 +89,16 @@ func TestRawMessageSTD(t *testing.T) {
 	}
 	if !reflect.DeepEqual(gotV, wantV) {
 		t.Errorf("json.Unmarshal() = %v; want %v", gotV, wantV)
+	}
+}
+
+func TestParseNull(t *testing.T) {
+	var got, want SubStruct
+	if err := easyjson.Unmarshal([]byte("null"), &got); err != nil {
+		t.Errorf("Unmarshal() error: %v", err)
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Unmarshal() = %+v; want %+v", got, want)
 	}
 }
