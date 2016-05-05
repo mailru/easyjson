@@ -19,13 +19,11 @@ type Parser struct {
 type visitor struct {
 	*Parser
 
-	name string
+	name     string
+	explicit bool
 }
 
-func (p *Parser) needStruct(comments string) bool {
-	if p.AllStructs {
-		return true
-	}
+func (p *Parser) needType(comments string) bool {
 	for _, v := range strings.Split(comments, "\n") {
 		if strings.HasPrefix(v, structComment) {
 			return true
@@ -41,12 +39,20 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 		return v
 
 	case *ast.GenDecl:
-		if !v.needStruct(n.Doc.Text()) {
+		v.explicit = v.needType(n.Doc.Text())
+
+		if !v.explicit && !v.AllStructs {
 			return nil
 		}
 		return v
 	case *ast.TypeSpec:
 		v.name = n.Name.String()
+
+		// Allow to specify non-structs explicitly independent of '-all' flag.
+		if v.explicit {
+			v.StructNames = append(v.StructNames, v.name)
+			return nil
+		}
 		return v
 	case *ast.StructType:
 		v.StructNames = append(v.StructNames, v.name)
