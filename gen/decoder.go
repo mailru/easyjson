@@ -165,6 +165,10 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	jsonName := g.namer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
+	if tags.omit {
+		return nil
+	}
+
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
 	return g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3)
 }
