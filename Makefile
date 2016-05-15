@@ -23,7 +23,8 @@ generate: root build
 		.root/src/$(PKG)/tests/omitempty.go
 
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/data.go 
-	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go 
+	.root/bin/easyjson -all .root/src/$(PKG)/tests/required.go
+	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go
 	.root/bin/easyjson -omit_empty .root/src/$(PKG)/tests/omitempty.go 
 	.root/bin/easyjson -build_tags=use_easyjson .root/src/$(PKG)/benchmark/data.go
 
