@@ -175,40 +175,35 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	}
 
 	if tags.required {
-		fmt.Fprintf(g.out, "%sSet = true\n", jsonName)
+		fmt.Fprintf(g.out, "%sSet = true\n", f.Name)
 	}
 
 	return nil
 }
 
-func (g *Generator) getFieldSetBlock(t reflect.Type, f reflect.StructField) error {
-	jsonName := g.namer.GetJSONFieldName(t, f)
+func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
 	tags := parseFieldTags(f)
 
 	if !tags.required {
-		return nil
+		return
 	}
 
-	fmt.Fprintf(g.out, "var %sSet bool\n", jsonName)
-
-	return nil
+	fmt.Fprintf(g.out, "var %sSet bool\n", f.Name)
 }
 
-func (g *Generator) getFieldCheckBlock(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genRequiredFieldCheck(t reflect.Type, f reflect.StructField) {
 	jsonName := g.namer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if !tags.required {
-		return nil
+		return
 	}
 
 	g.imports["fmt"] = "fmt"
 
-	fmt.Fprintf(g.out, "if !%sSet {\n", jsonName)
+	fmt.Fprintf(g.out, "if !%sSet {\n", f.Name)
 	fmt.Fprintf(g.out, "    in.AddError(fmt.Errorf(\"key '%s' is required\"))\n", jsonName)
 	fmt.Fprintf(g.out, "}\n")
-
-	return nil
 }
 
 func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect.StructField) {
@@ -294,9 +289,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	}
 
 	for _, f := range fs {
-		if err := g.getFieldSetBlock(t, f); err != nil {
-			return err
-		}
+		g.genRequiredFieldSet(t, f)
 	}
 
 	fmt.Fprintln(g.out, "  in.Delim('{')")
@@ -324,9 +317,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "  in.Delim('}')")
 
 	for _, f := range fs {
-		if err := g.getFieldCheckBlock(t, f); err != nil {
-			return err
-		}
+		g.genRequiredFieldCheck(t, f)
 	}
 
 	fmt.Fprintln(g.out, "}")
