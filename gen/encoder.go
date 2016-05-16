@@ -52,6 +52,7 @@ type fieldTags struct {
 	omitEmpty   bool
 	noOmitEmpty bool
 	asString    bool
+	required    bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -70,6 +71,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.noOmitEmpty = true
 		case s == "string":
 			ret.asString = true
+		case s == "required":
+			ret.required = true
 		}
 	}
 

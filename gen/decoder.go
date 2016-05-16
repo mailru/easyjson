@@ -170,7 +170,40 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	}
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
-	return g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3)
+	if err := g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3); err != nil {
+		return err
+	}
+
+	if tags.required {
+		fmt.Fprintf(g.out, "%sSet = true\n", f.Name)
+	}
+
+	return nil
+}
+
+func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
+	tags := parseFieldTags(f)
+
+	if !tags.required {
+		return
+	}
+
+	fmt.Fprintf(g.out, "var %sSet bool\n", f.Name)
+}
+
+func (g *Generator) genRequiredFieldCheck(t reflect.Type, f reflect.StructField) {
+	jsonName := g.namer.GetJSONFieldName(t, f)
+	tags := parseFieldTags(f)
+
+	if !tags.required {
+		return
+	}
+
+	g.imports["fmt"] = "fmt"
+
+	fmt.Fprintf(g.out, "if !%sSet {\n", f.Name)
+	fmt.Fprintf(g.out, "    in.AddError(fmt.Errorf(\"key '%s' is required\"))\n", jsonName)
+	fmt.Fprintf(g.out, "}\n")
 }
 
 func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect.StructField) {
@@ -250,6 +283,15 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 		fmt.Fprintln(g.out, "  out."+f.Name+" = new("+g.getType(f.Type.Elem())+")")
 	}
 
+	fs, err := getStructFields(t)
+	if err != nil {
+		return fmt.Errorf("cannot generate decoder for %v: %v", t, err)
+	}
+
+	for _, f := range fs {
+		g.genRequiredFieldSet(t, f)
+	}
+
 	fmt.Fprintln(g.out, "  in.Delim('{')")
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
 	fmt.Fprintln(g.out, "    key := in.UnsafeString()")
@@ -259,13 +301,8 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "       in.WantComma()")
 	fmt.Fprintln(g.out, "       continue")
 	fmt.Fprintln(g.out, "    }")
+
 	fmt.Fprintln(g.out, "    switch key {")
-
-	fs, err := getStructFields(t)
-	if err != nil {
-		return fmt.Errorf("cannot generate decoder for %v: %v", t, err)
-	}
-
 	for _, f := range fs {
 		if err := g.genStructFieldDecoder(t, f); err != nil {
 			return err
@@ -278,6 +315,11 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "    in.WantComma()")
 	fmt.Fprintln(g.out, "  }")
 	fmt.Fprintln(g.out, "  in.Delim('}')")
+
+	for _, f := range fs {
+		g.genRequiredFieldCheck(t, f)
+	}
+
 	fmt.Fprintln(g.out, "}")
 
 	return nil
