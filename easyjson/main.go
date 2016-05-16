@@ -22,6 +22,7 @@ var allStructs = flag.Bool("all", false, "generate un-/marshallers for all struc
 var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files")
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshallers/unmarshallers methods")
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
+var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 
 func generate(fname string) (err error) {
 	p := parser.Parser{AllStructs: *allStructs}
@@ -36,6 +37,10 @@ func generate(fname string) (err error) {
 		outName = s + "_easyjson.go"
 	}
 
+	if *specifiedName != "" {
+		outName = *specifiedName
+	}
+	
 	g := bootstrap.Generator{
 		BuildTags:       *buildTags,
 		PkgPath:         p.PkgPath,
