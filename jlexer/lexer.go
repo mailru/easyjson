@@ -396,7 +396,11 @@ func (r *Lexer) errParse(what string) {
 		} else {
 			str = string(r.Data[r.pos:r.pos+maxErrorContextLen-3]) + "..."
 		}
-		r.err = fmt.Errorf("parse error: %s at byte %d, near '%s'.", what, r.pos, str)
+		r.err = &LexerError{
+			Reason: what,
+			Offset: r.pos,
+			Data:   str,
+		}
 	}
 }
 
@@ -412,7 +416,11 @@ func (r *Lexer) errInvalidToken(expected string) {
 		} else {
 			str = string(r.token.byteValue[:maxErrorContextLen-3]) + "..."
 		}
-		r.err = fmt.Errorf("parse error: expected %s, got '%s' at byte %d.", expected, str, r.start)
+		r.err = &LexerError{
+			Reason: fmt.Sprintf("expected %s", expected),
+			Offset: r.pos,
+			Data:   str,
+		}
 	}
 }
 
@@ -586,8 +594,13 @@ func (r *Lexer) Uint8() uint8 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 8)
+
+	n, err := strconv.ParseUint(s, 10, 8)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint8(n)
 }
 
@@ -596,8 +609,13 @@ func (r *Lexer) Uint16() uint16 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 16)
+
+	n, err := strconv.ParseUint(s, 10, 16)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint16(n)
 }
 
@@ -606,8 +624,13 @@ func (r *Lexer) Uint32() uint32 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 32)
+
+	n, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint32(n)
 }
 
@@ -616,8 +639,13 @@ func (r *Lexer) Uint64() uint64 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 64)
+
+	n, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return n
 }
 
@@ -630,8 +658,13 @@ func (r *Lexer) Int8() int8 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 8)
+
+	n, err := strconv.ParseInt(s, 10, 8)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int8(n)
 }
 
@@ -640,8 +673,13 @@ func (r *Lexer) Int16() int16 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 16)
+
+	n, err := strconv.ParseInt(s, 10, 16)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int16(n)
 }
 
@@ -650,8 +688,13 @@ func (r *Lexer) Int32() int32 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 32)
+
+	n, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int32(n)
 }
 
@@ -660,8 +703,13 @@ func (r *Lexer) Int64() int64 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 64)
+
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return n
 }
 
@@ -674,8 +722,13 @@ func (r *Lexer) Uint8Str() uint8 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 8)
+
+	n, err := strconv.ParseUint(s, 10, 8)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint8(n)
 }
 
@@ -684,8 +737,13 @@ func (r *Lexer) Uint16Str() uint16 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 16)
+
+	n, err := strconv.ParseUint(s, 10, 16)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint16(n)
 }
 
@@ -694,8 +752,13 @@ func (r *Lexer) Uint32Str() uint32 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 32)
+
+	n, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return uint32(n)
 }
 
@@ -704,8 +767,13 @@ func (r *Lexer) Uint64Str() uint64 {
 	if !r.Ok() {
 		return 0
 	}
-	var n uint64
-	n, r.err = strconv.ParseUint(s, 10, 64)
+
+	n, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return n
 }
 
@@ -718,8 +786,13 @@ func (r *Lexer) Int8Str() int8 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 8)
+
+	n, err := strconv.ParseInt(s, 10, 8)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int8(n)
 }
 
@@ -728,8 +801,13 @@ func (r *Lexer) Int16Str() int16 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 16)
+
+	n, err := strconv.ParseInt(s, 10, 16)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int16(n)
 }
 
@@ -738,8 +816,13 @@ func (r *Lexer) Int32Str() int32 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 32)
+
+	n, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return int32(n)
 }
 
@@ -748,8 +831,13 @@ func (r *Lexer) Int64Str() int64 {
 	if !r.Ok() {
 		return 0
 	}
-	var n int64
-	n, r.err = strconv.ParseInt(s, 10, 64)
+
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return n
 }
 
@@ -762,8 +850,13 @@ func (r *Lexer) Float32() float32 {
 	if !r.Ok() {
 		return 0
 	}
-	var n float64
-	n, r.err = strconv.ParseFloat(s, 32)
+
+	n, err := strconv.ParseFloat(s, 32)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return float32(n)
 }
 
@@ -772,8 +865,13 @@ func (r *Lexer) Float64() float64 {
 	if !r.Ok() {
 		return 0
 	}
-	var n float64
-	n, r.err = strconv.ParseFloat(s, 64)
+
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		r.err = &LexerError{
+			Reason: err.Error(),
+		}
+	}
 	return n
 }
 
