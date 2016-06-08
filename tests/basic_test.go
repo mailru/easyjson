@@ -30,6 +30,7 @@ var testCases = []struct {
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
 	{&mapsValue, mapsString},
+	{&camelCasesFunctionsValue, camelCasesFunctionsString},
 }
 
 func TestMarshal(t *testing.T) {

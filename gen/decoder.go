@@ -14,7 +14,7 @@ import (
 const minSliceBytes = 64
 
 func (g *Generator) getStructDecoderName(t reflect.Type) string {
-	return g.functionName("decode_", t)
+	return g.functionName("decode", t)
 }
 
 var primitiveDecoders = map[reflect.Kind]string{
@@ -162,7 +162,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 }
 
 func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
-	jsonName := g.namer.GetJSONFieldName(t, f)
+	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if tags.omit {
@@ -192,7 +192,7 @@ func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
 }
 
 func (g *Generator) genRequiredFieldCheck(t reflect.Type, f reflect.StructField) {
-	jsonName := g.namer.GetJSONFieldName(t, f)
+	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if !tags.required {
@@ -334,6 +334,7 @@ func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
 	typ := g.getType(t)
 
 	if !g.noStdMarshalers {
+		fmt.Fprintln(g.out, "// UnmarshalJSON supports json.Unmarshaler interface")
 		fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalJSON(data []byte) error {")
 		fmt.Fprintln(g.out, "  r := jlexer.Lexer{Data: data}")
 		fmt.Fprintln(g.out, "  "+fname+"(&r, v)")
@@ -341,6 +342,7 @@ func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
 		fmt.Fprintln(g.out, "}")
 	}
 
+	fmt.Fprintln(g.out, "// UnmarshalEasyJSON supports easyjson.Unmarshaler interface")
 	fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalEasyJSON(l *jlexer.Lexer) {")
 	fmt.Fprintln(g.out, "  "+fname+"(l, v)")
 	fmt.Fprintln(g.out, "}")

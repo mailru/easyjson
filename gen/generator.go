@@ -20,6 +20,11 @@ type FieldNamer interface {
 	GetJSONFieldName(t reflect.Type, f reflect.StructField) string
 }
 
+// FuncNamer defines a policy for generating function names
+type FunctionNamer interface {
+	GetName(keepFirst bool, parts ...string) string
+}
+
 // Generator generates the requested marshallers/unmarshallers.
 type Generator struct {
 	out *bytes.Buffer
@@ -27,13 +32,14 @@ type Generator struct {
 	pkgName    string
 	pkgPath    string
 	buildTags  string
-	funcPrefix string
+	hashString string
 
 	varCounter int
 
 	noStdMarshalers bool
 	omitEmpty       bool
-	namer           FieldNamer
+	fieldNamer      FieldNamer
+	functionNamer   FunctionNamer
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -60,7 +66,9 @@ func NewGenerator(filename string) *Generator {
 			pkgLexer:        "jlexer",
 			"encoding/json": "json",
 		},
-		namer:         DefaultFieldNamer{},
+		fieldNamer:    DefaultFieldNamer{},
+		functionNamer: UnderScoreFunctionNamer{},
+		//functionNamer: CamelCaseFunctionNamer{},
 		marshallers:   make(map[reflect.Type]bool),
 		typesSeen:     make(map[reflect.Type]bool),
 		functionNames: make(map[string]reflect.Type),
@@ -70,7 +78,7 @@ func NewGenerator(filename string) *Generator {
 	// name clashes.
 	hash := fnv.New32()
 	hash.Write([]byte(filename))
-	ret.funcPrefix = fmt.Sprintf("easyjson_%x_", hash.Sum32())
+	ret.hashString = fmt.Sprintf("%x", hash.Sum32())
 
 	return ret
 }
@@ -88,12 +96,22 @@ func (g *Generator) SetBuildTags(tags string) {
 
 // SetFieldNamer sets field naming strategy.
 func (g *Generator) SetFieldNamer(n FieldNamer) {
-	g.namer = n
+	g.fieldNamer = n
 }
 
-// UseSnakeCase sets snake_case field naming strategy.
-func (g *Generator) UseSnakeCase() {
-	g.namer = SnakeCaseFieldNamer{}
+// UseSnakeCaseFieldNamer sets snake_case field naming strategy.
+func (g *Generator) UseSnakeCaseFieldNamer() {
+	g.fieldNamer = SnakeCaseFieldNamer{}
+}
+
+// SetFunctionNamer sets function naming strategy.
+func (g *Generator) SetFunctionNamer(n FunctionNamer) {
+	g.functionNamer = n
+}
+
+// UseCamelCaseFunctionNamer sets CamelCase function naming strategy.
+func (g *Generator) UseCamelCaseFunctionNamer() {
+	g.functionNamer = CamelCaseFunctionNamer{}
 }
 
 // NoStdMarshalers instructs not to generate standard MarshalJSON/UnmarshalJSON
@@ -243,7 +261,7 @@ func (g *Generator) uniqueVarName() string {
 
 // safeName escapes unsafe characters in pkg/type name and returns a string that can be used
 // in encoder/decoder names for the type.
-func safeName(t reflect.Type) string {
+func (g *Generator) safeName(t reflect.Type) string {
 	name := t.PkgPath()
 	if t.Name() == "" {
 		name += "anonymous"
@@ -251,15 +269,17 @@ func safeName(t reflect.Type) string {
 		name += "." + t.Name()
 	}
 
-	var ret []rune
+	parts := []string{}
+	part := []rune{}
 	for _, c := range name {
 		if unicode.IsLetter(c) || unicode.IsDigit(c) {
-			ret = append(ret, c)
-		} else {
-			ret = append(ret, '_')
+			part = append(part, c)
+		} else if len(part) > 0 {
+			parts = append(parts, string(part))
+			part = []rune{}
 		}
 	}
-	return string(ret)
+	return g.functionNamer.GetName(false, parts...)
 }
 
 // functionName returns a function name for a given type with a given prefix. If a function
@@ -267,8 +287,8 @@ func safeName(t reflect.Type) string {
 //
 // Method is used to track encoder/decoder names for the type.
 func (g *Generator) functionName(prefix string, t reflect.Type) string {
-	prefix = g.funcPrefix + prefix
-	name := prefix + safeName(t)
+	prefix = g.functionNamer.GetName(true, "easyjson", g.hashString, prefix)
+	name := g.functionNamer.GetName(true, prefix, g.safeName(t))
 
 	// Most of the names will be unique, try a shortcut first.
 	if e, ok := g.functionNames[name]; !ok || e == t {
@@ -361,4 +381,31 @@ func (SnakeCaseFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructFiel
 	}
 
 	return camelToSnake(f.Name)
+}
+
+// CamelCaseFunctionNamer implements FunctionNamer interface with CamelCase format
+type CamelCaseFunctionNamer struct{}
+
+func (CamelCaseFunctionNamer) GetName(keepFirst bool, parts ...string) string {
+	buf := bytes.NewBufferString("")
+	for i, part := range parts {
+		if i == 0 && keepFirst {
+			buf.WriteString(part)
+		} else {
+			if len(part) > 0 {
+				buf.WriteString(strings.ToUpper(string(part[0])))
+			}
+			if len(part) > 1 {
+				buf.WriteString(part[1:])
+			}
+		}
+	}
+	return buf.String()
+}
+
+// UnderScoreFunctionNamer implements FunctionNamer interface with under_score format
+type UnderScoreFunctionNamer struct{}
+
+func (UnderScoreFunctionNamer) GetName(keepFirst bool, parts ...string) string {
+	return strings.Join(parts, "_")
 }

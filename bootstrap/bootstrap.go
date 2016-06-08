@@ -21,9 +21,10 @@ type Generator struct {
 	PkgPath, PkgName string
 	Types            []string
 
-	NoStdMarshalers bool
-	SnakeCase       bool
-	OmitEmpty       bool
+	NoStdMarshalers    bool
+	SnakeCaseFields    bool
+	CamelCaseFunctions bool
+	OmitEmpty          bool
 
 	OutName   string
 	BuildTags string
@@ -100,8 +101,11 @@ func (g *Generator) writeMain() (path string, err error) {
 	if g.BuildTags != "" {
 		fmt.Fprintf(f, "  g.SetBuildTags(%q)\n", g.BuildTags)
 	}
-	if g.SnakeCase {
-		fmt.Fprintln(f, "  g.UseSnakeCase()")
+	if g.SnakeCaseFields {
+		fmt.Fprintln(f, "  g.UseSnakeCaseFieldNamer()")
+	}
+	if g.CamelCaseFunctions {
+		fmt.Fprintln(f, "  g.UseCamelCaseFunctionNamer()")
 	}
 	if g.OmitEmpty {
 		fmt.Fprintln(f, "  g.OmitEmpty()")

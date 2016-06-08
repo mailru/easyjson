@@ -11,7 +11,7 @@ import (
 )
 
 func (g *Generator) getStructEncoderName(t reflect.Type) string {
-	return g.functionName("encode_", t)
+	return g.functionName("encode", t)
 }
 
 var primitiveEncoders = map[reflect.Kind]string{
@@ -147,14 +147,14 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 		fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
-		fmt.Fprintln(g.out, ws+"  "+tmpVar+"_first := true")
-		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"_name, "+tmpVar+"_value := range "+in+" {")
-		fmt.Fprintln(g.out, ws+"    if !"+tmpVar+"_first { out.RawByte(',') }")
-		fmt.Fprintln(g.out, ws+"    "+tmpVar+"_first = false")
-		fmt.Fprintln(g.out, ws+"    out.String(string("+tmpVar+"_name))")
+		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First := true")
+		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"Name, "+tmpVar+"Value := range "+in+" {")
+		fmt.Fprintln(g.out, ws+"    if !"+tmpVar+"First { out.RawByte(',') }")
+		fmt.Fprintln(g.out, ws+"    "+tmpVar+"First = false")
+		fmt.Fprintln(g.out, ws+"    out.String(string("+tmpVar+"Name))")
 		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
-		g.genTypeEncoder(t.Elem(), tmpVar+"_value", tags, indent+2)
+		g.genTypeEncoder(t.Elem(), tmpVar+"Value", tags, indent+2)
 
 		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
@@ -199,7 +199,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 }
 
 func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField) error {
-	jsonName := g.namer.GetJSONFieldName(t, f)
+	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if tags.omit {
@@ -262,6 +262,7 @@ func (g *Generator) genStructMarshaller(t reflect.Type) error {
 	typ := g.getType(t)
 
 	if !g.noStdMarshalers {
+		fmt.Fprintln(g.out, "// MarshalJSON supports json.Marshaler interface")
 		fmt.Fprintln(g.out, "func (v "+typ+") MarshalJSON() ([]byte, error) {")
 		fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
 		fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
@@ -269,6 +270,7 @@ func (g *Generator) genStructMarshaller(t reflect.Type) error {
 		fmt.Fprintln(g.out, "}")
 	}
 
+	fmt.Fprintln(g.out, "// MarshalEasyJSON supports easyjson.Marshaler interface")
 	fmt.Fprintln(g.out, "func (v "+typ+") MarshalEasyJSON(w *jwriter.Writer) {")
 	fmt.Fprintln(g.out, "  "+fname+"(w, v)")
 	fmt.Fprintln(g.out, "}")
