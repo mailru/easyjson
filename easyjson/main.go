@@ -16,7 +16,7 @@ import (
 
 var buildTags = flag.String("build_tags", "", "build tags to add to generated file")
 var snakeCaseFields = flag.Bool("snake_case", false, "use snake_case names instead of CamelCase by default")
-var camelCaseFunctions = flag.Bool("camel_case_functions", false, "create functions with CamelCase names instead of under_score by default")
+var camelCaseFunctions = flag.Bool("camel_case_functions", false, "generate functions with CamelCase names instead of under_score by default")
 var noStdMarshalers = flag.Bool("no_std_marshalers", false, "don't generate MarshalJSON/UnmarshalJSON methods")
 var omitEmpty = flag.Bool("omit_empty", false, "omit empty fields by default")
 var allStructs = flag.Bool("all", false, "generate un-/marshallers for all structs in a file")
