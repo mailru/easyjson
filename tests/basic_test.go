@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/mailru/easyjson"
+	"github.com/mailru/easyjson/jwriter"
 )
 
 type testType interface {
@@ -100,5 +101,27 @@ func TestParseNull(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Unmarshal() = %+v; want %+v", got, want)
+	}
+}
+
+var testCasesEncodeLtGt = []struct {
+	Writer  *jwriter.Writer
+	Encoded string
+}{
+	{&jwriter.Writer{
+		EscapeLtGt: false,
+	}, encodeLtGtFalseWantString},
+	{&jwriter.Writer{
+		EscapeLtGt: true,
+	}, encodeLtGtTrueWantString},
+}
+
+func TestEncodeLtGt(t *testing.T) {
+	for i, test := range testCasesEncodeLtGt {
+		test.Writer.String(encodeLtGtString)
+		got := string(test.Writer.Buffer.BuildBytes())
+		if got != test.Encoded {
+			t.Errorf("[%d] Encoded() = %+v; want %+v", i, got, test.Encoded)
+		}
 	}
 }
