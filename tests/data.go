@@ -440,3 +440,7 @@ type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`
 }
+
+var encodeLtGtString = `Username <user@example.com>`
+var encodeLtGtFalseWantString = `"Username <user@example.com>"`
+var encodeLtGtTrueWantString = `"Username \u003cuser@example.com\u003e"`
