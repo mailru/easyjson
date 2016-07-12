@@ -436,6 +436,36 @@ var mapsString = `{` +
 	`"CustomMap":{"c":"d"}` +
 	`}`
 
+type DeepNest struct {
+	SliceMap map[Str][]Str
+	MapSlice []map[Str]Str
+}
+
+var deepNestValue = DeepNest{
+	SliceMap: map[Str][]Str{
+		"testSliceMap1": []Str{
+			"0",
+			"1",
+		},
+		"testSliceMap2": nil,
+	},
+	MapSlice: []map[Str]Str{
+		map[Str]Str{
+			"testMapSlice1": "someValue",
+		},
+	},
+}
+
+var deepNestString = `{` +
+	`"SliceMap":{` +
+	`"testSliceMap1":["0","1"],` +
+	`"testSliceMap2":[]` +
+	`},` +
+	`"MapSlice":[` +
+	`{"testMapSlice1":"someValue"}` +
+	`]` +
+	`}`
+
 type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`

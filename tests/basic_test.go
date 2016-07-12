@@ -31,6 +31,7 @@ var testCases = []struct {
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
 	{&mapsValue, mapsString},
+	{&deepNestValue, deepNestString},
 	{&camelCasesFunctionsValue, camelCasesFunctionsString},
 }
 
