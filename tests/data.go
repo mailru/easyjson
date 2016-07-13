@@ -440,13 +440,14 @@ type NamedSlice []Str
 type NamedMap map[Str]Str
 
 type DeepNest struct {
-	SliceMap        map[Str][]Str
-	SliceMap1       map[Str][]Str
-	NamedSliceMap   map[Str]NamedSlice
-	NamedMapMap     map[Str]NamedMap
-	MapSlice        []map[Str]Str
-	NamedSliceSlice []NamedSlice
-	NamedMapSlice   []NamedMap
+	SliceMap         map[Str][]Str
+	SliceMap1        map[Str][]Str
+	NamedSliceMap    map[Str]NamedSlice
+	NamedMapMap      map[Str]NamedMap
+	MapSlice         []map[Str]Str
+	NamedSliceSlice  []NamedSlice
+	NamedMapSlice    []NamedMap
+	NamedStringSlice []NamedString
 }
 
 var deepNestValue = DeepNest{
@@ -493,6 +494,9 @@ var deepNestValue = DeepNest{
 			"key3": "value3",
 		},
 	},
+	NamedStringSlice: []NamedString{
+		"value4", "value5",
+	},
 }
 
 var deepNestString = `{` +
@@ -518,7 +522,8 @@ var deepNestString = `{` +
 	`"NamedMapSlice":[` +
 	`{"key2":"value2"},` +
 	`{"key3":"value3"}` +
-	`]` +
+	`],` +
+	`"NamedStringSlice":["value4","value5"]` +
 	`}`
 
 type RequiredOptionalStruct struct {
