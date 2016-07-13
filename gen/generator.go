@@ -156,7 +156,12 @@ func (g *Generator) printHeader() {
 
 	fmt.Println(")")
 	fmt.Println("")
-	fmt.Println("var _ = json.RawMessage{} // suppress unused package warning")
+	fmt.Println("// suppress unused package warning")
+	fmt.Println("var (")
+	fmt.Println("   _ = json.RawMessage{}")
+	fmt.Println("   _ = jlexer.Lexer{}")
+	fmt.Println("   _ = jwriter.Writer{}")
+	fmt.Println(")")
 
 	fmt.Println()
 }
