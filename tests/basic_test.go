@@ -105,24 +105,21 @@ func TestParseNull(t *testing.T) {
 	}
 }
 
-var testCasesEncodeLtGt = []struct {
-	Writer  *jwriter.Writer
-	Encoded string
+var testSpecialCases = []struct {
+	String string
+	Value string
 }{
-	{&jwriter.Writer{
-		EscapeLtGt: false,
-	}, encodeLtGtFalseWantString},
-	{&jwriter.Writer{
-		EscapeLtGt: true,
-	}, encodeLtGtTrueWantString},
+	{LtGtString, LtGtValue},
+	{BrokenUtfString, BrokenUtfValue},
 }
 
-func TestEncodeLtGt(t *testing.T) {
-	for i, test := range testCasesEncodeLtGt {
-		test.Writer.String(encodeLtGtString)
-		got := string(test.Writer.Buffer.BuildBytes())
-		if got != test.Encoded {
-			t.Errorf("[%d] Encoded() = %+v; want %+v", i, got, test.Encoded)
+func TestSpecialCases(t *testing.T) {
+	for i, test := range testSpecialCases {
+		w := jwriter.Writer{}
+		w.String(test.Value)
+		got := string(w.Buffer.BuildBytes())
+		if got != test.String {
+			t.Errorf("[%d] Encoded() = %+v; want %+v", i, got, test.String)
 		}
 	}
 }
