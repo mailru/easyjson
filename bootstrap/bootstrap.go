@@ -50,11 +50,14 @@ func (g *Generator) writeStub() error {
 	fmt.Fprintln(f, "// compilable during generation.")
 	fmt.Fprintln(f)
 	fmt.Fprintln(f, "package ", g.PkgName)
-	fmt.Fprintln(f)
-	fmt.Fprintln(f, "import (")
-	fmt.Fprintln(f, `  "`+pkgWriter+`"`)
-	fmt.Fprintln(f, `  "`+pkgLexer+`"`)
-	fmt.Fprintln(f, ")")
+
+	if len(g.Types) > 0 {
+		fmt.Fprintln(f)
+		fmt.Fprintln(f, "import (")
+		fmt.Fprintln(f, `  "`+pkgWriter+`"`)
+		fmt.Fprintln(f, `  "`+pkgLexer+`"`)
+		fmt.Fprintln(f, ")")
+	}
 
 	for _, t := range g.Types {
 		fmt.Fprintln(f)
@@ -90,8 +93,10 @@ func (g *Generator) writeMain() (path string, err error) {
 	fmt.Fprintln(f, `  "os"`)
 	fmt.Fprintln(f)
 	fmt.Fprintf(f, "  %q\n", genPackage)
-	fmt.Fprintln(f)
-	fmt.Fprintf(f, "  pkg %q\n", g.PkgPath)
+	if len(g.Types) > 0 {
+		fmt.Fprintln(f)
+		fmt.Fprintf(f, "  pkg %q\n", g.PkgPath)
+	}
 	fmt.Fprintln(f, ")")
 	fmt.Fprintln(f)
 	fmt.Fprintln(f, "func main() {")
