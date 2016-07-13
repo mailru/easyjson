@@ -59,11 +59,11 @@ func (g *Generator) writeStub() error {
 	for _, t := range g.Types {
 		fmt.Fprintln(f)
 		if !g.NoStdMarshalers {
-			fmt.Fprintln(f, "func (*", t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
+			fmt.Fprintln(f, "func (", t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
 			fmt.Fprintln(f, "func (*", t, ") UnmarshalJSON([]byte) error { return nil }")
 		}
 
-		fmt.Fprintln(f, "func (*", t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
+		fmt.Fprintln(f, "func (", t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
 		fmt.Fprintln(f, "func (*", t, ") UnmarshalEasyJSON(l *jlexer.Lexer) {}")
 		fmt.Fprintln(f)
 		fmt.Fprintln(f, "type EasyJSON_exporter_"+t+" *"+t)
