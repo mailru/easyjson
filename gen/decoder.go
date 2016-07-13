@@ -86,7 +86,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 
 		fmt.Fprintln(g.out, ws+"in.Delim('[')")
 		fmt.Fprintln(g.out, ws+"if !in.IsDelim(']') {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = make([]"+g.getType(elem)+", 0, "+fmt.Sprint(capacity)+")")
+		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+", 0, "+fmt.Sprint(capacity)+")")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 		fmt.Fprintln(g.out, ws+"}")
@@ -130,7 +130,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  in.Delim('{')")
 		fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = make(map["+g.getType(t.Key())+"]"+g.getType(t.Elem())+")")
+		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+")")
 		fmt.Fprintln(g.out, ws+"  } else {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 		fmt.Fprintln(g.out, ws+"  }")
