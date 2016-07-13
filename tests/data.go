@@ -436,38 +436,88 @@ var mapsString = `{` +
 	`"CustomMap":{"c":"d"}` +
 	`}`
 
+type NamedSlice []Str
+type NamedMap map[Str]Str
+
 type DeepNest struct {
-	SliceMap  map[Str][]Str
-	SliceMap1 map[Str][]Str
-	MapSlice  []map[Str]Str
+	SliceMap        map[Str][]Str
+	SliceMap1       map[Str][]Str
+	NamedSliceMap   map[Str]NamedSlice
+	NamedMapMap     map[Str]NamedMap
+	MapSlice        []map[Str]Str
+	NamedSliceSlice []NamedSlice
+	NamedMapSlice   []NamedMap
 }
 
 var deepNestValue = DeepNest{
 	SliceMap: map[Str][]Str{
-		"testSliceMap1": []Str{
+		"testSliceMap": []Str{
 			"0",
 			"1",
 		},
 	},
 	SliceMap1: map[Str][]Str{
-		"testSliceMap2": nil,
+		"testSliceMap1": nil,
+	},
+	NamedSliceMap: map[Str]NamedSlice{
+		"testNamedSliceMap": NamedSlice{
+			"2",
+			"3",
+		},
+	},
+	NamedMapMap: map[Str]NamedMap{
+		"testNamedMapMap": NamedMap{
+			"key1": "value1",
+		},
 	},
 	MapSlice: []map[Str]Str{
 		map[Str]Str{
-			"testMapSlice1": "someValue",
+			"testMapSlice": "someValue",
+		},
+	},
+	NamedSliceSlice: []NamedSlice{
+		NamedSlice{
+			"someValue1",
+			"someValue2",
+		},
+		NamedSlice{
+			"someValue3",
+			"someValue4",
+		},
+	},
+	NamedMapSlice: []NamedMap{
+		NamedMap{
+			"key2": "value2",
+		},
+		NamedMap{
+			"key3": "value3",
 		},
 	},
 }
 
 var deepNestString = `{` +
 	`"SliceMap":{` +
-	`"testSliceMap1":["0","1"]` +
+	`"testSliceMap":["0","1"]` +
 	`},` +
 	`"SliceMap1":{` +
-	`"testSliceMap2":[]` +
+	`"testSliceMap1":[]` +
+	`},` +
+	`"NamedSliceMap":{` +
+	`"testNamedSliceMap":["2","3"]` +
+	`},` +
+	`"NamedMapMap":{` +
+	`"testNamedMapMap":{"key1":"value1"}` +
 	`},` +
 	`"MapSlice":[` +
-	`{"testMapSlice1":"someValue"}` +
+	`{"testMapSlice":"someValue"}` +
+	`],` +
+	`"NamedSliceSlice":[` +
+	`["someValue1","someValue2"],` +
+	`["someValue3","someValue4"]` +
+	`],` +
+	`"NamedMapSlice":[` +
+	`{"key2":"value2"},` +
+	`{"key3":"value3"}` +
 	`]` +
 	`}`
 
