@@ -105,24 +105,28 @@ func TestParseNull(t *testing.T) {
 	}
 }
 
-var testCasesEncodeLtGt = []struct {
-	Writer  *jwriter.Writer
-	Encoded string
+var testSpecialCases = []struct {
+	EncodedString string
+	Value string
 }{
-	{&jwriter.Writer{
-		EscapeLtGt: false,
-	}, encodeLtGtFalseWantString},
-	{&jwriter.Writer{
-		EscapeLtGt: true,
-	}, encodeLtGtTrueWantString},
+	{`"Username \u003cuser@example.com\u003e"`, `Username <user@example.com>`},
+	{`"Username\ufffd"`, "Username\xc5"},
+	{`"тестzтест"`, "тестzтест"},
+	{`"тест\ufffdтест"`, "тест\xc5тест"},
+	{`"绿茶"`, "绿茶"},
+	{`"绿\ufffd茶"`, "绿\xc5茶"},
+	{`"тест\u2028"`, "тест\xE2\x80\xA8"},
+	{`"\\\r\n\t\""`, "\\\r\n\t\""},
+	{`"ü"`, "ü"},
 }
 
-func TestEncodeLtGt(t *testing.T) {
-	for i, test := range testCasesEncodeLtGt {
-		test.Writer.String(encodeLtGtString)
-		got := string(test.Writer.Buffer.BuildBytes())
-		if got != test.Encoded {
-			t.Errorf("[%d] Encoded() = %+v; want %+v", i, got, test.Encoded)
+func TestSpecialCases(t *testing.T) {
+	for i, test := range testSpecialCases {
+		w := jwriter.Writer{}
+		w.String(test.Value)
+		got := string(w.Buffer.BuildBytes())
+		if got != test.EncodedString {
+			t.Errorf("[%d] Encoded() = %+v; want %+v", i, got, test.EncodedString)
 		}
 	}
 }
