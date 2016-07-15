@@ -156,7 +156,12 @@ func (g *Generator) printHeader() {
 
 	fmt.Println(")")
 	fmt.Println("")
-	fmt.Println("var _ = json.RawMessage{} // suppress unused package warning")
+	fmt.Println("// suppress unused package warning")
+	fmt.Println("var (")
+	fmt.Println("   _ = json.RawMessage{}")
+	fmt.Println("   _ = jlexer.Lexer{}")
+	fmt.Println("   _ = jwriter.Writer{}")
+	fmt.Println(")")
 
 	fmt.Println()
 }
@@ -222,13 +227,15 @@ func (g *Generator) pkgAlias(pkgPath string) string {
 
 // getType return the textual type name of given type that can be used in generated code.
 func (g *Generator) getType(t reflect.Type) string {
-	switch t.Kind() {
-	case reflect.Ptr:
-		return "*" + g.getType(t.Elem())
-	case reflect.Slice:
-		return "[]" + g.getType(t.Elem())
-	case reflect.Map:
-		return "map[" + g.getType(t.Key()) + "]" + g.getType(t.Elem())
+	if t.Name() == "" {
+		switch t.Kind() {
+		case reflect.Ptr:
+			return "*" + g.getType(t.Elem())
+		case reflect.Slice:
+			return "[]" + g.getType(t.Elem())
+		case reflect.Map:
+			return "map[" + g.getType(t.Key()) + "]" + g.getType(t.Elem())
+		}
 	}
 
 	if t.Name() == "" || t.PkgPath() == "" {
