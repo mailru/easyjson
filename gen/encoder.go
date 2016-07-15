@@ -251,7 +251,7 @@ func (g *Generator) genSliceEncoder(t reflect.Type) error {
 
 func (g *Generator) genStructEncoder(t reflect.Type) error {
 	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type: type %v", t, t.Kind().String())
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type")
 	}
 
 	fname := g.getEncoderName(t)
