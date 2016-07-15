@@ -10,7 +10,7 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-func (g *Generator) getStructEncoderName(t reflect.Type) string {
+func (g *Generator) getEncoderName(t reflect.Type) string {
 	return g.functionName("encode_", t)
 }
 
@@ -79,7 +79,7 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 	return ret
 }
 
-// genTypeEncoder generates code that encodes in of type t into the writer.
+// genTypeEncoder generates code that encodes in of type t into the writer, but checks t's marshaler.
 func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
@@ -94,6 +94,14 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
 		return nil
 	}
+
+	err := g.genTypeEncoderNoCheck(t, in, tags, indent)
+	return err
+}
+
+// genTypeEncoderNoCheck generates code that encodes in of type t into the writer.
+func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldTags, indent int) error {
+	ws := strings.Repeat("  ", indent)
 
 	// Check whether type is primitive, needs to be done after interface check.
 	if enc := primitiveStringEncoders[t.Kind()]; enc != "" && tags.asString {
@@ -122,7 +130,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 		fmt.Fprintln(g.out, ws+"out.RawByte(']')")
 
 	case reflect.Struct:
-		enc := g.getStructEncoderName(t)
+		enc := g.getEncoderName(t)
 		g.addType(t)
 
 		fmt.Fprintln(g.out, ws+enc+"(out, "+in+")")
@@ -224,12 +232,29 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	return nil
 }
 
-func (g *Generator) genStructEncoder(t reflect.Type) error {
-	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
+func (g *Generator) genSliceEncoder(t reflect.Type) error {
+	if t.Kind() != reflect.Slice {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
 	}
 
-	fname := g.getStructEncoderName(t)
+	fname := g.getEncoderName(t)
+	typ := g.getType(t)
+
+	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
+	err := g.genTypeEncoderNoCheck(t, "in", fieldTags{}, 1)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(g.out, "}")
+	return nil
+}
+
+func (g *Generator) genStructEncoder(t reflect.Type) error {
+	if t.Kind() != reflect.Struct {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type: type %v", t, t.Kind().String())
+	}
+
+	fname := g.getEncoderName(t)
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
@@ -254,11 +279,11 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 }
 
 func (g *Generator) genStructMarshaller(t reflect.Type) error {
-	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
+	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice type", t)
 	}
 
-	fname := g.getStructEncoderName(t)
+	fname := g.getEncoderName(t)
 	typ := g.getType(t)
 
 	if !g.noStdMarshalers {
