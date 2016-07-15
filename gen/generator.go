@@ -175,11 +175,21 @@ func (g *Generator) Run(out io.Writer) error {
 		g.typesUnseen = g.typesUnseen[:len(g.typesUnseen)-1]
 		g.typesSeen[t] = true
 
-		if err := g.genStructDecoder(t); err != nil {
-			return err
-		}
-		if err := g.genStructEncoder(t); err != nil {
-			return err
+		switch t.Kind() {
+		case reflect.Slice:
+			if err := g.genSliceDecoder(t); err != nil {
+				return err
+			}
+			if err := g.genSliceEncoder(t); err != nil {
+				return err
+			}
+		default:
+			if err := g.genStructDecoder(t); err != nil {
+				return err
+			}
+			if err := g.genStructEncoder(t); err != nil {
+				return err
+			}
 		}
 
 		if !g.marshallers[t] {
