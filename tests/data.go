@@ -246,6 +246,8 @@ type Structs struct {
 	AnonymousSlice    []struct{ V int }
 	AnonymousPtrSlice []*struct{ V int }
 
+	Slice []string
+
 	unexported bool
 }
 
@@ -282,6 +284,8 @@ var structsValue = Structs{
 
 	AnonymousSlice:    []struct{ V int }{{1}, {2}},
 	AnonymousPtrSlice: []*struct{ V int }{{3}, {4}},
+
+	Slice: []string{"test5", "test6"},
 }
 
 var structsString = "{" +
@@ -305,6 +309,8 @@ var structsString = "{" +
 
 	`"AnonymousSlice":[{"V":1},{"V":2}],` +
 	`"AnonymousPtrSlice":[{"V":3},{"V":4}],` +
+
+	`"Slice":["test5","test6"],` +
 
 	// Embedded fields go last.
 	`"V":"subp",` +
