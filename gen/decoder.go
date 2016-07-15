@@ -13,7 +13,7 @@ import (
 // Target this byte size for initial slice allocation to reduce garbage collection.
 const minSliceBytes = 64
 
-func (g *Generator) getStructDecoderName(t reflect.Type) string {
+func (g *Generator) getDecoderName(t reflect.Type) string {
 	return g.functionName("decode_", t)
 }
 
@@ -47,7 +47,7 @@ var primitiveStringDecoders = map[reflect.Kind]string{
 	reflect.Uint64: "in.Uint64Str()",
 }
 
-// genTypeDecoder generates decoding code for the type t.
+// genTypeDecoderNoCheck generates decoding code for the type t, but checks t's unmarhaler.
 func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
@@ -65,6 +65,13 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 		return nil
 	}
 
+	err := g.genTypeDecoderNoCheck(t, out, tags, indent)
+	return err
+}
+
+// genTypeDecoderNoCheck generates decoding code for the type t.
+func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags fieldTags, indent int) error {
+	ws := strings.Repeat("  ", indent)
 	// Check whether type is primitive, needs to be done after interface check.
 	if dec := primitiveStringDecoders[t.Kind()]; dec != "" && tags.asString {
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
@@ -86,7 +93,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 
 		fmt.Fprintln(g.out, ws+"in.Delim('[')")
 		fmt.Fprintln(g.out, ws+"if !in.IsDelim(']') {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = make([]"+g.getType(elem)+", 0, "+fmt.Sprint(capacity)+")")
+		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+", 0, "+fmt.Sprint(capacity)+")")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 		fmt.Fprintln(g.out, ws+"}")
@@ -101,7 +108,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 		fmt.Fprintln(g.out, ws+"in.Delim(']')")
 
 	case reflect.Struct:
-		dec := g.getStructDecoderName(t)
+		dec := g.getDecoderName(t)
 		g.addType(t)
 
 		fmt.Fprintln(g.out, ws+dec+"(in, &"+out+")")
@@ -130,7 +137,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  in.Delim('{')")
 		fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = make(map["+g.getType(t.Key())+"]"+g.getType(t.Elem())+")")
+		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+")")
 		fmt.Fprintln(g.out, ws+"  } else {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 		fmt.Fprintln(g.out, ws+"  }")
@@ -260,12 +267,30 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 	return mergeStructFields(efields, fields), nil
 }
 
-func (g *Generator) genStructDecoder(t reflect.Type) error {
-	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
+func (g *Generator) genSliceDecoder(t reflect.Type) error {
+	if t.Kind() != reflect.Slice {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
 	}
 
-	fname := g.getStructDecoderName(t)
+	fname := g.getDecoderName(t)
+	typ := g.getType(t)
+
+	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
+	err := g.genTypeDecoder(t, "out", fieldTags{}, 1)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(g.out, "}")
+
+	return nil
+}
+
+func (g *Generator) genStructDecoder(t reflect.Type) error {
+	if t.Kind() != reflect.Struct {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type")
+	}
+
+	fname := g.getDecoderName(t)
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
@@ -326,11 +351,11 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 }
 
 func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
-	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
+	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice type", t)
 	}
 
-	fname := g.getStructDecoderName(t)
+	fname := g.getDecoderName(t)
 	typ := g.getType(t)
 
 	if !g.noStdMarshalers {
