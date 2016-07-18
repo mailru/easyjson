@@ -285,7 +285,7 @@ func (g *Generator) genSliceDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
-	err := g.genTypeDecoder(t, "out", fieldTags{}, 1)
+	err := g.genTypeDecoderNoCheck(t, "*out", fieldTags{}, 1)
 	if err != nil {
 		return err
 	}
