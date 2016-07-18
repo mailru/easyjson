@@ -532,6 +532,13 @@ var deepNestString = `{` +
 	`"NamedStringSlice":["value4","value5"]` +
 	`}`
 
+//easyjson:json
+type Ints []int
+
+var IntsValue = Ints{1, 2, 3, 4, 5}
+
+var IntsString = `[1,2,3,4,5]`
+
 type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`

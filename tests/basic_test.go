@@ -32,6 +32,7 @@ var testCases = []struct {
 	{&excludedFieldValue, excludedFieldString},
 	{&mapsValue, mapsString},
 	{&deepNestValue, deepNestString},
+	{&IntsValue, IntsString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -107,7 +108,7 @@ func TestParseNull(t *testing.T) {
 
 var testSpecialCases = []struct {
 	EncodedString string
-	Value string
+	Value         string
 }{
 	{`"Username \u003cuser@example.com\u003e"`, `Username <user@example.com>`},
 	{`"Username\ufffd"`, "Username\xc5"},
