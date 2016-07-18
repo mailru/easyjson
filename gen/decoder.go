@@ -47,7 +47,7 @@ var primitiveStringDecoders = map[reflect.Kind]string{
 	reflect.Uint64: "in.Uint64Str()",
 }
 
-// genTypeDecoderNoCheck generates decoding code for the type t, but checks t's unmarhaler.
+// genTypeDecoder generates decoding code for the type t, but uses unmarshaler interface if implemented by t.
 func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 

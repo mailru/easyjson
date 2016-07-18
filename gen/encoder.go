@@ -79,7 +79,7 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 	return ret
 }
 
-// genTypeEncoder generates code that encodes in of type t into the writer, but checks t's marshaler.
+// genTypeEncoder generates code that encodes in of type t into the writer, but uses marshaler interface if implemented by t.
 func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
