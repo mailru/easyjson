@@ -267,6 +267,15 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 	return mergeStructFields(efields, fields), nil
 }
 
+func (g *Generator) genDecoder(t reflect.Type) error {
+	switch t.Kind() {
+	case reflect.Slice:
+		return g.genSliceDecoder(t)
+	default:
+		return g.genStructDecoder(t)
+	}
+}
+
 func (g *Generator) genSliceDecoder(t reflect.Type) error {
 	if t.Kind() != reflect.Slice {
 		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
@@ -287,7 +296,7 @@ func (g *Generator) genSliceDecoder(t reflect.Type) error {
 
 func (g *Generator) genStructDecoder(t reflect.Type) error {
 	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type")
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
 	}
 
 	fname := g.getDecoderName(t)

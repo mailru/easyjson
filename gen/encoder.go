@@ -232,6 +232,15 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	return nil
 }
 
+func (g *Generator) genEncoder(t reflect.Type) error {
+	switch t.Kind() {
+	case reflect.Slice:
+		return g.genSliceEncoder(t)
+	default:
+		return g.genStructEncoder(t)
+	}
+}
+
 func (g *Generator) genSliceEncoder(t reflect.Type) error {
 	if t.Kind() != reflect.Slice {
 		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
