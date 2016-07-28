@@ -40,7 +40,7 @@ func generate(fname string) (err error) {
 	if *specifiedName != "" {
 		outName = *specifiedName
 	}
-	
+
 	g := bootstrap.Generator{
 		BuildTags:       *buildTags,
 		PkgPath:         p.PkgPath,

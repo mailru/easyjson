@@ -26,5 +26,24 @@ func TestCamelToSnake(t *testing.T) {
 			t.Errorf("[%d] camelToSnake(%s) = %s; want %s", i, test.In, got, test.Out)
 		}
 	}
+}
 
+func TestJoinFunctionNameParts(t *testing.T) {
+	for i, test := range []struct {
+		keepFirst bool
+		parts     []string
+		out       string
+	}{
+		{false, []string{}, ""},
+		{false, []string{"a"}, "A"},
+		{false, []string{"simple", "example"}, "SimpleExample"},
+		{true, []string{"first", "example"}, "firstExample"},
+		{false, []string{"some", "UPPER", "case"}, "SomeUPPERCase"},
+		{false, []string{"number", "123"}, "Number123"},
+	} {
+		got := joinFunctionNameParts(test.keepFirst, test.parts...)
+		if got != test.out {
+			t.Errorf("[%d] joinFunctionNameParts(%v) = %s; want %s", i, test.parts, got, test.out)
+		}
+	}
 }
