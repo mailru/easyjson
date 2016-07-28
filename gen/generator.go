@@ -67,8 +67,7 @@ func NewGenerator(filename string) *Generator {
 			"encoding/json": "json",
 		},
 		fieldNamer:    DefaultFieldNamer{},
-		functionNamer: UnderScoreFunctionNamer{},
-		//functionNamer: CamelCaseFunctionNamer{},
+		functionNamer: CamelCaseFunctionNamer{},
 		marshallers:   make(map[reflect.Type]bool),
 		typesSeen:     make(map[reflect.Type]bool),
 		functionNames: make(map[string]reflect.Type),
@@ -102,16 +101,6 @@ func (g *Generator) SetFieldNamer(n FieldNamer) {
 // UseSnakeCaseFieldNamer sets snake_case field naming strategy.
 func (g *Generator) UseSnakeCaseFieldNamer() {
 	g.fieldNamer = SnakeCaseFieldNamer{}
-}
-
-// SetFunctionNamer sets function naming strategy.
-func (g *Generator) SetFunctionNamer(n FunctionNamer) {
-	g.functionNamer = n
-}
-
-// UseCamelCaseFunctionNamer sets CamelCase function naming strategy.
-func (g *Generator) UseCamelCaseFunctionNamer() {
-	g.functionNamer = CamelCaseFunctionNamer{}
 }
 
 // NoStdMarshalers instructs not to generate standard MarshalJSON/UnmarshalJSON
@@ -413,11 +402,4 @@ func (CamelCaseFunctionNamer) GetName(keepFirst bool, parts ...string) string {
 		}
 	}
 	return buf.String()
-}
-
-// UnderScoreFunctionNamer implements FunctionNamer interface with under_score format
-type UnderScoreFunctionNamer struct{}
-
-func (UnderScoreFunctionNamer) GetName(keepFirst bool, parts ...string) string {
-	return strings.Join(parts, "_")
 }

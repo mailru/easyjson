@@ -33,7 +33,6 @@ var testCases = []struct {
 	{&mapsValue, mapsString},
 	{&deepNestValue, deepNestString},
 	{&IntsValue, IntsString},
-	{&camelCasesFunctionsValue, camelCasesFunctionsString},
 }
 
 func TestMarshal(t *testing.T) {

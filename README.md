@@ -31,8 +31,6 @@ Usage of .root/bin/easyjson:
         use snake_case names instead of CamelCase by default
   -stubs
         only generate stubs for marshallers/unmarshallers methods
-  -camel_case_functions
-        generate functions with CamelCase names instead of under_score by default
 ```
 
 Using `-all` will generate (un-)marshallers for all structs in the file. By default, structs need to have a line beginning with `easyjson:json` in their docstring, e.g.:

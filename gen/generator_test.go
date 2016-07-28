@@ -55,13 +55,3 @@ func TestCamelCaseFunctionNamer(t *testing.T) {
 		}
 	}
 }
-
-func TestUnderScoreFunctionNamer(t *testing.T) {
-	namer := UnderScoreFunctionNamer{}
-	for i, test := range getFunctionNamerCases() {
-		got := namer.GetName(test.keepFirst, test.parts...)
-		if got != test.underScoreOut {
-			t.Errorf("[%d] UnderScoreFunctionNamer.GetName(%v) = %s; want %s", i, test.parts, got, test.underScoreOut)
-		}
-	}
-}
