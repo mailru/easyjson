@@ -246,6 +246,8 @@ type Structs struct {
 	AnonymousSlice    []struct{ V int }
 	AnonymousPtrSlice []*struct{ V int }
 
+	Slice []string
+
 	unexported bool
 }
 
@@ -282,6 +284,8 @@ var structsValue = Structs{
 
 	AnonymousSlice:    []struct{ V int }{{1}, {2}},
 	AnonymousPtrSlice: []*struct{ V int }{{3}, {4}},
+
+	Slice: []string{"test5", "test6"},
 }
 
 var structsString = "{" +
@@ -305,6 +309,8 @@ var structsString = "{" +
 
 	`"AnonymousSlice":[{"V":1},{"V":2}],` +
 	`"AnonymousPtrSlice":[{"V":3},{"V":4}],` +
+
+	`"Slice":["test5","test6"],` +
 
 	// Embedded fields go last.
 	`"V":"subp",` +
@@ -436,46 +442,104 @@ var mapsString = `{` +
 	`"CustomMap":{"c":"d"}` +
 	`}`
 
+type NamedSlice []Str
+type NamedMap map[Str]Str
+
 type DeepNest struct {
-	SliceMap  map[Str][]Str
-	SliceMap1 map[Str][]Str
-	MapSlice  []map[Str]Str
+	SliceMap         map[Str][]Str
+	SliceMap1        map[Str][]Str
+	NamedSliceMap    map[Str]NamedSlice
+	NamedMapMap      map[Str]NamedMap
+	MapSlice         []map[Str]Str
+	NamedSliceSlice  []NamedSlice
+	NamedMapSlice    []NamedMap
+	NamedStringSlice []NamedString
 }
 
 var deepNestValue = DeepNest{
 	SliceMap: map[Str][]Str{
-		"testSliceMap1": []Str{
+		"testSliceMap": []Str{
 			"0",
 			"1",
 		},
 	},
 	SliceMap1: map[Str][]Str{
-		"testSliceMap2": nil,
+		"testSliceMap1": nil,
+	},
+	NamedSliceMap: map[Str]NamedSlice{
+		"testNamedSliceMap": NamedSlice{
+			"2",
+			"3",
+		},
+	},
+	NamedMapMap: map[Str]NamedMap{
+		"testNamedMapMap": NamedMap{
+			"key1": "value1",
+		},
 	},
 	MapSlice: []map[Str]Str{
 		map[Str]Str{
-			"testMapSlice1": "someValue",
+			"testMapSlice": "someValue",
 		},
+	},
+	NamedSliceSlice: []NamedSlice{
+		NamedSlice{
+			"someValue1",
+			"someValue2",
+		},
+		NamedSlice{
+			"someValue3",
+			"someValue4",
+		},
+	},
+	NamedMapSlice: []NamedMap{
+		NamedMap{
+			"key2": "value2",
+		},
+		NamedMap{
+			"key3": "value3",
+		},
+	},
+	NamedStringSlice: []NamedString{
+		"value4", "value5",
 	},
 }
 
 var deepNestString = `{` +
 	`"SliceMap":{` +
-	`"testSliceMap1":["0","1"]` +
+	`"testSliceMap":["0","1"]` +
 	`},` +
 	`"SliceMap1":{` +
-	`"testSliceMap2":[]` +
+	`"testSliceMap1":[]` +
+	`},` +
+	`"NamedSliceMap":{` +
+	`"testNamedSliceMap":["2","3"]` +
+	`},` +
+	`"NamedMapMap":{` +
+	`"testNamedMapMap":{"key1":"value1"}` +
 	`},` +
 	`"MapSlice":[` +
-	`{"testMapSlice1":"someValue"}` +
-	`]` +
+	`{"testMapSlice":"someValue"}` +
+	`],` +
+	`"NamedSliceSlice":[` +
+	`["someValue1","someValue2"],` +
+	`["someValue3","someValue4"]` +
+	`],` +
+	`"NamedMapSlice":[` +
+	`{"key2":"value2"},` +
+	`{"key3":"value3"}` +
+	`],` +
+	`"NamedStringSlice":["value4","value5"]` +
 	`}`
+
+//easyjson:json
+type Ints []int
+
+var IntsValue = Ints{1, 2, 3, 4, 5}
+
+var IntsString = `[1,2,3,4,5]`
 
 type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`
 }
-
-var encodeLtGtString = `Username <user@example.com>`
-var encodeLtGtFalseWantString = `"Username <user@example.com>"`
-var encodeLtGtTrueWantString = `"Username \u003cuser@example.com\u003e"`

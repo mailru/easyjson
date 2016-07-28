@@ -193,10 +193,10 @@ func (g *Generator) Run(out io.Writer) error {
 		g.typesUnseen = g.typesUnseen[:len(g.typesUnseen)-1]
 		g.typesSeen[t] = true
 
-		if err := g.genStructDecoder(t); err != nil {
+		if err := g.genDecoder(t); err != nil {
 			return err
 		}
-		if err := g.genStructEncoder(t); err != nil {
+		if err := g.genEncoder(t); err != nil {
 			return err
 		}
 
@@ -245,13 +245,15 @@ func (g *Generator) pkgAlias(pkgPath string) string {
 
 // getType return the textual type name of given type that can be used in generated code.
 func (g *Generator) getType(t reflect.Type) string {
-	switch t.Kind() {
-	case reflect.Ptr:
-		return "*" + g.getType(t.Elem())
-	case reflect.Slice:
-		return "[]" + g.getType(t.Elem())
-	case reflect.Map:
-		return "map[" + g.getType(t.Key()) + "]" + g.getType(t.Elem())
+	if t.Name() == "" {
+		switch t.Kind() {
+		case reflect.Ptr:
+			return "*" + g.getType(t.Elem())
+		case reflect.Slice:
+			return "[]" + g.getType(t.Elem())
+		case reflect.Map:
+			return "map[" + g.getType(t.Key()) + "]" + g.getType(t.Elem())
+		}
 	}
 
 	if t.Name() == "" || t.PkgPath() == "" {
