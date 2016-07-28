@@ -22,7 +22,7 @@ type Generator struct {
 	Types            []string
 
 	NoStdMarshalers bool
-	SnakeCaseFields bool
+	SnakeCase       bool
 	OmitEmpty       bool
 
 	OutName   string
@@ -105,8 +105,8 @@ func (g *Generator) writeMain() (path string, err error) {
 	if g.BuildTags != "" {
 		fmt.Fprintf(f, "  g.SetBuildTags(%q)\n", g.BuildTags)
 	}
-	if g.SnakeCaseFields {
-		fmt.Fprintln(f, "  g.UseSnakeCaseFieldNamer()")
+	if g.SnakeCase {
+		fmt.Fprintln(f, "  g.UseSnakeCase()")
 	}
 	if g.OmitEmpty {
 		fmt.Fprintln(f, "  g.OmitEmpty()")

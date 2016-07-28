@@ -20,11 +20,6 @@ type FieldNamer interface {
 	GetJSONFieldName(t reflect.Type, f reflect.StructField) string
 }
 
-// FuncNamer defines a policy for generating function names
-type FunctionNamer interface {
-	GetName(keepFirst bool, parts ...string) string
-}
-
 // Generator generates the requested marshallers/unmarshallers.
 type Generator struct {
 	out *bytes.Buffer
@@ -39,7 +34,6 @@ type Generator struct {
 	noStdMarshalers bool
 	omitEmpty       bool
 	fieldNamer      FieldNamer
-	functionNamer   FunctionNamer
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -67,7 +61,6 @@ func NewGenerator(filename string) *Generator {
 			"encoding/json": "json",
 		},
 		fieldNamer:    DefaultFieldNamer{},
-		functionNamer: CamelCaseFunctionNamer{},
 		marshallers:   make(map[reflect.Type]bool),
 		typesSeen:     make(map[reflect.Type]bool),
 		functionNames: make(map[string]reflect.Type),
@@ -98,8 +91,8 @@ func (g *Generator) SetFieldNamer(n FieldNamer) {
 	g.fieldNamer = n
 }
 
-// UseSnakeCaseFieldNamer sets snake_case field naming strategy.
-func (g *Generator) UseSnakeCaseFieldNamer() {
+// UseSnakeCase sets snake_case field naming strategy.
+func (g *Generator) UseSnakeCase() {
 	g.fieldNamer = SnakeCaseFieldNamer{}
 }
 
@@ -280,7 +273,7 @@ func (g *Generator) safeName(t reflect.Type) string {
 			part = []rune{}
 		}
 	}
-	return g.functionNamer.GetName(false, parts...)
+	return joinFunctionNameParts(false, parts...)
 }
 
 // functionName returns a function name for a given type with a given prefix. If a function
@@ -288,8 +281,8 @@ func (g *Generator) safeName(t reflect.Type) string {
 //
 // Method is used to track encoder/decoder names for the type.
 func (g *Generator) functionName(prefix string, t reflect.Type) string {
-	prefix = g.functionNamer.GetName(true, "easyjson", g.hashString, prefix)
-	name := g.functionNamer.GetName(true, prefix, g.safeName(t))
+	prefix = joinFunctionNameParts(true, "easyjson", g.hashString, prefix)
+	name := joinFunctionNameParts(true, prefix, g.safeName(t))
 
 	// Most of the names will be unique, try a shortcut first.
 	if e, ok := g.functionNames[name]; !ok || e == t {
@@ -384,10 +377,7 @@ func (SnakeCaseFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructFiel
 	return camelToSnake(f.Name)
 }
 
-// CamelCaseFunctionNamer implements FunctionNamer interface with CamelCase format
-type CamelCaseFunctionNamer struct{}
-
-func (CamelCaseFunctionNamer) GetName(keepFirst bool, parts ...string) string {
+func joinFunctionNameParts(keepFirst bool, parts ...string) string {
 	buf := bytes.NewBufferString("")
 	for i, part := range parts {
 		if i == 0 && keepFirst {

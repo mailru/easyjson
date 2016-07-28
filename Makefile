@@ -21,7 +21,7 @@ generate: root build
 		.root/src/$(PKG)/tests/snake.go \
 		.root/src/$(PKG)/tests/data.go \
 		.root/src/$(PKG)/tests/omitempty.go \
-		.root/src/$(PKG)/tests/nothing.go \
+		.root/src/$(PKG)/tests/nothing.go
 
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/data.go 
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/nothing.go
