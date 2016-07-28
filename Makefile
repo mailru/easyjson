@@ -36,7 +36,6 @@ test: generate root
 		$(PKG)/gen \
 		$(PKG)/buffer
 	go test -benchmem -tags use_easyjson -bench . $(PKG)/benchmark
-	go get -u github.com/golang/lint/golint
 	golint -set_exit_status .root/src/$(PKG)/tests/*_easyjson.go
 
 bench-other: generate root
