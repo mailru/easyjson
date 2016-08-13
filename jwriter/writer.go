@@ -200,6 +200,12 @@ func (w *Writer) Bool(v bool) {
 
 const chars = "0123456789abcdef"
 
+func isNotEscapedSingleChar(c byte) bool {
+	// Note: might make sense to use a table if there are more chars to escape. With 4 chars
+	// it benchmarks the same.
+	return c != '<' && c != '\\' && c != '"' && c != '>' && c >= 0x20 && c < utf8.RuneSelf
+}
+
 func (w *Writer) String(s string) {
 	w.Buffer.AppendByte('"')
 
@@ -209,39 +215,32 @@ func (w *Writer) String(s string) {
 	p := 0 // last non-escape symbol
 
 	for i := 0; i < len(s); {
-		// single-with character
-		if c := s[i]; c < utf8.RuneSelf {
-			var escape byte
+		c := s[i]
+
+		if isNotEscapedSingleChar(c) {
+			// single-width character, no escaping is required
+			i++
+			continue
+		} else if c < utf8.RuneSelf {
+			// single-with character, need to escape
+			w.Buffer.AppendString(s[p:i])
 			switch c {
 			case '\t':
-				escape = 't'
+				w.Buffer.AppendString(`\t`)
 			case '\r':
-				escape = 'r'
+				w.Buffer.AppendString(`\r`)
 			case '\n':
-				escape = 'n'
+				w.Buffer.AppendString(`\n`)
 			case '\\':
-				escape = '\\'
+				w.Buffer.AppendString(`\\`)
 			case '"':
-				escape = '"'
-			case '<', '>':
-				// do nothing
+				w.Buffer.AppendString(`\"`)
 			default:
-				if c >= 0x20 {
-					// no escaping is required
-					i++
-					continue
-				}
-			}
-			if escape != 0 {
-				w.Buffer.AppendString(s[p:i])
-				w.Buffer.AppendByte('\\')
-				w.Buffer.AppendByte(escape)
-			} else {
-				w.Buffer.AppendString(s[p:i])
 				w.Buffer.AppendString(`\u00`)
 				w.Buffer.AppendByte(chars[c>>4])
 				w.Buffer.AppendByte(chars[c&0xf])
 			}
+
 			i++
 			p = i
 			continue
