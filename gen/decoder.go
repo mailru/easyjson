@@ -118,7 +118,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"  in.Skip()")
 		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 		fmt.Fprintln(g.out, ws+"} else {")
-		fmt.Fprintln(g.out, ws+"  if ("+out+") == nil {")
+		fmt.Fprintln(g.out, ws+"  if "+out+" == nil {")
 		fmt.Fprintln(g.out, ws+"    "+out+" = new("+g.getType(t.Elem())+")")
 		fmt.Fprintln(g.out, ws+"  }")
 
