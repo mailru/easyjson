@@ -157,6 +157,9 @@ func TestSkipRecursive(t *testing.T) {
 		{toParse: `{"a\"}":1}, 4`, left: ", 4"},
 		{toParse: `{"a{":1}, 4`, left: ", 4"},
 		{toParse: `{"a\"{":1}, 4`, left: ", 4"},
+
+		// object with double slashes at the end of string
+		{toParse: `{"a":"hey\\"}, 4`, left: ", 4"},
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
