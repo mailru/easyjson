@@ -189,11 +189,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"  in.Skip()")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  in.Delim('{')")
-		fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
 		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+")")
-		fmt.Fprintln(g.out, ws+"  } else {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
-		fmt.Fprintln(g.out, ws+"  }")
 
 		fmt.Fprintln(g.out, ws+"  for !in.IsDelim('}') {")
 		fmt.Fprintln(g.out, ws+"    key := "+g.getType(t.Key())+"(in.String())")

@@ -491,6 +491,7 @@ type Maps struct {
 	Map          map[string]string
 	InterfaceMap map[string]interface{}
 	NilMap       map[string]string
+	EmptyMap     map[string]string
 
 	CustomMap map[Str]Str
 }
@@ -498,6 +499,7 @@ type Maps struct {
 var mapsValue = Maps{
 	Map:          map[string]string{"A": "b"}, // only one item since map iteration is randomized
 	InterfaceMap: map[string]interface{}{"G": float64(1)},
+	EmptyMap:     map[string]string{},
 
 	CustomMap: map[Str]Str{"c": "d"},
 }
@@ -506,6 +508,7 @@ var mapsString = `{` +
 	`"Map":{"A":"b"},` +
 	`"InterfaceMap":{"G":1},` +
 	`"NilMap":null,` +
+	`"EmptyMap":{},` +
 	`"CustomMap":{"c":"d"}` +
 	`}`
 
