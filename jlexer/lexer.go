@@ -425,13 +425,19 @@ func (r *Lexer) errInvalidToken(expected string) {
 	}
 }
 
+func (r *Lexer) errInvalidToken2(c byte) {
+	if r.err == nil {
+		r.errInvalidToken(string([]byte{c}))
+	}
+}
+
 // Delim consumes a token and verifies that it is the given delimiter.
 func (r *Lexer) Delim(c byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.fetchToken()
 	}
 	if !r.Ok() || r.token.delimValue != c {
-		r.errInvalidToken(string([]byte{c}))
+		r.errInvalidToken2(c)
 	}
 	r.consume()
 }
