@@ -8,6 +8,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -233,6 +234,8 @@ func (g *Generator) getType(t reflect.Type) string {
 			return "*" + g.getType(t.Elem())
 		case reflect.Slice:
 			return "[]" + g.getType(t.Elem())
+		case reflect.Array:
+			return "[" + strconv.Itoa(t.Len()) + "]" + g.getType(t.Elem())
 		case reflect.Map:
 			return "map[" + g.getType(t.Key()) + "]" + g.getType(t.Elem())
 		}

@@ -445,6 +445,27 @@ var sliceString = `{` +
 	`"NilIntSlice":null` +
 	`}`
 
+type Arrays struct {
+	ByteArray      [3]byte
+	EmptyByteArray [0]byte
+	IntArray       [5]int
+	EmptyIntArray  [0]int
+}
+
+var arrayValue = Arrays{
+	ByteArray:      [3]byte{'a', 'b', 'c'},
+	EmptyByteArray: [0]byte{},
+	IntArray:       [5]int{1, 2, 3, 4, 5},
+	EmptyIntArray:  [0]int{},
+}
+
+var arrayString = `{` +
+	`"ByteArray":"YWJj",` +
+	`"EmptyByteArray":"",` +
+	`"IntArray":[1,2,3,4,5],` +
+	`"EmptyIntArray":[]` +
+	`}`
+
 type Str string
 
 type Maps struct {

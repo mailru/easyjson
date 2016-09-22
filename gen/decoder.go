@@ -123,6 +123,40 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"}")
 		}
 
+	case reflect.Array:
+		tmpVar := g.uniqueVarName()
+		iterVar := g.uniqueVarName()
+		elem := t.Elem()
+
+		if elem.Kind() == reflect.Uint8 {
+			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+			fmt.Fprintln(g.out, ws+"  in.Skip()")
+			fmt.Fprintln(g.out, ws+"} else {")
+			fmt.Fprintln(g.out, ws+"  copy("+out+"[:], in.Bytes())")
+			fmt.Fprintln(g.out, ws+"}")
+
+		} else {
+
+			length := t.Len()
+
+			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+			fmt.Fprintln(g.out, ws+"  in.Skip()")
+			fmt.Fprintln(g.out, ws+"} else {")
+			fmt.Fprintln(g.out, ws+"  in.Delim('[')")
+			fmt.Fprintln(g.out, ws+"  "+iterVar+" := 0")
+			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') && "+iterVar+" < "+fmt.Sprint(length)+" {")
+			fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
+
+			g.genTypeDecoder(elem, tmpVar, tags, indent+2)
+
+			fmt.Fprintln(g.out, ws+"    "+out+"["+iterVar+"] = "+tmpVar)
+			fmt.Fprintln(g.out, ws+"    "+iterVar+"++")
+			fmt.Fprintln(g.out, ws+"    in.WantComma()")
+			fmt.Fprintln(g.out, ws+"  }")
+			fmt.Fprintln(g.out, ws+"  in.Delim(']')")
+			fmt.Fprintln(g.out, ws+"}")
+		}
+
 	case reflect.Struct:
 		dec := g.getDecoderName(t)
 		g.addType(t)
@@ -287,16 +321,16 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 
 func (g *Generator) genDecoder(t reflect.Type) error {
 	switch t.Kind() {
-	case reflect.Slice:
-		return g.genSliceDecoder(t)
+	case reflect.Slice, reflect.Array:
+		return g.genSliceArrayDecoder(t)
 	default:
 		return g.genStructDecoder(t)
 	}
 }
 
-func (g *Generator) genSliceDecoder(t reflect.Type) error {
-	if t.Kind() != reflect.Slice {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
+func (g *Generator) genSliceArrayDecoder(t reflect.Type) error {
+	if t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice or array type", t)
 	}
 
 	fname := g.getDecoderName(t)
@@ -378,8 +412,8 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 }
 
 func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
-	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice type", t)
+	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice/array type", t)
 	}
 
 	fname := g.getDecoderName(t)
