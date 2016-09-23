@@ -124,7 +124,6 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		}
 
 	case reflect.Array:
-		tmpVar := g.uniqueVarName()
 		iterVar := g.uniqueVarName()
 		elem := t.Elem()
 
@@ -145,11 +144,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  in.Delim('[')")
 			fmt.Fprintln(g.out, ws+"  "+iterVar+" := 0")
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') && "+iterVar+" < "+fmt.Sprint(length)+" {")
-			fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-			g.genTypeDecoder(elem, tmpVar, tags, indent+2)
+			g.genTypeDecoder(elem, out+"["+iterVar+"]", tags, indent+2)
 
-			fmt.Fprintln(g.out, ws+"    "+out+"["+iterVar+"] = "+tmpVar)
 			fmt.Fprintln(g.out, ws+"    "+iterVar+"++")
 			fmt.Fprintln(g.out, ws+"    in.WantComma()")
 			fmt.Fprintln(g.out, ws+"  }")
