@@ -180,7 +180,11 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		if t.NumMethod() != 0 {
 			return fmt.Errorf("interface type %v not supported: only interface{} is allowed", t)
 		}
-		fmt.Fprintln(g.out, ws+"out.Raw(json.Marshal("+in+"))")
+		fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(json.Marshaler); ok {")
+		fmt.Fprintln(g.out, ws+"  out.Raw(m.MarshalJSON())")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  out.Raw(json.Marshal("+in+"))")
+		fmt.Fprintln(g.out, ws+"}")
 
 	default:
 		return fmt.Errorf("don't know how to encode %v", t)
