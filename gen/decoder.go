@@ -143,11 +143,15 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"} else {")
 			fmt.Fprintln(g.out, ws+"  in.Delim('[')")
 			fmt.Fprintln(g.out, ws+"  "+iterVar+" := 0")
-			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') && "+iterVar+" < "+fmt.Sprint(length)+" {")
+			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
+			fmt.Fprintln(g.out, ws+"    if "+iterVar+" < "+fmt.Sprint(length)+" {")
 
-			g.genTypeDecoder(elem, out+"["+iterVar+"]", tags, indent+2)
+			g.genTypeDecoder(elem, out+"["+iterVar+"]", tags, indent+3)
 
-			fmt.Fprintln(g.out, ws+"    "+iterVar+"++")
+			fmt.Fprintln(g.out, ws+"      "+iterVar+"++")
+			fmt.Fprintln(g.out, ws+"    } else {")
+			fmt.Fprintln(g.out, ws+"      in.SkipRecursive()")
+			fmt.Fprintln(g.out, ws+"    }")
 			fmt.Fprintln(g.out, ws+"    in.WantComma()")
 			fmt.Fprintln(g.out, ws+"  }")
 			fmt.Fprintln(g.out, ws+"  in.Delim(']')")
