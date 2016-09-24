@@ -31,6 +31,7 @@ var testCases = []struct {
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
 	{&sliceValue, sliceString},
+	{&arrayValue, arrayString},
 	{&mapsValue, mapsString},
 	{&deepNestValue, deepNestString},
 	{&IntsValue, IntsString},

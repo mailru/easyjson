@@ -137,6 +137,25 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			fmt.Fprintln(g.out, ws+"}")
 		}
 
+	case reflect.Array:
+		elem := t.Elem()
+		iVar := g.uniqueVarName()
+
+		if t.Elem().Kind() == reflect.Uint8 {
+			fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+"[:])")
+		} else {
+			fmt.Fprintln(g.out, ws+"out.RawByte('[')")
+			fmt.Fprintln(g.out, ws+"for "+iVar+" := range "+in+" {")
+			fmt.Fprintln(g.out, ws+"  if "+iVar+" > 0 {")
+			fmt.Fprintln(g.out, ws+"    out.RawByte(',')")
+			fmt.Fprintln(g.out, ws+"  }")
+
+			g.genTypeEncoder(elem, in+"["+iVar+"]", tags, indent+1)
+
+			fmt.Fprintln(g.out, ws+"}")
+			fmt.Fprintln(g.out, ws+"out.RawByte(']')")
+		}
+
 	case reflect.Struct:
 		enc := g.getEncoderName(t)
 		g.addType(t)
@@ -214,6 +233,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 		return v + " != 0"
 
 	default:
+		// note: Array types don't have a useful empty value
 		return "true"
 	}
 }
@@ -246,16 +266,16 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 
 func (g *Generator) genEncoder(t reflect.Type) error {
 	switch t.Kind() {
-	case reflect.Slice:
-		return g.genSliceEncoder(t)
+	case reflect.Slice, reflect.Array:
+		return g.genSliceArrayEncoder(t)
 	default:
 		return g.genStructEncoder(t)
 	}
 }
 
-func (g *Generator) genSliceEncoder(t reflect.Type) error {
-	if t.Kind() != reflect.Slice {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice type", t)
+func (g *Generator) genSliceArrayEncoder(t reflect.Type) error {
+	if t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice or array type", t)
 	}
 
 	fname := g.getEncoderName(t)
@@ -300,8 +320,8 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 }
 
 func (g *Generator) genStructMarshaller(t reflect.Type) error {
-	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice type", t)
+	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice/array type", t)
 	}
 
 	fname := g.getEncoderName(t)
