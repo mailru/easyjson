@@ -133,3 +133,25 @@ func TestSpecialCases(t *testing.T) {
 		}
 	}
 }
+
+func TestOverflowArray(t *testing.T) {
+	var a Arrays
+	err := easyjson.Unmarshal([]byte(arrayOverflowString), &a)
+	if err != nil {
+		t.Error(err)
+	}
+	if a != arrayValue {
+		t.Errorf("Unmarshal(%v) = %+v; want %+v", arrayOverflowString, a, arrayValue)
+	}
+}
+
+func TestUnderflowArray(t *testing.T) {
+	var a Arrays
+	err := easyjson.Unmarshal([]byte(arrayUnderflowString), &a)
+	if err != nil {
+		t.Error(err)
+	}
+	if a != arrayUnderflowValue {
+		t.Errorf("Unmarshal(%v) = %+v; want %+v", arrayUnderflowString, a, arrayUnderflowValue)
+	}
+}
