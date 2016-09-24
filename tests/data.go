@@ -466,6 +466,25 @@ var arrayString = `{` +
 	`"EmptyIntArray":[]` +
 	`}`
 
+var arrayOverflowString = `{` +
+	`"ByteArray":"YWJjbnNk",` +
+	`"EmptyByteArray":"YWJj",` +
+	`"IntArray":[1,2,3,4,5,6],` +
+	`"EmptyIntArray":[7,8]` +
+	`}`
+
+var arrayUnderflowValue = Arrays{
+	ByteArray:      [3]byte{'x', 0, 0},
+	EmptyByteArray: [0]byte{},
+	IntArray:       [5]int{1, 2, 0, 0, 0},
+	EmptyIntArray:  [0]int{},
+}
+
+var arrayUnderflowString = `{` +
+	`"ByteArray":"eA==",` +
+	`"IntArray":[1,2]` +
+	`}`
+
 type Str string
 
 type Maps struct {
