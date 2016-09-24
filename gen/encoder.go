@@ -214,7 +214,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	}
 
 	switch t.Kind() {
-	case reflect.Slice, reflect.Map: // note: Array types don't have a useful empty value
+	case reflect.Slice, reflect.Map:
 		return "len(" + v + ") != 0"
 	case reflect.Interface, reflect.Ptr:
 		return v + " != nil"
@@ -229,6 +229,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 		return v + " != 0"
 
 	default:
+		// note: Array types don't have a useful empty value
 		return "true"
 	}
 }
