@@ -6,11 +6,9 @@ import (
 	"os"
 	"strings"
 
+	"errors"
 	"github.com/mailru/easyjson/bootstrap"
-	// Reference the gen package to be friendly to vendoring tools,
-	// as it is an indirect dependency.
-	// (The temporary bootstrapping code uses it.)
-	_ "github.com/mailru/easyjson/gen"
+	"github.com/mailru/easyjson/gen"
 	"github.com/mailru/easyjson/parser"
 )
 
@@ -23,6 +21,7 @@ var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files"
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshallers/unmarshallers methods")
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
+var fieldNamer = flag.String("field_namer", "", "which field namer to use: default, snake_case, protobuf")
 
 func generate(fname string) (err error) {
 	p := parser.Parser{AllStructs: *allStructs}
@@ -32,7 +31,7 @@ func generate(fname string) (err error) {
 
 	var outName string
 	if s := strings.TrimSuffix(fname, ".go"); s == fname {
-		return fmt.Errorf("Filename must end in '.go'")
+		return errors.New("Filename must end in '.go'")
 	} else {
 		outName = s + "_easyjson.go"
 	}
@@ -40,13 +39,24 @@ func generate(fname string) (err error) {
 	if *specifiedName != "" {
 		outName = *specifiedName
 	}
-
+	if len(*fieldNamer) != 0 {
+		if *snakeCase {
+			return errors.New("Cannot use field_namer with snake_case flag. Please choose one.")
+		}
+		if _, ok := gen.FieldNamers[*fieldNamer]; !ok {
+			return fmt.Errorf("Unknown field_namer '%s' specified", *fieldNamer)
+		}
+	} else if *snakeCase {
+		*fieldNamer = "snake_case"
+	} else {
+		*fieldNamer = "default"
+	}
 	g := bootstrap.Generator{
 		BuildTags:       *buildTags,
 		PkgPath:         p.PkgPath,
 		PkgName:         p.PkgName,
 		Types:           p.StructNames,
-		SnakeCase:       *snakeCase,
+		FieldNamer:      *fieldNamer,
 		NoStdMarshalers: *noStdMarshalers,
 		OmitEmpty:       *omitEmpty,
 		LeaveTemps:      *leaveTemps,

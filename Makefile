@@ -27,6 +27,7 @@ generate: root build
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/nothing.go
 	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go
 	.root/bin/easyjson -omit_empty .root/src/$(PKG)/tests/omitempty.go
+	.root/bin/easyjson -field_namer=protobuf .root/src/$(PKG)/tests/protobuf.go
 	.root/bin/easyjson -build_tags=use_easyjson .root/src/$(PKG)/benchmark/data.go
 
 test: generate root

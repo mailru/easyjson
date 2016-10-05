@@ -66,7 +66,6 @@ func NewGenerator(filename string) *Generator {
 		typesSeen:     make(map[reflect.Type]bool),
 		functionNames: make(map[string]reflect.Type),
 	}
-
 	// Use a file-unique prefix on all auxiliary functions to avoid
 	// name clashes.
 	hash := fnv.New32()
@@ -395,4 +394,28 @@ func joinFunctionNameParts(keepFirst bool, parts ...string) string {
 		}
 	}
 	return buf.String()
+}
+
+// ProtobufFieldNamer names fields as specified in "protobuf" struct tag (if any)
+type ProtobufFieldNamer struct{}
+
+func (ProtobufFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField) string {
+	protoFields := strings.Split(f.Tag.Get("protobuf"), ",")
+	for _, field := range protoFields {
+		if strings.HasPrefix(field, "json=") {
+			return field[5:]
+		}
+	}
+	jsonName := strings.Split(f.Tag.Get("json"), ",")[0]
+	if jsonName != "" {
+		return jsonName
+	} else {
+		return f.Name
+	}
+}
+
+var FieldNamers = map[string]FieldNamer{
+	"default":    DefaultFieldNamer{},
+	"snake_case": SnakeCaseFieldNamer{},
+	"protobuf":   ProtobufFieldNamer{},
 }
