@@ -613,6 +613,13 @@ var IntsValue = Ints{1, 2, 3, 4, 5}
 
 var IntsString = `[1,2,3,4,5]`
 
+//easyjson:json
+type MapStringString map[string]string
+
+var mapStringStringValue = MapStringString{"a": "b"}
+
+var mapStringStringString = `{"a":"b"}`
+
 type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`

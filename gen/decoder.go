@@ -322,7 +322,7 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 
 func (g *Generator) genDecoder(t reflect.Type) error {
 	switch t.Kind() {
-	case reflect.Slice, reflect.Array:
+	case reflect.Slice, reflect.Array, reflect.Map:
 		return g.genSliceArrayDecoder(t)
 	default:
 		return g.genStructDecoder(t)
@@ -330,8 +330,10 @@ func (g *Generator) genDecoder(t reflect.Type) error {
 }
 
 func (g *Generator) genSliceArrayDecoder(t reflect.Type) error {
-	if t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice or array type", t)
+	switch t.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+	default:
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a slice/array/map type", t)
 	}
 
 	fname := g.getDecoderName(t)
@@ -413,8 +415,10 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 }
 
 func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
-	if t.Kind() != reflect.Struct && t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
-		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice/array type", t)
+	switch t.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map, reflect.Struct:
+	default:
+		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct/slice/array/map type", t)
 	}
 
 	fname := g.getDecoderName(t)
