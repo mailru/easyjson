@@ -47,3 +47,19 @@ func TestJoinFunctionNameParts(t *testing.T) {
 		}
 	}
 }
+
+func TestFixVendorPath(t *testing.T) {
+	for i, test := range []struct {
+		In, Out string
+	}{
+		{"", ""},
+		{"time", "time"},
+		{"project/vendor/subpackage", "subpackage"},
+	} {
+		got := fixPkgPathVendoring(test.In)
+		if got != test.Out {
+			t.Errorf("[%d] fixPkgPathVendoring(%s) = %s; want %s", i, test.In, got, test.Out)
+		}
+	}
+
+}
