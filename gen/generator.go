@@ -199,8 +199,18 @@ func (g *Generator) Run(out io.Writer) error {
 	return err
 }
 
+// fixes vendored paths
+func fixPkgPathVendoring(pkgPath string) string {
+	const vendor = "/vendor/"
+	if i := strings.LastIndex(pkgPath, vendor); i != -1 {
+		return pkgPath[i+len(vendor):]
+	}
+	return pkgPath
+}
+
 // pkgAlias creates and returns and import alias for a given package.
 func (g *Generator) pkgAlias(pkgPath string) string {
+	pkgPath = fixPkgPathVendoring(pkgPath)
 	if alias := g.imports[pkgPath]; alias != "" {
 		return alias
 	}
