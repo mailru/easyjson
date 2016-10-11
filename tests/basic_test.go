@@ -156,3 +156,26 @@ func TestUnderflowArray(t *testing.T) {
 		t.Errorf("Unmarshal(%v) = %+v; want %+v", arrayUnderflowString, a, arrayUnderflowValue)
 	}
 }
+
+func TestNestedEasyJsonMarshal(t *testing.T) {
+	n := map[string]*NestedEasyMarshaler{
+		"Value":  {},
+		"Slice1": {},
+		"Slice2": {},
+		"Map1":   {},
+		"Map2":   {},
+	}
+
+	ni := NestedInterfaces{
+		Value: n["Value"],
+		Slice: []interface{}{n["Slice1"], n["Slice2"]},
+		Map:   map[string]interface{}{"1": n["Map1"], "2": n["Map2"]},
+	}
+	easyjson.Marshal(ni)
+
+	for k, v := range n {
+		if !v.EasilyMarshaled {
+			t.Errorf("Nested interface %s wasn't easily marshaled", k)
+		}
+	}
+}
