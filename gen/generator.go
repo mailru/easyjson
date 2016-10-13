@@ -15,6 +15,7 @@ import (
 
 const pkgWriter = "github.com/mailru/easyjson/jwriter"
 const pkgLexer = "github.com/mailru/easyjson/jlexer"
+const pkgEasyJson = "github.com/mailru/easyjson"
 
 // FieldNamer defines a policy for generating names for struct fields.
 type FieldNamer interface {
@@ -59,6 +60,7 @@ func NewGenerator(filename string) *Generator {
 		imports: map[string]string{
 			pkgWriter:       "jwriter",
 			pkgLexer:        "jlexer",
+			pkgEasyJson:     "easyjson",
 			"encoding/json": "json",
 		},
 		fieldNamer:    DefaultFieldNamer{},
@@ -162,6 +164,7 @@ func (g *Generator) printHeader() {
 	fmt.Println("   _ = json.RawMessage{}")
 	fmt.Println("   _ = jlexer.Lexer{}")
 	fmt.Println("   _ = jwriter.Writer{}")
+	fmt.Println("   _ easyjson.Marshaler")
 	fmt.Println(")")
 
 	fmt.Println()
