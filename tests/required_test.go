@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestRequiredField(t *testing.T) {
@@ -17,12 +17,32 @@ func TestRequiredField(t *testing.T) {
 		err := v.UnmarshalJSON([]byte(tc.json))
 		if tc.errorMessage == "" {
 			if err != nil {
-				t.Errorf("%s. UnmarshallJSON didn`t expect error: %v", tc.json, err)
+				t.Errorf("%s. UnmarshalJSON didn`t expect error: %v", tc.json, err)
 			}
 		} else {
 			if fmt.Sprintf("%v", err) != tc.errorMessage {
-				t.Errorf("%s. UnmarshallJSON expected error: %v. got: %v", tc.json, tc.errorMessage, err)
+				t.Errorf("%s. UnmarshalJSON expected error: %v. got: %v", tc.json, tc.errorMessage, err)
 			}
+		}
+	}
+}
+
+func TestDefinable(t *testing.T) {
+	cases := []struct {
+		json    string
+		defined bool
+	}{
+		{`{"a":"foo"}`, true},
+		{`{"a":"foo", "b":"bar"}`, true},
+		{"{}", true},
+		{"null", false},
+	}
+
+	for _, tc := range cases {
+		var v Definable
+		v.UnmarshalJSON([]byte(tc.json))
+		if v.Def != tc.defined {
+			t.Errorf("UnmarshalJSON expected: %q. got: %q", tc.defined, v.Def)
 		}
 	}
 }

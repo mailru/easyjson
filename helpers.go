@@ -26,6 +26,12 @@ type Optional interface {
 	IsDefined() bool
 }
 
+// OptionWriter is the encoder analogy of the Optional interface; it defines a
+// setter method that called when unmarshalling struct fields.
+type OptionWriter interface {
+	SetDefined(defined bool)
+}
+
 // Marshal returns data as a single byte slice. Method is suboptimal as the data is likely to be copied
 // from a chain of smaller chunks.
 func Marshal(v Marshaler) ([]byte, error) {

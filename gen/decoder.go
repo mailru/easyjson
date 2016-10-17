@@ -358,6 +358,9 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 		return fmt.Errorf("cannot generate encoder/decoder for %v, not a struct type", t)
 	}
 
+	optionWriterIface := reflect.TypeOf((*easyjson.OptionWriter)(nil)).Elem()
+	var optWriterImplemented bool = reflect.PtrTo(t).Implements(optionWriterIface)
+
 	fname := g.getDecoderName(t)
 	typ := g.getType(t)
 
@@ -367,6 +370,9 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "    if isTopLevel {")
 	fmt.Fprintln(g.out, "      in.Consumed()")
 	fmt.Fprintln(g.out, "    }")
+	if optWriterImplemented {
+		fmt.Fprintln(g.out, "    out.SetDefined(false)")
+	}
 	fmt.Fprintln(g.out, "    in.Skip()")
 	fmt.Fprintln(g.out, "    return")
 	fmt.Fprintln(g.out, "  }")
@@ -418,6 +424,10 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 
 	for _, f := range fs {
 		g.genRequiredFieldCheck(t, f)
+	}
+
+	if optWriterImplemented {
+		fmt.Fprintln(g.out, "out.SetDefined(true)")
 	}
 
 	fmt.Fprintln(g.out, "}")

@@ -634,3 +634,13 @@ type EncodingFlagsTestMap struct {
 type EncodingFlagsTestSlice struct {
 	F []string
 }
+
+type Definable struct {
+	A   string `json:"a"`
+	B   string `json:"b"`
+	Def bool   `json:"-"`
+}
+
+func (o *Definable) SetDefined(defined bool) {
+	o.Def = defined
+}
