@@ -40,7 +40,7 @@ func generate(fname string) (err error) {
 
 	var outName string
 	if fInfo.IsDir() {
-		outName = filepath.Join(fname, filepath.Base(filepath.Clean(fname))+"_easyjson.go")
+		outName = filepath.Join(fname, p.PkgName+"_easyjson.go")
 	} else {
 		if s := strings.TrimSuffix(fname, ".go"); s == fname {
 			return errors.New("Filename must end in '.go'")
