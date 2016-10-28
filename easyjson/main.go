@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mailru/easyjson/bootstrap"
@@ -23,18 +25,28 @@ var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files"
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshallers/unmarshallers methods")
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
+var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 
 func generate(fname string) (err error) {
+	fInfo, err := os.Stat(fname)
+	if err != nil {
+		return err
+	}
+
 	p := parser.Parser{AllStructs: *allStructs}
-	if err := p.Parse(fname); err != nil {
+	if err := p.Parse(fname, fInfo.IsDir()); err != nil {
 		return fmt.Errorf("Error parsing %v: %v", fname, err)
 	}
 
 	var outName string
-	if s := strings.TrimSuffix(fname, ".go"); s == fname {
-		return fmt.Errorf("Filename must end in '.go'")
+	if fInfo.IsDir() {
+		outName = filepath.Join(fname, p.PkgName+"_easyjson.go")
 	} else {
-		outName = s + "_easyjson.go"
+		if s := strings.TrimSuffix(fname, ".go"); s == fname {
+			return errors.New("Filename must end in '.go'")
+		} else {
+			outName = s + "_easyjson.go"
+		}
 	}
 
 	if *specifiedName != "" {
@@ -67,6 +79,10 @@ func main() {
 	files := flag.Args()
 
 	gofile := os.Getenv("GOFILE")
+	if *processPkg {
+		gofile = filepath.Dir(gofile)
+	}
+
 	if len(files) == 0 && gofile != "" {
 		files = []string{gofile}
 	} else if len(files) == 0 {
