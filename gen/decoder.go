@@ -340,10 +340,14 @@ func (g *Generator) genSliceArrayDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
+	fmt.Fprintln(g.out, " isTopLevel := in.IsStart()")
 	err := g.genTypeDecoderNoCheck(t, "*out", fieldTags{}, 1)
 	if err != nil {
 		return err
 	}
+	fmt.Fprintln(g.out, "  if isTopLevel {")
+	fmt.Fprintln(g.out, "    in.Consumed()")
+	fmt.Fprintln(g.out, "  }")
 	fmt.Fprintln(g.out, "}")
 
 	return nil
@@ -358,7 +362,11 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
+	fmt.Fprintln(g.out, "  isTopLevel := in.IsStart()")
 	fmt.Fprintln(g.out, "  if in.IsNull() {")
+	fmt.Fprintln(g.out, "    if isTopLevel {")
+	fmt.Fprintln(g.out, "      in.Consumed()")
+	fmt.Fprintln(g.out, "    }")
 	fmt.Fprintln(g.out, "    in.Skip()")
 	fmt.Fprintln(g.out, "    return")
 	fmt.Fprintln(g.out, "  }")
@@ -404,6 +412,9 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "    in.WantComma()")
 	fmt.Fprintln(g.out, "  }")
 	fmt.Fprintln(g.out, "  in.Delim('}')")
+	fmt.Fprintln(g.out, "  if isTopLevel {")
+	fmt.Fprintln(g.out, "    in.Consumed()")
+	fmt.Fprintln(g.out, "  }")
 
 	for _, f := range fs {
 		g.genRequiredFieldCheck(t, f)

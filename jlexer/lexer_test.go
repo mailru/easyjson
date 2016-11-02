@@ -222,3 +222,27 @@ func TestInterface(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumed(t *testing.T) {
+	for i, test := range []struct {
+		toParse   string
+		wantError bool
+	}{
+		{toParse: "", wantError: false},
+		{toParse: "   ", wantError: false},
+		{toParse: "\r\n", wantError: false},
+		{toParse: "\t\t", wantError: false},
+
+		{toParse: "{", wantError: true},
+	} {
+		l := Lexer{Data: []byte(test.toParse)}
+		l.Consumed()
+
+		err := l.Error()
+		if err != nil && !test.wantError {
+			t.Errorf("[%d, %q] Consumed() error: %v", i, test.toParse, err)
+		} else if err == nil && test.wantError {
+			t.Errorf("[%d, %q] Consumed() ok; want error", i, test.toParse)
+		}
+	}
+}
