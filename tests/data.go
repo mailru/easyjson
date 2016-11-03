@@ -624,3 +624,13 @@ type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`
 }
+
+//easyjson:json
+type EncodingFlagsTestMap struct {
+	F map[string]string
+}
+
+//easyjson:json
+type EncodingFlagsTestSlice struct {
+	F []string
+}
