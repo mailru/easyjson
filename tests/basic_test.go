@@ -157,6 +157,33 @@ func TestUnderflowArray(t *testing.T) {
 	}
 }
 
+func TestEncodingFlags(t *testing.T) {
+	for i, test := range []struct {
+		Flags jwriter.Flags
+		In    easyjson.Marshaler
+		Want  string
+	}{
+		{0, EncodingFlagsTestMap{}, `{"F":null}`},
+		{0, EncodingFlagsTestSlice{}, `{"F":null}`},
+		{jwriter.NilMapAsEmpty, EncodingFlagsTestMap{}, `{"F":{}}`},
+		{jwriter.NilSliceAsEmpty, EncodingFlagsTestSlice{}, `{"F":[]}`},
+	} {
+		w := &jwriter.Writer{Flags: test.Flags}
+		test.In.MarshalEasyJSON(w)
+
+		data, err := w.BuildBytes()
+		if err != nil {
+			t.Errorf("[%v] easyjson.Marshal(%+v) error: %v", i, test.In, err)
+		}
+
+		v := string(data)
+		if v != test.Want {
+			t.Errorf("[%v] easyjson.Marshal(%+v) = %v; want %v", i, test.In, v, test.Want)
+		}
+	}
+
+}
+
 func TestNestedEasyJsonMarshal(t *testing.T) {
 	n := map[string]*NestedEasyMarshaler{
 		"Value":  {},

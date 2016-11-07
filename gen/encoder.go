@@ -121,7 +121,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		if t.Elem().Kind() == reflect.Uint8 {
 			fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+")")
 		} else {
-			fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
+			fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilSliceAsEmpty) == 0 {")
 			fmt.Fprintln(g.out, ws+`  out.RawString("null")`)
 			fmt.Fprintln(g.out, ws+"} else {")
 			fmt.Fprintln(g.out, ws+"  out.RawByte('[')")
@@ -178,7 +178,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		}
 		tmpVar := g.uniqueVarName()
 
-		fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
+		fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilMapAsEmpty) == 0 {")
 		fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
