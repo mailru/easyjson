@@ -179,18 +179,25 @@ func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
 }
 
 // BuildBytes creates a single byte slice with all the contents of the buffer. Data is
-// copied if it does not fit in a single chunk.
-func (b *Buffer) BuildBytes() []byte {
+// copied if it does not fit in a single chunk. You can optionally provide one byte
+// slice as argument that it will try to reuse.
+func (b *Buffer) BuildBytes(reuse ...[]byte) []byte {
 	if len(b.bufs) == 0 {
-
 		ret := b.Buf
 		b.toPool = nil
 		b.Buf = nil
-
 		return ret
 	}
 
-	ret := make([]byte, 0, b.Size())
+	var ret []byte
+	size := b.Size()
+
+	// If we got a buffer as argument and it is big enought, reuse it.
+	if len(reuse) == 1 && cap(reuse[0]) >= size {
+		ret = reuse[0][:0]
+	} else {
+		ret = make([]byte, 0, size)
+	}
 	for _, buf := range b.bufs {
 		ret = append(ret, buf...)
 		putBuf(buf)
