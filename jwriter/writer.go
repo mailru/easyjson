@@ -46,6 +46,16 @@ func (w *Writer) BuildBytes() ([]byte, error) {
 	return w.Buffer.BuildBytes(), nil
 }
 
+// ReadCloser returns an io.ReadCloser that can be used to read the data.
+// ReadCloser also resets the buffer.
+func (w *Writer) ReadCloser() (io.ReadCloser, error) {
+	if w.Error != nil {
+		return nil, w.Error
+	}
+
+	return w.Buffer.ReadCloser(), nil
+}
+
 // RawByte appends raw binary data to the buffer.
 func (w *Writer) RawByte(c byte) {
 	w.Buffer.AppendByte(c)
