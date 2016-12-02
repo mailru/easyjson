@@ -10,6 +10,8 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"unicode"
+	"unicode/utf16"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -266,6 +268,31 @@ func findStringLen(data []byte) (hasEscapes bool, length int) {
 	return false, len(data)
 }
 
+// getu4 decodes \uXXXX from the beginning of data, returning the rune,
+// or returns -1 on failure.
+func getu4(data []byte) rune {
+	var val rune
+
+	for i := 2; i < len(data) && i < 6; i++ {
+		var v, c byte
+		c = data[i]
+		switch c {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			v = c - '0'
+		case 'a', 'b', 'c', 'd', 'e', 'f':
+			v = c - 'a' + 10
+		case 'A', 'B', 'C', 'D', 'E', 'F':
+			v = c - 'A' + 10
+		default:
+			return -1
+		}
+
+		val <<= 4
+		val |= rune(v)
+	}
+	return val
+}
+
 // processEscape processes a single escape sequence and returns number of bytes processed.
 func (r *Lexer) processEscape(data []byte) (int, error) {
 	if len(data) < 2 {
@@ -299,33 +326,26 @@ func (r *Lexer) processEscape(data []byte) (int, error) {
 
 	var val rune
 
-	for i := 2; i < len(data) && i < 6; i++ {
-		var v byte
-		c = data[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			v = c - '0'
-		case 'a', 'b', 'c', 'd', 'e', 'f':
-			v = c - 'a' + 10
-		case 'A', 'B', 'C', 'D', 'E', 'F':
-			v = c - 'A' + 10
-		default:
-			return 0, fmt.Errorf("syntax error")
-		}
-
-		val <<= 4
-		val |= rune(v)
-	}
-
-	l := utf8.RuneLen(val)
-	if l == -1 {
-		return 0, fmt.Errorf("invalid unicode escape")
-	}
+	val = getu4(data)
 
 	var d [4]byte
+	var off int = 6
+
+	if utf16.IsSurrogate(val) {
+		val2 := getu4(data[6:])
+		off += 6
+		val = utf16.DecodeRune(val, val2)
+	}
+	l := utf8.RuneLen(val)
+	if l == -1 {
+		// Invalid Length; fall back to replacement rune.
+		val = unicode.ReplacementChar
+		l = utf8.RuneLen(val)
+	}
+
 	utf8.EncodeRune(d[:], val)
 	r.token.byteValue = append(r.token.byteValue, d[:l]...)
-	return 6, nil
+	return off, nil
 }
 
 // fetchString scans a string literal token.
