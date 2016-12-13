@@ -18,6 +18,7 @@ var buildTags = flag.String("build_tags", "", "build tags to add to generated fi
 var snakeCase = flag.Bool("snake_case", false, "use snake_case names instead of CamelCase by default")
 var noStdMarshalers = flag.Bool("no_std_marshalers", false, "don't generate MarshalJSON/UnmarshalJSON methods")
 var omitEmpty = flag.Bool("omit_empty", false, "omit empty fields by default")
+var required = flag.Bool("required", false, "required fields by default")
 var allStructs = flag.Bool("all", false, "generate un-/marshallers for all structs in a file")
 var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files")
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshallers/unmarshallers methods")
@@ -40,7 +41,7 @@ func generate(fname string) (err error) {
 	if *specifiedName != "" {
 		outName = *specifiedName
 	}
-	
+
 	g := bootstrap.Generator{
 		BuildTags:       *buildTags,
 		PkgPath:         p.PkgPath,
@@ -49,6 +50,7 @@ func generate(fname string) (err error) {
 		SnakeCase:       *snakeCase,
 		NoStdMarshalers: *noStdMarshalers,
 		OmitEmpty:       *omitEmpty,
+		Required:        *required,
 		LeaveTemps:      *leaveTemps,
 		OutName:         outName,
 		StubsOnly:       *stubs,

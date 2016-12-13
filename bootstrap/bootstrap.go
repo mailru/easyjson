@@ -24,9 +24,9 @@ type Generator struct {
 	NoStdMarshalers bool
 	SnakeCase       bool
 	OmitEmpty       bool
-
-	OutName   string
-	BuildTags string
+	Required        bool
+	OutName         string
+	BuildTags       string
 
 	StubsOnly  bool
 	LeaveTemps bool
@@ -105,6 +105,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.OmitEmpty {
 		fmt.Fprintln(f, "  g.OmitEmpty()")
+	}
+	if g.Required {
+		fmt.Fprintln(f, "  g.Required()")
 	}
 	if g.NoStdMarshalers {
 		fmt.Fprintln(f, "  g.NoStdMarshalers()")

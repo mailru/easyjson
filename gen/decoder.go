@@ -161,6 +161,10 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 
 }
 
+func (g *Generator) isRequired(tags fieldTags) bool {
+	return tags.required || (g.required && !tags.noRequired)
+}
+
 func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
 	jsonName := g.namer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
@@ -174,7 +178,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 		return err
 	}
 
-	if tags.required {
+	if g.isRequired(tags) {
 		fmt.Fprintf(g.out, "%sSet = true\n", f.Name)
 	}
 
@@ -184,7 +188,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
 	tags := parseFieldTags(f)
 
-	if !tags.required {
+	if !g.isRequired(tags) {
 		return
 	}
 
@@ -195,7 +199,7 @@ func (g *Generator) genRequiredFieldCheck(t reflect.Type, f reflect.StructField)
 	jsonName := g.namer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
-	if !tags.required {
+	if !g.isRequired(tags) {
 		return
 	}
 
