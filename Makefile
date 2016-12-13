@@ -28,6 +28,7 @@ generate: root build
 	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go
 	.root/bin/easyjson -omit_empty .root/src/$(PKG)/tests/omitempty.go
 	.root/bin/easyjson -build_tags=use_easyjson .root/src/$(PKG)/benchmark/data.go
+	.root/bin/easyjson .root/src/$(PKG)/tests/nested_easy.go
 
 test: generate root
 	go test \
