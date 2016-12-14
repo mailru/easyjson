@@ -12,6 +12,9 @@ import (
 	"strconv"
 	"unicode/utf8"
 	"unsafe"
+	"errors"
+	"unicode/utf16"
+	"unicode"
 )
 
 // tokenKind determines type of a token.
@@ -266,6 +269,33 @@ func findStringLen(data []byte) (hasEscapes bool, length int) {
 	return false, len(data)
 }
 
+// getu4 decodes \uXXXX from the beginning of s, returning the hex value,
+// or it returns -1.
+func getu4(s []byte) rune {
+	if len(s) < 6 || s[0] != '\\' || s[1] != 'u' {
+		return -1
+	}
+	var val rune
+	for i := 2; i < len(s) && i < 6; i++ {
+		var v byte
+		c := s[i]
+		switch c {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			v = c - '0'
+		case 'a', 'b', 'c', 'd', 'e', 'f':
+			v = c - 'a' + 10
+		case 'A', 'B', 'C', 'D', 'E', 'F':
+			v = c - 'A' + 10
+		default:
+			return -1
+		}
+
+		val <<= 4
+		val |= rune(v)
+	}
+	return val
+}
+
 // processEscape processes a single escape sequence and returns number of bytes processed.
 func (r *Lexer) processEscape(data []byte) (int, error) {
 	if len(data) < 2 {
@@ -293,39 +323,28 @@ func (r *Lexer) processEscape(data []byte) (int, error) {
 		r.token.byteValue = append(r.token.byteValue, '\t')
 		return 2, nil
 	case 'u':
-	default:
-		return 0, fmt.Errorf("syntax error")
-	}
-
-	var val rune
-
-	for i := 2; i < len(data) && i < 6; i++ {
-		var v byte
-		c = data[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			v = c - '0'
-		case 'a', 'b', 'c', 'd', 'e', 'f':
-			v = c - 'a' + 10
-		case 'A', 'B', 'C', 'D', 'E', 'F':
-			v = c - 'A' + 10
-		default:
-			return 0, fmt.Errorf("syntax error")
+		rr := getu4(data)
+		if rr < 0 {
+			return 0, errors.New("syntax error")
 		}
 
-		val <<= 4
-		val |= rune(v)
+		read := 6
+		if utf16.IsSurrogate(rr) {
+			rr1 := getu4(data[read:])
+			if dec := utf16.DecodeRune(rr, rr1); dec != unicode.ReplacementChar {
+				read += 6
+				rr = dec
+			} else {
+				rr = unicode.ReplacementChar
+			}
+		}
+		var d [4]byte
+		s := utf8.EncodeRune(d[:], rr)
+		r.token.byteValue = append(r.token.byteValue, d[:s]...)
+		return read, nil
 	}
 
-	l := utf8.RuneLen(val)
-	if l == -1 {
-		return 0, fmt.Errorf("invalid unicode escape")
-	}
-
-	var d [4]byte
-	utf8.EncodeRune(d[:], val)
-	r.token.byteValue = append(r.token.byteValue, d[:l]...)
-	return 6, nil
+	return 0, errors.New("syntax error")
 }
 
 // fetchString scans a string literal token.
