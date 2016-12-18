@@ -153,7 +153,7 @@ func (g *Generator) printHeader() {
 
 	sort.Strings(aliases)
 	fmt.Println("import (")
-	for _, alias := range g.imports {
+	for _, alias := range aliases {
 		fmt.Printf("  %s %q\n", alias, byAlias[alias])
 	}
 
