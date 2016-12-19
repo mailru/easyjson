@@ -323,7 +323,7 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	return nil
 }
 
-func (g *Generator) genStructMarshaller(t reflect.Type) error {
+func (g *Generator) genStructMarshaler(t reflect.Type) error {
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array, reflect.Map, reflect.Struct:
 	default:
