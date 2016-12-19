@@ -6,6 +6,7 @@ package jlexer
 
 import (
 	"encoding/base64"
+	"flag"
 	"fmt"
 	"io"
 	"reflect"
@@ -13,6 +14,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 )
+
+var UseSemanticErrors = flag.Bool("use_many_errors", true, "Allow lexer collect semantic errors")
 
 // tokenKind determines type of a token.
 type tokenKind byte
@@ -46,7 +49,8 @@ type Lexer struct {
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
 
-	err error // Error encountered during lexing, if any.
+	fatalError     error   // Fatal error occured during lexing. It is usually a syntax error.
+	SemanticErrors []error // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
 }
 
 // fetchToken scans the input for the next token.
@@ -148,7 +152,7 @@ func (r *Lexer) fetchToken() {
 			return
 		}
 	}
-	r.err = io.EOF
+	r.fatalError = io.EOF
 	return
 }
 
@@ -369,7 +373,7 @@ func (r *Lexer) fetchString() {
 
 // scanToken scans the next token if no token is currently available in the lexer.
 func (r *Lexer) scanToken() {
-	if r.token.kind != tokenUndef || r.err != nil {
+	if r.token.kind != tokenUndef || r.fatalError != nil {
 		return
 	}
 
@@ -384,20 +388,20 @@ func (r *Lexer) consume() {
 
 // Ok returns true if no error (including io.EOF) was encountered during scanning.
 func (r *Lexer) Ok() bool {
-	return r.err == nil
+	return r.fatalError == nil
 }
 
 const maxErrorContextLen = 13
 
 func (r *Lexer) errParse(what string) {
-	if r.err == nil {
+	if r.fatalError == nil {
 		var str string
 		if len(r.Data)-r.pos <= maxErrorContextLen {
 			str = string(r.Data)
 		} else {
 			str = string(r.Data[r.pos:r.pos+maxErrorContextLen-3]) + "..."
 		}
-		r.err = &LexerError{
+		r.fatalError = &LexerError{
 			Reason: what,
 			Offset: r.pos,
 			Data:   str,
@@ -409,15 +413,23 @@ func (r *Lexer) errSyntax() {
 	r.errParse("syntax error")
 }
 
+func (r *Lexer) errSemantic() { // TODO: add error data.
+	r.AddSemanticError(&LexerError{
+		Reason: "syntax error",
+		Offset: r.pos,
+		Data:   "error occured", // TODO: fix this.
+	})
+}
+
 func (r *Lexer) errInvalidToken(expected string) {
-	if r.err == nil {
+	if r.fatalError == nil {
 		var str string
 		if len(r.token.byteValue) <= maxErrorContextLen {
 			str = string(r.token.byteValue)
 		} else {
 			str = string(r.token.byteValue[:maxErrorContextLen-3]) + "..."
 		}
-		r.err = &LexerError{
+		r.fatalError = &LexerError{
 			Reason: fmt.Sprintf("expected %s", expected),
 			Offset: r.pos,
 			Data:   str,
@@ -516,7 +528,7 @@ func (r *Lexer) SkipRecursive() {
 		wasEscape = false
 	}
 	r.pos = len(r.Data)
-	r.err = &LexerError{
+	r.fatalError = &LexerError{
 		Reason: "EOF reached while skipping array/object or token",
 		Offset: r.pos,
 		Data:   string(r.Data[r.pos:]),
@@ -547,7 +559,7 @@ func (r *Lexer) Consumed() {
 
 	for _, c := range r.Data[r.pos:] {
 		if c != ' ' && c != '\t' && c != '\r' && c != '\n' {
-			r.err = &LexerError{
+			r.fatalError = &LexerError{
 				Reason: "invalid character '" + string(c) + "' after top-level value",
 				Offset: r.pos,
 				Data:   string(r.Data[r.pos:]),
@@ -605,7 +617,7 @@ func (r *Lexer) Bytes() []byte {
 	ret := make([]byte, base64.StdEncoding.DecodedLen(len(r.token.byteValue)))
 	len, err := base64.StdEncoding.Decode(ret, r.token.byteValue)
 	if err != nil {
-		r.err = &LexerError{
+		r.fatalError = &LexerError{
 			Reason: err.Error(),
 		}
 		return nil
@@ -621,9 +633,13 @@ func (r *Lexer) Bool() bool {
 		r.fetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenBool {
+		if *UseSemanticErrors { // FIXME: remove copypaste from all methods.
+			r.errSemantic()
+			r.SkipRecursive() // FIXME:
+			return false
+		}
 		r.errInvalidToken("bool")
 		return false
-
 	}
 	ret := r.token.boolValue
 	r.consume()
@@ -635,9 +651,13 @@ func (r *Lexer) number() string {
 		r.fetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenNumber {
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+			return ""
+		}
 		r.errInvalidToken("number")
 		return ""
-
 	}
 	ret := bytesToStr(r.token.byteValue)
 	r.consume()
@@ -652,8 +672,13 @@ func (r *Lexer) Uint8() uint8 {
 
 	n, err := strconv.ParseUint(s, 10, 8)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint8(n)
@@ -667,8 +692,13 @@ func (r *Lexer) Uint16() uint16 {
 
 	n, err := strconv.ParseUint(s, 10, 16)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint16(n)
@@ -682,8 +712,13 @@ func (r *Lexer) Uint32() uint32 {
 
 	n, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint32(n)
@@ -697,8 +732,13 @@ func (r *Lexer) Uint64() uint64 {
 
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return n
@@ -716,8 +756,13 @@ func (r *Lexer) Int8() int8 {
 
 	n, err := strconv.ParseInt(s, 10, 8)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int8(n)
@@ -731,8 +776,13 @@ func (r *Lexer) Int16() int16 {
 
 	n, err := strconv.ParseInt(s, 10, 16)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int16(n)
@@ -746,8 +796,13 @@ func (r *Lexer) Int32() int32 {
 
 	n, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int32(n)
@@ -761,8 +816,13 @@ func (r *Lexer) Int64() int64 {
 
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return n
@@ -780,8 +840,13 @@ func (r *Lexer) Uint8Str() uint8 {
 
 	n, err := strconv.ParseUint(s, 10, 8)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint8(n)
@@ -795,8 +860,13 @@ func (r *Lexer) Uint16Str() uint16 {
 
 	n, err := strconv.ParseUint(s, 10, 16)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint16(n)
@@ -810,8 +880,13 @@ func (r *Lexer) Uint32Str() uint32 {
 
 	n, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return uint32(n)
@@ -825,8 +900,13 @@ func (r *Lexer) Uint64Str() uint64 {
 
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return n
@@ -844,8 +924,13 @@ func (r *Lexer) Int8Str() int8 {
 
 	n, err := strconv.ParseInt(s, 10, 8)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int8(n)
@@ -859,8 +944,13 @@ func (r *Lexer) Int16Str() int16 {
 
 	n, err := strconv.ParseInt(s, 10, 16)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int16(n)
@@ -874,8 +964,13 @@ func (r *Lexer) Int32Str() int32 {
 
 	n, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return int32(n)
@@ -889,8 +984,13 @@ func (r *Lexer) Int64Str() int64 {
 
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return n
@@ -908,8 +1008,13 @@ func (r *Lexer) Float32() float32 {
 
 	n, err := strconv.ParseFloat(s, 32)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return float32(n)
@@ -923,21 +1028,30 @@ func (r *Lexer) Float64() float64 {
 
 	n, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		r.err = &LexerError{
-			Reason: err.Error(),
+		if *UseSemanticErrors {
+			r.errSemantic()
+			r.SkipRecursive()
+		} else {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
 		}
 	}
 	return n
 }
 
 func (r *Lexer) Error() error {
-	return r.err
+	return r.fatalError
 }
 
 func (r *Lexer) AddError(e error) {
-	if r.err == nil {
-		r.err = e
+	if r.fatalError == nil {
+		r.fatalError = e
 	}
+}
+
+func (r *Lexer) AddSemanticError(err error) {
+	r.SemanticErrors = append(r.SemanticErrors, err)
 }
 
 // Interface fetches an interface{} analogous to the 'encoding/json' package.

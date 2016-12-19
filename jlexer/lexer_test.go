@@ -95,6 +95,9 @@ func TestNumber(t *testing.T) {
 			t.Errorf("[%d, %q] number() = %v; want %v", i, test.toParse, got, test.want)
 		}
 		err := l.Error()
+		if err == nil && len(l.SemanticErrors) != 0 {
+			err = l.SemanticErrors[0]
+		}
 		if err != nil && !test.wantError {
 			t.Errorf("[%d, %q] number() error: %v", i, test.toParse, err)
 		} else if err == nil && test.wantError {
@@ -125,6 +128,9 @@ func TestBool(t *testing.T) {
 			t.Errorf("[%d, %q] Bool() = %v; want %v", i, test.toParse, got, test.want)
 		}
 		err := l.Error()
+		if err == nil && len(l.SemanticErrors) != 0 {
+			err = l.SemanticErrors[0]
+		}
 		if err != nil && !test.wantError {
 			t.Errorf("[%d, %q] Bool() error: %v", i, test.toParse, err)
 		} else if err == nil && test.wantError {

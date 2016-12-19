@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/mailru/easyjson"
+	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 )
 
@@ -203,6 +204,28 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 	for k, v := range n {
 		if !v.EasilyMarshaled {
 			t.Errorf("Nested interface %s wasn't easily marshaled", k)
+		}
+	}
+}
+
+func TestSemanticErrors(t *testing.T) {
+	for i, test := range []struct {
+		Data     []byte
+		ErrorNum int
+	}{
+		{
+			Data:     []byte(`[1, 2, 3, "4", "5"]`),
+			ErrorNum: 2,
+		},
+	} {
+		l := jlexer.Lexer{Data: test.Data}
+
+		var v ErrorIntSlice
+
+		v.UnmarshalEasyJSON(&l)
+
+		if len(l.SemanticErrors) != test.ErrorNum {
+			t.Errorf("[%d] TestSemanticErrors(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.SemanticErrors))
 		}
 	}
 }
