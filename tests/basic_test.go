@@ -209,6 +209,9 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 }
 
 func TestSemanticErrors(t *testing.T) {
+	if !*jlexer.UseSemanticErrors {
+		return
+	}
 	for i, test := range []struct {
 		Data     []byte
 		ErrorNum int
@@ -216,6 +219,18 @@ func TestSemanticErrors(t *testing.T) {
 		{
 			Data:     []byte(`[1, 2, 3, "4", "5"]`),
 			ErrorNum: 2,
+		},
+		{
+			Data:     []byte(`[1, {"2" : "3"}, 3, "4"`),
+			ErrorNum: 2,
+		},
+		{
+			Data:     []byte(`[1, "2", "3", "4", "5", "6"]`),
+			ErrorNum: 5,
+		},
+		{
+			Data:     []byte(`[1, 2, 3, 4, "5"]`),
+			ErrorNum: 1,
 		},
 	} {
 		l := jlexer.Lexer{Data: test.Data}

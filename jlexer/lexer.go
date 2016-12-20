@@ -652,8 +652,6 @@ func (r *Lexer) number() string {
 	}
 	if !r.Ok() || r.token.kind != tokenNumber {
 		if *UseSemanticErrors {
-			r.errSemantic()
-			r.SkipRecursive()
 			return ""
 		}
 		r.errInvalidToken("number")
