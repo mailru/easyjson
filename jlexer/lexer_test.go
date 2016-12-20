@@ -98,9 +98,9 @@ func TestNumber(t *testing.T) {
 		if err == nil && len(l.SemanticErrors) != 0 {
 			err = l.SemanticErrors[0]
 		}
-		if err != nil && !test.wantError {
+		if (err != nil || (len(l.SemanticErrors) != 0 && *UseSemanticErrors)) && !test.wantError {
 			t.Errorf("[%d, %q] number() error: %v", i, test.toParse, err)
-		} else if err == nil && test.wantError {
+		} else if (err == nil || (len(l.SemanticErrors) == 0 && *UseSemanticErrors)) && test.wantError {
 			t.Errorf("[%d, %q] number() ok; want error", i, test.toParse)
 		}
 	}
