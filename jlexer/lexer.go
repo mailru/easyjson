@@ -49,8 +49,8 @@ type Lexer struct {
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
 
-	fatalError     error        // Fatal error occured during lexing. It is usually a syntax error.
-	SemanticErrors []LexerError // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
+	fatalError     error         // Fatal error occured during lexing. It is usually a syntax error.
+	SemanticErrors []*LexerError // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
 }
 
 // fetchToken scans the input for the next token.
@@ -414,7 +414,7 @@ func (r *Lexer) errSyntax() {
 }
 
 func (r *Lexer) errSemantic() { // TODO: add error data.
-	r.AddSemanticError(LexerError{
+	r.AddSemanticError(&LexerError{
 		Reason: "syntax error",
 		Offset: r.pos,
 		Data:   "error occured", // TODO: fix this.
@@ -1048,7 +1048,7 @@ func (r *Lexer) AddError(e error) {
 	}
 }
 
-func (r *Lexer) AddSemanticError(err LexerError) {
+func (r *Lexer) AddSemanticError(err *LexerError) {
 	r.SemanticErrors = append(r.SemanticErrors, err)
 }
 
