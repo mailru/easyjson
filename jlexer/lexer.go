@@ -15,7 +15,7 @@ import (
 	"unsafe"
 )
 
-var UseSemanticErrors = flag.Bool("use_many_errors", true, "Allow lexer collect semantic errors")
+var UseSemanticErrors = flag.Bool("use_many_errors", false, "Allow lexer collect semantic errors")
 
 // tokenKind determines type of a token.
 type tokenKind byte
