@@ -60,7 +60,7 @@ func NewGenerator(filename string) *Generator {
 		imports: map[string]string{
 			pkgWriter:       "jwriter",
 			pkgLexer:        "jlexer",
-			pkgEasyjson:      "easyjson",
+			pkgEasyjson:     "easyjson",
 			"encoding/json": "json",
 		},
 		fieldNamer:    DefaultFieldNamer{},
@@ -255,11 +255,23 @@ func (g *Generator) getType(t reflect.Type) string {
 	}
 
 	if t.Name() == "" || t.PkgPath() == "" {
+		if t.Kind() == reflect.Struct {
+			// the fields of an anonymous struct can have named types,
+			// and t.String() will not be sufficient because it does not
+			// remove the package name when it matches g.pkgPath.
+			// so we convert by hand
+			nf := t.NumField()
+			lines := make([]string, 0, nf)
+			for i := 0; i < nf; i++ {
+				f := t.Field(i)
+				lines = append(lines, f.Name+" "+g.getType(f.Type))
+			}
+			return strings.Join([]string{"struct { ", strings.Join(lines, "; "), " }"}, "")
+		}
 		return t.String()
 	} else if t.PkgPath() == g.pkgPath {
 		return t.Name()
 	}
-	// TODO: unnamed structs.
 	return g.pkgAlias(t.PkgPath()) + "." + t.Name()
 }
 
