@@ -118,6 +118,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 
 			fmt.Fprintln(g.out, ws+"    "+out+" = append("+out+", "+tmpVar+")")
 			fmt.Fprintln(g.out, ws+"    in.WantComma()")
+			fmt.Fprintln(g.out, ws+"    in.ConsumeSemantic()")
 			fmt.Fprintln(g.out, ws+"  }")
 			fmt.Fprintln(g.out, ws+"  in.Delim(']')")
 			fmt.Fprintln(g.out, ws+"}")
@@ -409,6 +410,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "    default:")
 	fmt.Fprintln(g.out, "      in.SkipRecursive()")
 	fmt.Fprintln(g.out, "    }")
+	fmt.Fprintln(g.out, "    in.ConsumeSemantic()")
 	fmt.Fprintln(g.out, "    in.WantComma()")
 	fmt.Fprintln(g.out, "  }")
 	fmt.Fprintln(g.out, "  in.Delim('}')")
