@@ -264,7 +264,12 @@ func (g *Generator) getType(t reflect.Type) string {
 			lines := make([]string, 0, nf)
 			for i := 0; i < nf; i++ {
 				f := t.Field(i)
-				lines = append(lines, f.Name+" "+g.getType(f.Type))
+				line := f.Name + " " + g.getType(f.Type)
+				t := f.Tag
+				if t != "" {
+					line += " " + escapeTag(t)
+				}
+				lines = append(lines, line)
 			}
 			return strings.Join([]string{"struct { ", strings.Join(lines, "; "), " }"}, "")
 		}
@@ -273,6 +278,16 @@ func (g *Generator) getType(t reflect.Type) string {
 		return t.Name()
 	}
 	return g.pkgAlias(t.PkgPath()) + "." + t.Name()
+}
+
+// escape a struct field tag string back to source code
+func escapeTag(tag reflect.StructTag) string {
+	t := string(tag)
+	if strings.ContainsRune(t, '`') {
+		// there are ` in the string; we can't use ` to enclose the string
+		return strconv.Quote(t)
+	}
+	return "`" + t + "`"
 }
 
 // uniqueVarName returns a file-unique name that can be used for generated variables.

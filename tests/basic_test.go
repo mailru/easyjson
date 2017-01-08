@@ -36,6 +36,7 @@ var testCases = []struct {
 	{&deepNestValue, deepNestString},
 	{&IntsValue, IntsString},
 	{&mapStringStringValue, mapStringStringString},
+	{&namedTypeValue, namedTypeValueString},
 }
 
 func TestMarshal(t *testing.T) {
