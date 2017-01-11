@@ -412,7 +412,7 @@ func (r *Lexer) errSyntax() {
 	r.errParse("syntax error")
 }
 
-func (r *Lexer) errSemantic(expected string) {
+func (r *Lexer) errMultiple(expected string) {
 	r.pos = r.start
 	r.consume()
 	r.SkipRecursive()
@@ -441,7 +441,7 @@ func (r *Lexer) errSemantic(expected string) {
 
 func (r *Lexer) errInvalidToken(expected string) {
 	if r.UseMultipleErrors {
-		r.errSemantic(expected)
+		r.errMultiple(expected)
 		return
 	}
 	if r.fatalError == nil {
@@ -915,7 +915,7 @@ func (r *Lexer) Int16Str() int16 {
 
 func (r *Lexer) Int32Str() int32 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
