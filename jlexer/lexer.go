@@ -49,14 +49,11 @@ type Lexer struct {
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occured during lexing. It is usually a syntax error.
 	nowSem            bool          // If semantic error occured during parsing.
-	semanticErrors    []*LexerError // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
+	multipleErrors    []*LexerError // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
 }
 
 // fetchToken scans the input for the next token.
 func (r *Lexer) fetchToken() {
-	if r.nowSem {
-		return
-	}
 	r.token.kind = tokenUndef
 	r.start = r.pos
 
@@ -415,34 +412,30 @@ func (r *Lexer) errSyntax() {
 	r.errParse("syntax error")
 }
 
-func (r *Lexer) ConsumeSemantic() {
-	r.nowSem = false
-}
-
 func (r *Lexer) errSemantic(expected string) {
-	pos := r.pos
-	r.nowSem = true
+	r.pos = r.start
+	r.consume()
 	r.SkipRecursive()
-	if len(expected) != 0 {
-		if expected[0] == '[' {
-			r.token.delimValue = '['
-		}
-		if expected[0] == '{' {
-			r.token.delimValue = '{'
-		}
-		if expected[0] == ']' {
-			r.token.delimValue = ']'
-			return
-		}
-		if expected[0] == '}' {
-			r.token.delimValue = '}'
-			return
-		}
+	switch expected {
+	case "[":
+		r.token.delimValue = ']'
+		r.token.kind = tokenDelim
+	case "{":
+		r.token.delimValue = '}'
+		r.token.kind = tokenDelim
+	case "]":
+		r.token.delimValue = ']'
+		r.token.kind = tokenDelim
+		return
+	case "}":
+		r.token.delimValue = '}'
+		r.token.kind = tokenDelim
+		return
 	}
-	r.AddSemanticError(&LexerError{
-		Reason: "invalid token",
-		Offset: pos,
-		Data:   expected,
+	r.AddMultipleError(&LexerError{
+		Reason: fmt.Sprintf("expected %s", expected),
+		Offset: r.start,
+		Data:   string(r.Data[r.start:]),
 	})
 }
 
@@ -471,17 +464,17 @@ func (r *Lexer) Delim(c byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.fetchToken()
 	}
+
 	if !r.Ok() || r.token.delimValue != c {
+		r.consume() // errInvalidToken can change token if UseMultipleErrors is enabled.
 		r.errInvalidToken(string([]byte{c}))
+	} else {
+		r.consume()
 	}
-	r.consume()
 }
 
 // IsDelim returns true if there was no scanning error and next token is the given delimiter.
 func (r *Lexer) IsDelim(c byte) bool {
-	if r.nowSem {
-		return true
-	}
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.fetchToken()
 	}
@@ -686,7 +679,7 @@ func (r *Lexer) number() string {
 
 func (r *Lexer) Uint8() uint8 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -701,7 +694,7 @@ func (r *Lexer) Uint8() uint8 {
 
 func (r *Lexer) Uint16() uint16 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -716,7 +709,7 @@ func (r *Lexer) Uint16() uint16 {
 
 func (r *Lexer) Uint32() uint32 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -731,7 +724,7 @@ func (r *Lexer) Uint32() uint32 {
 
 func (r *Lexer) Uint64() uint64 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -750,7 +743,7 @@ func (r *Lexer) Uint() uint {
 
 func (r *Lexer) Int8() int8 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -765,7 +758,7 @@ func (r *Lexer) Int8() int8 {
 
 func (r *Lexer) Int16() int16 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -780,7 +773,7 @@ func (r *Lexer) Int16() int16 {
 
 func (r *Lexer) Int32() int32 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -795,7 +788,7 @@ func (r *Lexer) Int32() int32 {
 
 func (r *Lexer) Int64() int64 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -814,7 +807,7 @@ func (r *Lexer) Int() int {
 
 func (r *Lexer) Uint8Str() uint8 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -829,7 +822,7 @@ func (r *Lexer) Uint8Str() uint8 {
 
 func (r *Lexer) Uint16Str() uint16 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -844,7 +837,7 @@ func (r *Lexer) Uint16Str() uint16 {
 
 func (r *Lexer) Uint32Str() uint32 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -859,7 +852,7 @@ func (r *Lexer) Uint32Str() uint32 {
 
 func (r *Lexer) Uint64Str() uint64 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -878,7 +871,7 @@ func (r *Lexer) UintStr() uint {
 
 func (r *Lexer) Int8Str() int8 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -893,7 +886,7 @@ func (r *Lexer) Int8Str() int8 {
 
 func (r *Lexer) Int16Str() int16 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -908,7 +901,7 @@ func (r *Lexer) Int16Str() int16 {
 
 func (r *Lexer) Int32Str() int32 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -923,7 +916,7 @@ func (r *Lexer) Int32Str() int32 {
 
 func (r *Lexer) Int64Str() int64 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -942,7 +935,7 @@ func (r *Lexer) IntStr() int {
 
 func (r *Lexer) Float32() float32 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -957,7 +950,7 @@ func (r *Lexer) Float32() float32 {
 
 func (r *Lexer) Float64() float64 {
 	s := r.number()
-	if !r.Ok() || len(r.semanticErrors) != 0 {
+	if !r.Ok() || len(r.multipleErrors) != 0 {
 		return 0
 	}
 
@@ -980,12 +973,12 @@ func (r *Lexer) AddError(e error) {
 	}
 }
 
-func (r *Lexer) AddSemanticError(err *LexerError) {
-	r.semanticErrors = append(r.semanticErrors, err)
+func (r *Lexer) AddMultipleError(err *LexerError) {
+	r.multipleErrors = append(r.multipleErrors, err)
 }
 
-func (r *Lexer) GetSemanticErrors() []*LexerError {
-	return r.semanticErrors
+func (r *Lexer) GetMultipleErrors() []*LexerError {
+	return r.multipleErrors
 }
 
 // Interface fetches an interface{} analogous to the 'encoding/json' package.

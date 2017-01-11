@@ -6,30 +6,30 @@ import (
 	"github.com/mailru/easyjson/jlexer"
 )
 
-func TestSemanticErrorsInt(t *testing.T) {
+func TestMultipleErrorsInt(t *testing.T) {
 	for i, test := range []struct {
-		Data     []byte
-		ErrorNum int
+		Data    []byte
+		Offsets []int
 	}{
 		{
-			Data:     []byte(`[1, 2, 3, "4", "5"]`),
-			ErrorNum: 2,
+			Data:    []byte(`[1, 2, 3, "4", "5"]`),
+			Offsets: []int{10, 15},
 		},
 		{
-			Data:     []byte(`[1, {"2":"3"}, 3, "4"]`),
-			ErrorNum: 2,
+			Data:    []byte(`[1, {"2":"3"}, 3, "4"]`),
+			Offsets: []int{4, 18},
 		},
 		{
-			Data:     []byte(`[1, "2", "3", "4", "5", "6"]`),
-			ErrorNum: 5,
+			Data:    []byte(`[1, "2", "3", "4", "5", "6"]`),
+			Offsets: []int{4, 9, 14, 19, 24},
 		},
 		{
-			Data:     []byte(`[1, 2, 3, 4, "5"]`),
-			ErrorNum: 1,
+			Data:    []byte(`[1, 2, 3, 4, "5"]`),
+			Offsets: []int{13},
 		},
 		{
-			Data:     []byte(`[{"1": "2"}]`),
-			ErrorNum: 1,
+			Data:    []byte(`[{"1": "2"}]`),
+			Offsets: []int{1},
 		},
 	} {
 		l := jlexer.Lexer{
@@ -41,29 +41,35 @@ func TestSemanticErrorsInt(t *testing.T) {
 
 		v.UnmarshalEasyJSON(&l)
 
-		if len(l.GetSemanticErrors()) != test.ErrorNum {
-			t.Errorf("[%d] TestSemanticErrorsInt(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.GetSemanticErrors()))
-			t.Errorf("%v", l.GetSemanticErrors())
-			t.Errorf("%v", l.Error())
+		errors := l.GetMultipleErrors()
+
+		if len(errors) != len(test.Offsets) {
+			t.Errorf("[%d] TestMultipleErrorsInt(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
+		}
+
+		for ii, e := range errors {
+			if e.Offset != test.Offsets[ii] {
+				t.Errorf("[%d] TestMultipleErrorsInt(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
+			}
 		}
 	}
 }
 
-func TestSemanticErrorsBool(t *testing.T) {
+func TestMultipleErrorsBool(t *testing.T) {
 	for i, test := range []struct {
-		Data     []byte
-		ErrorNum int
+		Data    []byte
+		Offsets []int
 	}{
 		{
 			Data: []byte(`[true, false, true, false]`),
 		},
 		{
-			Data:     []byte(`["test", "value", "lol", "1"]`),
-			ErrorNum: 4,
+			Data:    []byte(`["test", "value", "lol", "1"]`),
+			Offsets: []int{1, 9, 18, 25},
 		},
 		{
-			Data:     []byte(`[true, 42, {"a":"b", "c":"d"}, false]`),
-			ErrorNum: 2,
+			Data:    []byte(`[true, 42, {"a":"b", "c":"d"}, false]`),
+			Offsets: []int{7, 11},
 		},
 	} {
 		l := jlexer.Lexer{
@@ -74,32 +80,38 @@ func TestSemanticErrorsBool(t *testing.T) {
 		var v ErrorBoolSlice
 		v.UnmarshalEasyJSON(&l)
 
-		if len(l.GetSemanticErrors()) != test.ErrorNum {
-			t.Errorf("[%d] TestSemanticErrorsBool(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.GetSemanticErrors()))
-			t.Errorf("%v", l.Error())
+		errors := l.GetMultipleErrors()
+
+		if len(errors) != len(test.Offsets) {
+			t.Errorf("[%d] TestMultipleErrorsBool(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
+		}
+		for ii, e := range errors {
+			if e.Offset != test.Offsets[ii] {
+				t.Errorf("[%d] TestMultipleErrorsBool(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
+			}
 		}
 	}
 }
 
-func TestSemanticErrorsUint(t *testing.T) {
+func TestMultipleErrorsUint(t *testing.T) {
 	for i, test := range []struct {
-		Data     []byte
-		ErrorNum int
+		Data    []byte
+		Offsets []int
 	}{
 		{
 			Data: []byte(`[42, 42, 42]`),
 		},
 		{
-			Data:     []byte(`[17, "42", 32]`),
-			ErrorNum: 1,
+			Data:    []byte(`[17, "42", 32]`),
+			Offsets: []int{5},
 		},
 		{
-			Data:     []byte(`["zz", "zz"]`),
-			ErrorNum: 2,
+			Data:    []byte(`["zz", "zz"]`),
+			Offsets: []int{1, 7},
 		},
 		{
-			Data:     []byte(`[{}, 42]`),
-			ErrorNum: 1,
+			Data:    []byte(`[{}, 42]`),
+			Offsets: []int{1},
 		},
 	} {
 		l := jlexer.Lexer{
@@ -110,43 +122,50 @@ func TestSemanticErrorsUint(t *testing.T) {
 		var v ErrorUintSlice
 		v.UnmarshalEasyJSON(&l)
 
-		if len(l.GetSemanticErrors()) != test.ErrorNum {
-			t.Errorf("[%d] TestSemanticErrorsUint(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.GetSemanticErrors()))
+		errors := l.GetMultipleErrors()
+
+		if len(errors) != len(test.Offsets) {
+			t.Errorf("[%d] TestMultipleErrorsUint(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
+		}
+		for ii, e := range errors {
+			if e.Offset != test.Offsets[ii] {
+				t.Errorf("[%d] TestMultipleErrorsUint(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
+			}
 		}
 	}
 }
 
-func TestSemanticErrorsStruct(t *testing.T) {
+func TestMultipleErrorsStruct(t *testing.T) {
 	for i, test := range []struct {
-		Data     []byte
-		ErrorNum int
+		Data    []byte
+		Offsets []int
 	}{
 		{
 			Data: []byte(`{"string": "test", "slice":[42, 42, 42], "int_slice":[1, 2, 3]}`),
 		},
 		{
-			Data:     []byte(`{"string": {"test": "test"}, "slice":[42, 42, 42], "int_slice":["1", 2, 3]}`),
-			ErrorNum: 2,
+			Data:    []byte(`{"string": {"test": "test"}, "slice":[42, 42, 42], "int_slice":["1", 2, 3]}`),
+			Offsets: []int{11, 64},
 		},
 		{
-			Data:     []byte(`{"slice": [42, 42], "string": {"test": "test"}, "int_slice":["1", "2", 3]}`),
-			ErrorNum: 3,
+			Data:    []byte(`{"slice": [42, 42], "string": {"test": "test"}, "int_slice":["1", "2", 3]}`),
+			Offsets: []int{30, 61, 66},
 		},
 		{
-			Data:     []byte(`{"string": "test", "slice": {}}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"string": "test", "slice": {}}`),
+			Offsets: []int{28},
 		},
 		{
-			Data:     []byte(`{"slice":5, "string" : "test"}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"slice":5, "string" : "test"}`),
+			Offsets: []int{9},
 		},
 		{
-			Data:     []byte(`{"slice" : "test", "string" : "test"}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"slice" : "test", "string" : "test"}`),
+			Offsets: []int{11},
 		},
 		{
-			Data:     []byte(`{"slice": "", "string" : {}, "int":{}}`),
-			ErrorNum: 3,
+			Data:    []byte(`{"slice": "", "string" : {}, "int":{}}`),
+			Offsets: []int{10, 25, 35},
 		},
 	} {
 		l := jlexer.Lexer{
@@ -156,39 +175,46 @@ func TestSemanticErrorsStruct(t *testing.T) {
 		var v ErrorStruct
 		v.UnmarshalEasyJSON(&l)
 
-		if len(l.GetSemanticErrors()) != test.ErrorNum {
-			t.Errorf("[%d] TestSemanticErrorsStruct(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.GetSemanticErrors()))
+		errors := l.GetMultipleErrors()
+
+		if len(errors) != len(test.Offsets) {
+			t.Errorf("[%d] TestMultipleErrorsStruct(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
+		}
+		for ii, e := range errors {
+			if e.Offset != test.Offsets[ii] {
+				t.Errorf("[%d] TestMultipleErrorsStruct(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
+			}
 		}
 	}
 }
 
-func TestSemanticErrorsNestedStruct(t *testing.T) {
+func TestMultipleErrorsNestedStruct(t *testing.T) {
 	for i, test := range []struct {
-		Data     []byte
-		ErrorNum int
+		Data    []byte
+		Offsets []int
 	}{
 		{
 			Data: []byte(`{"error_struct":{}}`),
 		},
 		{
-			Data:     []byte(`{"error_struct":5}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"error_struct":5}`),
+			Offsets: []int{16},
 		},
 		{
-			Data:     []byte(`{"error_struct":[]}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"error_struct":[]}`),
+			Offsets: []int{16},
 		},
 		{
-			Data:     []byte(`{"error_struct":{"int":{}}}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"error_struct":{"int":{}}}`),
+			Offsets: []int{23},
 		},
 		{
-			Data:     []byte(`{"error_struct":{"int_slice":{}}, "int":4}`),
-			ErrorNum: 1,
+			Data:    []byte(`{"error_struct":{"int_slice":{}}, "int":4}`),
+			Offsets: []int{29},
 		},
 		{
-			Data:     []byte(`{"error_struct":{"int_slice":["1", 2, "3"]}, "int":[]}`),
-			ErrorNum: 3,
+			Data:    []byte(`{"error_struct":{"int_slice":["1", 2, "3"]}, "int":[]}`),
+			Offsets: []int{30, 38, 51},
 		},
 	} {
 		l := jlexer.Lexer{
@@ -198,8 +224,15 @@ func TestSemanticErrorsNestedStruct(t *testing.T) {
 		var v ErrorNestedStruct
 		v.UnmarshalEasyJSON(&l)
 
-		if len(l.GetSemanticErrors()) != test.ErrorNum {
-			t.Errorf("[%d] TestSemanticErrorsNestedStruct(): errornum: want: %d, got %d", i, test.ErrorNum, len(l.GetSemanticErrors()))
+		errors := l.GetMultipleErrors()
+
+		if len(errors) != len(test.Offsets) {
+			t.Errorf("[%d] TestMultipleErrorsNestedStruct(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
+		}
+		for ii, e := range errors {
+			if e.Offset != test.Offsets[ii] {
+				t.Errorf("[%d] TestMultipleErrorsNestedStruct(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
+			}
 		}
 	}
 }
