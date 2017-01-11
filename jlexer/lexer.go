@@ -432,7 +432,7 @@ func (r *Lexer) errSemantic(expected string) {
 		r.token.kind = tokenDelim
 		return
 	}
-	r.AddMultipleError(&LexerError{
+	r.addNonfatalError(&LexerError{
 		Reason: fmt.Sprintf("expected %s", expected),
 		Offset: r.start,
 		Data:   string(r.Data[r.start:]),
@@ -679,60 +679,64 @@ func (r *Lexer) number() string {
 
 func (r *Lexer) Uint8() uint8 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 8)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint8(n)
 }
 
 func (r *Lexer) Uint16() uint16 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 16)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint16(n)
 }
 
 func (r *Lexer) Uint32() uint32 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint32(n)
 }
 
 func (r *Lexer) Uint64() uint64 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return n
 }
@@ -743,60 +747,64 @@ func (r *Lexer) Uint() uint {
 
 func (r *Lexer) Int8() int8 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 8)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int8(n)
 }
 
 func (r *Lexer) Int16() int16 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 16)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int16(n)
 }
 
 func (r *Lexer) Int32() int32 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int32(n)
 }
 
 func (r *Lexer) Int64() int64 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return n
 }
@@ -807,60 +815,64 @@ func (r *Lexer) Int() int {
 
 func (r *Lexer) Uint8Str() uint8 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 8)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint8(n)
 }
 
 func (r *Lexer) Uint16Str() uint16 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 16)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint16(n)
 }
 
 func (r *Lexer) Uint32Str() uint32 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return uint32(n)
 }
 
 func (r *Lexer) Uint64Str() uint64 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return n
 }
@@ -871,30 +883,32 @@ func (r *Lexer) UintStr() uint {
 
 func (r *Lexer) Int8Str() int8 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 8)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int8(n)
 }
 
 func (r *Lexer) Int16Str() int16 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 16)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int16(n)
 }
@@ -907,24 +921,26 @@ func (r *Lexer) Int32Str() int32 {
 
 	n, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return int32(n)
 }
 
 func (r *Lexer) Int64Str() int64 {
 	s := r.UnsafeString()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return n
 }
@@ -935,30 +951,32 @@ func (r *Lexer) IntStr() int {
 
 func (r *Lexer) Float32() float32 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseFloat(s, 32)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return float32(n)
 }
 
 func (r *Lexer) Float64() float64 {
 	s := r.number()
-	if !r.Ok() || len(r.multipleErrors) != 0 {
+	if !r.Ok() {
 		return 0
 	}
 
 	n, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
 			Reason: err.Error(),
-		}
+		})
 	}
 	return n
 }
@@ -973,11 +991,18 @@ func (r *Lexer) AddError(e error) {
 	}
 }
 
-func (r *Lexer) AddMultipleError(err *LexerError) {
-	r.multipleErrors = append(r.multipleErrors, err)
+func (r *Lexer) addNonfatalError(err *LexerError) {
+	if r.UseMultipleErrors {
+		if len(r.multipleErrors) != 0 && r.multipleErrors[len(r.multipleErrors)-1].Offset == err.Offset {
+			return
+		}
+		r.multipleErrors = append(r.multipleErrors, err)
+		return
+	}
+	r.fatalError = err
 }
 
-func (r *Lexer) GetMultipleErrors() []*LexerError {
+func (r *Lexer) GetNonfatalErrors() []*LexerError {
 	return r.multipleErrors
 }
 
