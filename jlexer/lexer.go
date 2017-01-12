@@ -412,54 +412,48 @@ func (r *Lexer) errSyntax() {
 	r.errParse("syntax error")
 }
 
-// errMultiple adds multiple error if UseMultipleErrors is enabled.
-//
-// Function changes lexer's token if we expected '[' or '{' for slices/maps in order not to
-// call IsDelim() or Delim() functions.
-func (r *Lexer) errMultiple(expected string) {
-	r.pos = r.start
-	r.consume()
-	r.SkipRecursive()
-	switch expected {
-	case "[":
-		r.token.delimValue = ']'
-		r.token.kind = tokenDelim
-	case "{":
-		r.token.delimValue = '}'
-		r.token.kind = tokenDelim
-	case "]":
-		r.token.delimValue = ']'
-		r.token.kind = tokenDelim
-		return
-	case "}":
-		r.token.delimValue = '}'
-		r.token.kind = tokenDelim
-		return
-	}
-	r.addNonfatalError(&LexerError{
-		Reason: fmt.Sprintf("expected %s", expected),
-		Offset: r.start,
-		Data:   string(r.Data[r.start:]),
-	})
-}
-
 func (r *Lexer) errInvalidToken(expected string) {
-	if r.UseMultipleErrors {
-		r.errMultiple(expected)
+	if r.fatalError != nil {
 		return
 	}
-	if r.fatalError == nil {
-		var str string
-		if len(r.token.byteValue) <= maxErrorContextLen {
-			str = string(r.token.byteValue)
-		} else {
-			str = string(r.token.byteValue[:maxErrorContextLen-3]) + "..."
+	if r.UseMultipleErrors {
+		r.pos = r.start
+		r.consume()
+		r.SkipRecursive()
+		switch expected {
+		case "[":
+			r.token.delimValue = ']'
+			r.token.kind = tokenDelim
+		case "{":
+			r.token.delimValue = '}'
+			r.token.kind = tokenDelim
+		case "]":
+			r.token.delimValue = ']'
+			r.token.kind = tokenDelim
+			return
+		case "}":
+			r.token.delimValue = '}'
+			r.token.kind = tokenDelim
+			return
 		}
-		r.fatalError = &LexerError{
+		r.addNonfatalError(&LexerError{
 			Reason: fmt.Sprintf("expected %s", expected),
-			Offset: r.pos,
-			Data:   str,
-		}
+			Offset: r.start,
+			Data:   string(r.Data[r.start:]),
+		})
+		return
+	}
+
+	var str string
+	if len(r.token.byteValue) <= maxErrorContextLen {
+		str = string(r.token.byteValue)
+	} else {
+		str = string(r.token.byteValue[:maxErrorContextLen-3]) + "..."
+	}
+	r.fatalError = &LexerError{
+		Reason: fmt.Sprintf("expected %s", expected),
+		Offset: r.pos,
+		Data:   str,
 	}
 }
 
