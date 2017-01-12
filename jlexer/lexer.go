@@ -412,6 +412,10 @@ func (r *Lexer) errSyntax() {
 	r.errParse("syntax error")
 }
 
+// errMultiple adds multiple error if UseMultipleErrors is enabled.
+//
+// Function changes lexer's token if we expected '[' or '{' for slices/maps in order not to
+// call IsDelim() or Delim() functions.
 func (r *Lexer) errMultiple(expected string) {
 	r.pos = r.start
 	r.consume()
