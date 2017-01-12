@@ -41,7 +41,7 @@ func TestMultipleErrorsInt(t *testing.T) {
 
 		v.UnmarshalEasyJSON(&l)
 
-		errors := l.GetNonfatalErrors()
+		errors := l.GetNonFatalErrors()
 
 		if len(errors) != len(test.Offsets) {
 			t.Errorf("[%d] TestMultipleErrorsInt(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
@@ -81,7 +81,7 @@ func TestMultipleErrorsBool(t *testing.T) {
 		var v ErrorBoolSlice
 		v.UnmarshalEasyJSON(&l)
 
-		errors := l.GetNonfatalErrors()
+		errors := l.GetNonFatalErrors()
 
 		if len(errors) != len(test.Offsets) {
 			t.Errorf("[%d] TestMultipleErrorsBool(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
@@ -124,7 +124,7 @@ func TestMultipleErrorsUint(t *testing.T) {
 		var v ErrorUintSlice
 		v.UnmarshalEasyJSON(&l)
 
-		errors := l.GetNonfatalErrors()
+		errors := l.GetNonFatalErrors()
 
 		if len(errors) != len(test.Offsets) {
 			t.Errorf("[%d] TestMultipleErrorsUint(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
@@ -178,7 +178,7 @@ func TestMultipleErrorsStruct(t *testing.T) {
 		var v ErrorStruct
 		v.UnmarshalEasyJSON(&l)
 
-		errors := l.GetNonfatalErrors()
+		errors := l.GetNonFatalErrors()
 
 		if len(errors) != len(test.Offsets) {
 			t.Errorf("[%d] TestMultipleErrorsStruct(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))
@@ -228,7 +228,7 @@ func TestMultipleErrorsNestedStruct(t *testing.T) {
 		var v ErrorNestedStruct
 		v.UnmarshalEasyJSON(&l)
 
-		errors := l.GetNonfatalErrors()
+		errors := l.GetNonFatalErrors()
 
 		if len(errors) != len(test.Offsets) {
 			t.Errorf("[%d] TestMultipleErrorsNestedStruct(): errornum: want: %d, got %d", i, len(test.Offsets), len(errors))

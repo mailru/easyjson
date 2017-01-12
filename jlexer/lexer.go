@@ -1006,7 +1006,7 @@ func (r *Lexer) addNonfatalError(err *LexerError) {
 	r.fatalError = err
 }
 
-func (r *Lexer) GetNonfatalErrors() []*LexerError {
+func (r *Lexer) GetNonFatalErrors() []*LexerError {
 	return r.multipleErrors
 }
 
