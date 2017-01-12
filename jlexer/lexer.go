@@ -427,14 +427,6 @@ func (r *Lexer) errInvalidToken(expected string) {
 		case "{":
 			r.token.delimValue = '}'
 			r.token.kind = tokenDelim
-		case "]":
-			r.token.delimValue = ']'
-			r.token.kind = tokenDelim
-			return
-		case "}":
-			r.token.delimValue = '}'
-			r.token.kind = tokenDelim
-			return
 		}
 		r.addNonfatalError(&LexerError{
 			Reason: fmt.Sprintf("expected %s", expected),
