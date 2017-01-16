@@ -60,7 +60,7 @@ func NewGenerator(filename string) *Generator {
 		imports: map[string]string{
 			pkgWriter:       "jwriter",
 			pkgLexer:        "jlexer",
-			pkgEasyjson:      "easyjson",
+			pkgEasyjson:     "easyjson",
 			"encoding/json": "json",
 		},
 		fieldNamer:    DefaultFieldNamer{},
@@ -97,6 +97,11 @@ func (g *Generator) SetFieldNamer(n FieldNamer) {
 // UseSnakeCase sets snake_case field naming strategy.
 func (g *Generator) UseSnakeCase() {
 	g.fieldNamer = SnakeCaseFieldNamer{}
+}
+
+// UseLCFirst sets lcfirst field naming strategy.
+func (g *Generator) UseLCFirst() {
+	g.fieldNamer = LCFirstFieldNamer{}
 }
 
 // NoStdMarshalers instructs not to generate standard MarshalJSON/UnmarshalJSON
@@ -333,6 +338,19 @@ func (DefaultFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField)
 		return jsonName
 	} else {
 		return f.Name
+	}
+}
+
+// LCFirstFieldNamer implements naming policy that honors json tag if present,
+// and otherwise uses the field name with the first character in lower case.
+type LCFirstFieldNamer struct{}
+
+func (LCFirstFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField) string {
+	jsonName := strings.Split(f.Tag.Get("json"), ",")[0]
+	if jsonName != "" {
+		return jsonName
+	} else {
+		return strings.ToLower(f.Name[:1]) + f.Name[1:]
 	}
 }
 

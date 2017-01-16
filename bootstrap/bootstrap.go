@@ -23,6 +23,7 @@ type Generator struct {
 
 	NoStdMarshalers bool
 	SnakeCase       bool
+	LCFirst         bool
 	OmitEmpty       bool
 
 	OutName   string
@@ -107,6 +108,8 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.SnakeCase {
 		fmt.Fprintln(f, "  g.UseSnakeCase()")
+	} else if g.LCFirst {
+		fmt.Fprintln(f, "  g.UseLCFirst()")
 	}
 	if g.OmitEmpty {
 		fmt.Fprintln(f, "  g.OmitEmpty()")

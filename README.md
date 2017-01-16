@@ -19,6 +19,8 @@ Usage of .root/bin/easyjson:
         generate un-/marshallers for all structs in a file
   -build_tags string
         build tags to add to generated file
+  -lcfirst
+        lower case the first letter of each field name
   -leave_temps
         do not delete temporary files
   -no_std_marshalers
@@ -40,6 +42,8 @@ struct A{}
 ```
 
 `-snake_case` tells easyjson to generate snake\_case field names by default (unless explicitly overriden by a field tag). The CamelCase to snake\_case conversion algorithm should work in most cases (e.g. HTTPVersion will be converted to http_version). There can be names like JSONHTTPRPC where the conversion will return an unexpected result (jsonhttprpc without underscores),  but such names require a dictionary to do the conversion and may be ambiguous.
+
+`-lcfirst` tells easyjson to lowercase the first letter of each field name (unless explicitly overridden by a field tag).
 
 `-build_tags` will add corresponding build tag line for the generated file.
 ## marshaller/unmarshaller interfaces
