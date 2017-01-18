@@ -52,8 +52,8 @@ type Lexer struct {
 	multipleErrors    []*LexerError // Semantic errors occured during lexing. Marshalling will be continued after finding this errors.
 }
 
-// fetchToken scans the input for the next token.
-func (r *Lexer) fetchToken() {
+// FetchToken scans the input for the next token.
+func (r *Lexer) FetchToken() {
 	r.token.kind = tokenUndef
 	r.start = r.pos
 
@@ -376,7 +376,7 @@ func (r *Lexer) scanToken() {
 		return
 	}
 
-	r.fetchToken()
+	r.FetchToken()
 }
 
 // consume resets the current token to allow scanning the next one.
@@ -388,6 +388,10 @@ func (r *Lexer) consume() {
 // Ok returns true if no error (including io.EOF) was encountered during scanning.
 func (r *Lexer) Ok() bool {
 	return r.fatalError == nil
+}
+
+func (r *Lexer) GetPos() int {
+	return r.pos
 }
 
 const maxErrorContextLen = 13
@@ -431,7 +435,7 @@ func (r *Lexer) errInvalidToken(expected string) {
 		r.addNonfatalError(&LexerError{
 			Reason: fmt.Sprintf("expected %s", expected),
 			Offset: r.start,
-			Data:   string(r.Data[r.start:]),
+			Data:   string(r.Data[r.start:r.pos]),
 		})
 		return
 	}
@@ -452,7 +456,7 @@ func (r *Lexer) errInvalidToken(expected string) {
 // Delim consumes a token and verifies that it is the given delimiter.
 func (r *Lexer) Delim(c byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 
 	if !r.Ok() || r.token.delimValue != c {
@@ -466,7 +470,7 @@ func (r *Lexer) Delim(c byte) {
 // IsDelim returns true if there was no scanning error and next token is the given delimiter.
 func (r *Lexer) IsDelim(c byte) bool {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	return !r.Ok() || r.token.delimValue == c
 }
@@ -474,7 +478,7 @@ func (r *Lexer) IsDelim(c byte) bool {
 // Null verifies that the next token is null and consumes it.
 func (r *Lexer) Null() {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenNull {
 		r.errInvalidToken("null")
@@ -485,7 +489,7 @@ func (r *Lexer) Null() {
 // IsNull returns true if the next token is a null keyword.
 func (r *Lexer) IsNull() bool {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	return r.Ok() && r.token.kind == tokenNull
 }
@@ -493,7 +497,7 @@ func (r *Lexer) IsNull() bool {
 // Skip skips a single token.
 func (r *Lexer) Skip() {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	r.consume()
 }
@@ -592,7 +596,7 @@ func (r *Lexer) Consumed() {
 // the input buffer. Intended pattern of usage is as an argument to a switch statement.
 func (r *Lexer) UnsafeString() string {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenString {
 		r.errInvalidToken("string")
@@ -607,7 +611,7 @@ func (r *Lexer) UnsafeString() string {
 // String reads a string literal.
 func (r *Lexer) String() string {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenString {
 		r.errInvalidToken("string")
@@ -621,7 +625,7 @@ func (r *Lexer) String() string {
 // Bytes reads a string literal and base64 decodes it into a byte slice.
 func (r *Lexer) Bytes() []byte {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenString {
 		r.errInvalidToken("string")
@@ -643,7 +647,7 @@ func (r *Lexer) Bytes() []byte {
 // Bool reads a true or false boolean keyword.
 func (r *Lexer) Bool() bool {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenBool {
 		r.errInvalidToken("bool")
@@ -656,7 +660,7 @@ func (r *Lexer) Bool() bool {
 
 func (r *Lexer) number() string {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 	if !r.Ok() || r.token.kind != tokenNumber {
 		r.errInvalidToken("number")
@@ -999,7 +1003,7 @@ func (r *Lexer) GetNonFatalErrors() []*LexerError {
 // Interface fetches an interface{} analogous to the 'encoding/json' package.
 func (r *Lexer) Interface() interface{} {
 	if r.token.kind == tokenUndef && r.Ok() {
-		r.fetchToken()
+		r.FetchToken()
 	}
 
 	if !r.Ok() {
