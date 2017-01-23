@@ -18,12 +18,15 @@ func TestString(t *testing.T) {
 		{toParse: `"\u0020"`, want: " "},
 		{toParse: `"\u0020-\t"`, want: " -\t"},
 		{toParse: `"\ufffd\uFFFD"`, want: "\ufffd\ufffd"},
+		{toParse: `"\ud83d\ude00"`, want: "😀"},
+		{toParse: `"\ud83d\ude08"`, want: "😈"},
+		{toParse: `"\ud8"`, wantError: true},
 
 		{toParse: `"test"junk`, want: "test"},
 
 		{toParse: `5`, wantError: true},        // not a string
 		{toParse: `"\x"`, wantError: true},     // invalid escape
-		{toParse: `"\ud800"`, wantError: true}, // invalid utf-8 char
+		{toParse: `"\ud800"`, want: "�"},      // invalid utf-8 char; return replacement char
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
