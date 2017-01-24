@@ -634,3 +634,17 @@ type EncodingFlagsTestMap struct {
 type EncodingFlagsTestSlice struct {
 	F []string
 }
+
+type StructWithInterface struct {
+	Field1 int         `json:"f1"`
+	Field2 interface{} `json:"f2"`
+	Field3 string      `json:"f3"`
+}
+
+type EmbeddedStruct struct {
+	Field1 int    `json:"f1"`
+	Field2 string `json:"f2"`
+}
+
+var structWithInterfaceString = `{"f1":1,"f2":{"f1":11,"f2":"22"},"f3":"3"}`
+var structWithInterfaceValueFilled = StructWithInterface{1, &EmbeddedStruct{11, "22"}, "3"}
