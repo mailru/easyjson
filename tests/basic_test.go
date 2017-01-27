@@ -207,3 +207,15 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 		}
 	}
 }
+
+func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
+	var s = StructWithInterface{Field2: &EmbeddedStruct{}}
+	var err error
+	err = easyjson.Unmarshal([]byte(structWithInterfaceString), &s)
+	if err != nil {
+		t.Errorf("easyjson.Unmarshal() error: %v", err)
+	}
+	if !reflect.DeepEqual(s, structWithInterfaceValueFilled) {
+		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceValueFilled)
+	}
+}
