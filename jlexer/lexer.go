@@ -589,7 +589,7 @@ func (r *Lexer) IsStart() bool {
 // Consumed reads all remaining bytes from the input, publishing an error if
 // there is anything but whitespace remaining.
 func (r *Lexer) Consumed() {
-	if r.pos > len(r.Data) {
+	if r.pos > len(r.Data) || !r.Ok() {
 		return
 	}
 
