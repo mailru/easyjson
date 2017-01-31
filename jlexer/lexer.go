@@ -1026,6 +1026,14 @@ func (r *Lexer) AddError(e error) {
 	}
 }
 
+func (r *Lexer) AddMultipleError(e error) {
+	r.addNonfatalError(&LexerError{
+		Offset: r.start,
+		Data:   string(r.Data[r.start:r.pos]),
+		Reason: e.Error(),
+	})
+}
+
 func (r *Lexer) addNonfatalError(err *LexerError) {
 	if r.UseMultipleErrors {
 		// We don't want to add errors with the same offset.
