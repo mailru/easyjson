@@ -1026,7 +1026,7 @@ func (r *Lexer) AddError(e error) {
 	}
 }
 
-func (r *Lexer) AddMultipleError(e error) {
+func (r *Lexer) AddNonFatalError(e error) {
 	r.addNonfatalError(&LexerError{
 		Offset: r.start,
 		Data:   string(r.Data[r.start:r.pos]),
