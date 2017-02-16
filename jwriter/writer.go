@@ -38,13 +38,14 @@ func (w *Writer) DumpTo(out io.Writer) (written int, err error) {
 	return w.Buffer.DumpTo(out)
 }
 
-// BuildBytes returns writer data as a single byte slice.
-func (w *Writer) BuildBytes() ([]byte, error) {
+// BuildBytes returns writer data as a single byte slice. You can optionally provide one byte slice
+// as argument that it will try to reuse.
+func (w *Writer) BuildBytes(reuse ...[]byte) ([]byte, error) {
 	if w.Error != nil {
 		return nil, w.Error
 	}
 
-	return w.Buffer.BuildBytes(), nil
+	return w.Buffer.BuildBytes(reuse...), nil
 }
 
 // RawByte appends raw binary data to the buffer.
