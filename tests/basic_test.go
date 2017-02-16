@@ -36,6 +36,7 @@ var testCases = []struct {
 	{&deepNestValue, deepNestString},
 	{&IntsValue, IntsString},
 	{&mapStringStringValue, mapStringStringString},
+	{&namedTypeValue, namedTypeValueString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -204,5 +205,17 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 		if !v.EasilyMarshaled {
 			t.Errorf("Nested interface %s wasn't easily marshaled", k)
 		}
+	}
+}
+
+func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
+	var s = StructWithInterface{Field2: &EmbeddedStruct{}}
+	var err error
+	err = easyjson.Unmarshal([]byte(structWithInterfaceString), &s)
+	if err != nil {
+		t.Errorf("easyjson.Unmarshal() error: %v", err)
+	}
+	if !reflect.DeepEqual(s, structWithInterfaceValueFilled) {
+		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceValueFilled)
 	}
 }
