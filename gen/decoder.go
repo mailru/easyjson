@@ -434,7 +434,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	return nil
 }
 
-func (g *Generator) genStructUnmarshaller(t reflect.Type) error {
+func (g *Generator) genStructUnmarshaler(t reflect.Type) error {
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array, reflect.Map, reflect.Struct:
 	default:
