@@ -212,3 +212,57 @@ func (b *Buffer) BuildBytes(reuse ...[]byte) []byte {
 
 	return ret
 }
+
+type readCloser struct {
+	offset int
+	bufs   [][]byte
+}
+
+func (r *readCloser) Read(p []byte) (n int, err error) {
+	for _, buf := range r.bufs {
+		// Copy as much as we can.
+		x := copy(p[n:], buf[r.offset:])
+		n += x // Increment how much we filled.
+
+		// Did we empty the whole buffer?
+		if r.offset+x == len(buf) {
+			// On to the next buffer.
+			r.offset = 0
+			r.bufs = r.bufs[1:]
+
+			// We can release this buffer.
+			putBuf(buf)
+		} else {
+			r.offset += x
+		}
+
+		if n == len(p) {
+			break
+		}
+	}
+	// No buffers left or nothing read?
+	if len(r.bufs) == 0 {
+		err = io.EOF
+	}
+	return
+}
+
+func (r *readCloser) Close() error {
+	// Release all remainig buffers.
+	for _, buf := range r.bufs {
+		putBuf(buf)
+	}
+
+	return nil
+}
+
+// ReadCloser creates an io.ReadCloser with all the contents of the buffer.
+func (b *Buffer) ReadCloser() io.ReadCloser {
+	ret := &readCloser{0, append(b.bufs, b.Buf)}
+
+	b.bufs = nil
+	b.toPool = nil
+	b.Buf = nil
+
+	return ret
+}
