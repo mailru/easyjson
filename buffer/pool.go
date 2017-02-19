@@ -252,6 +252,8 @@ func (r *readCloser) Close() error {
 	for _, buf := range r.bufs {
 		putBuf(buf)
 	}
+	// In case Close gets called multiple times.
+	r.bufs = nil
 
 	return nil
 }
