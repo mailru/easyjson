@@ -15,6 +15,9 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 	"unsafe"
+	"errors"
+	"unicode/utf16"
+	"unicode"
 )
 
 // tokenKind determines type of a token.
