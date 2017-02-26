@@ -9,12 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"reflect"
 	"strconv"
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
-	"unsafe"
 )
 
 // tokenKind determines type of a token.
@@ -203,17 +201,6 @@ func (r *Lexer) fetchFalse() {
 		r.pos -= 5
 		r.errSyntax()
 	}
-}
-
-// bytesToStr creates a string pointing at the slice to avoid copying.
-//
-// Warning: the string returned by the function should be used with care, as the whole input data
-// chunk may be either blocked from being freed by GC because of a single string or the buffer.Data
-// may be garbage-collected even when the string exists.
-func bytesToStr(data []byte) string {
-	h := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	shdr := reflect.StringHeader{h.Data, h.Len}
-	return *(*string)(unsafe.Pointer(&shdr))
 }
 
 // fetchNumber scans a number literal token.
