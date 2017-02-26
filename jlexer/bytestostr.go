@@ -1,3 +1,7 @@
+// This file will only be included to the build if neither
+// easyjson_nounsafe nor appengine build tag is set. See README notes
+// for more details.
+
 //+build !easyjson_nounsafe
 //+build !appengine
 
