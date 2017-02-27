@@ -220,7 +220,12 @@ func (g *Generator) pkgAlias(pkgPath string) string {
 	}
 
 	for i := 0; ; i++ {
-		alias := path.Base(pkgPath)
+		alias := strings.Replace(
+			strings.Replace(path.Base(pkgPath), ".", "_", -1),
+			"-",
+			"_",
+			-1,
+		)
 		if i > 0 {
 			alias += fmt.Sprint(i)
 		}
