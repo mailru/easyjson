@@ -141,11 +141,18 @@ for more information.
   when doing case-insensitive key matching. In the future, case-insensitive
   object key matching may be provided via an option to the generator.
 
-* easyjson makes use of `unsafe`. While a "safe" version of easyjson could
-  be written, `unsafe` simplifies the code and provides significant performance
-  benefits by allowing no-copy conversion from `[]byte` to `string`. That said,
-  `unsafe` is used only when unmarshaling and parsing JSON, and any `unsafe`
-  operations / memory allocations done will be safely deallocated by easyjson.
+* easyjson makes use of `unsafe`, which simplifies the code and
+  provides significant performance benefits by allowing no-copy
+  conversion from `[]byte` to `string`. That said, `unsafe` is used
+  only when unmarshaling and parsing JSON, and any `unsafe` operations
+  / memory allocations done will be safely deallocated by
+  easyjson. Set the build tag `easyjson_nounsafe` to compile it
+  without `unsafe`.
+
+* easyjson is compatible with Google App Engine. The `appengine` build
+  tag (set by App Engine's environment) will automatically disable the
+  use of `unsafe`, which is not allowed in App Engine's Standard
+  Environment. Note that the use with App Engine is still experimental.
 
 * Floats are formatted using the default precision from Go's `strconv` package.
   As such, easyjson will not correctly handle high precision floats when
@@ -165,7 +172,8 @@ for more information.
 
 ## Benchmarks
 
-Most benchmarks were done using the example [13kB example JSON](https://dev.twitter.com/rest/reference/get/search/tweets)
+Most benchmarks were done using the example
+[13kB example JSON](https://dev.twitter.com/rest/reference/get/search/tweets)
 (9k after eliminating whitespace). This example is similar to real-world data,
 is well-structured, and contains a healthy variety of different types, making
 it ideal for JSON serialization benchmarks.
@@ -177,6 +185,9 @@ Note:
 
 * For large request marshaling benchmarks, a struct containing 50 regular
   samples was used, making a ~500kB output JSON.
+
+* Benchmarks are showing the results of easyjson's default behaviour,
+  which makes use of `unsafe`.
 
 Benchmarks are available in the repository and can be run by invoking `make`.
 
