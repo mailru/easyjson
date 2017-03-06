@@ -68,7 +68,7 @@ func (w *Writer) RawString(s string) {
 	w.Buffer.AppendString(s)
 }
 
-// RawByte appends raw binary data to the buffer or sets the error if it is given. Useful for
+// Raw appends raw binary data to the buffer or sets the error if it is given. Useful for
 // calling with results of MarshalJSON-like functions.
 func (w *Writer) Raw(data []byte, err error) {
 	switch {
@@ -78,6 +78,23 @@ func (w *Writer) Raw(data []byte, err error) {
 		w.Error = err
 	case len(data) > 0:
 		w.Buffer.AppendBytes(data)
+	default:
+		w.RawString("null")
+	}
+}
+
+// RawText encloses raw binary data in quotes and appends in to the buffer.
+// Useful for calling with results of MarshalText-like functions.
+func (w *Writer) RawText(data []byte, err error) {
+	switch {
+	case w.Error != nil:
+		return
+	case err != nil:
+		w.Error = err
+	case len(data) > 0:
+		w.Buffer.AppendByte('"')
+		w.Buffer.AppendBytes(data)
+		w.Buffer.AppendByte('"')
 	default:
 		w.RawString("null")
 	}
