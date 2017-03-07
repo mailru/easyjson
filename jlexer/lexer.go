@@ -618,6 +618,12 @@ func (r *Lexer) UnsafeString() string {
 	return ret
 }
 
+// UnsafeBytes returns the byte slice if the token is a string literal.
+func (r *Lexer) UnsafeBytes() []byte {
+	_, ret := r.unsafeString()
+	return ret
+}
+
 // String reads a string literal.
 func (r *Lexer) String() string {
 	if r.token.kind == tokenUndef && r.Ok() {
