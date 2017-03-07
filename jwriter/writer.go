@@ -92,9 +92,7 @@ func (w *Writer) RawText(data []byte, err error) {
 	case err != nil:
 		w.Error = err
 	case len(data) > 0:
-		w.Buffer.AppendByte('"')
-		w.Buffer.AppendBytes(data)
-		w.Buffer.AppendByte('"')
+		w.String(string(data))
 	default:
 		w.RawString("null")
 	}
