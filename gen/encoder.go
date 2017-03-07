@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"encoding"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -92,6 +93,12 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
 		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
+		return nil
+	}
+
+	marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+	if reflect.PtrTo(t).Implements(marshalerIface) {
+		fmt.Fprintln(g.out, ws+"out.RawText( ("+in+").MarshalText() )")
 		return nil
 	}
 

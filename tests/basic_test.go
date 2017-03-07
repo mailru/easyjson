@@ -28,6 +28,7 @@ var testCases = []struct {
 	{&optsValue, optsString},
 	{&rawValue, rawString},
 	{&stdMarshalerValue, stdMarshalerString},
+	{&userMarshalerValue, userMarshalerString},
 	{&unexportedStructValue, unexportedStructString},
 	{&excludedFieldValue, excludedFieldString},
 	{&sliceValue, sliceString},
