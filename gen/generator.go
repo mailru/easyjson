@@ -213,11 +213,11 @@ func fixPkgPathVendoring(pkgPath string) string {
 }
 
 func fixAliasName(alias string) string {
-	alias := strings.Replace(
-			strings.Replace(path.Base(pkgPath), ".", "_", -1),
-			"-",
-			"_",
-			-1,
+	alias = strings.Replace(
+		strings.Replace(path.Base(pkgPath), ".", "_", -1),
+		"-",
+		"_",
+		-1,
 	)
 	return alias
 }
