@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"encoding"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -61,6 +62,14 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 	if reflect.PtrTo(t).Implements(unmarshalerIface) {
 		fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
 		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
+		fmt.Fprintln(g.out, ws+"}")
+		return nil
+	}
+
+	unmarshalerIface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	if reflect.PtrTo(t).Implements(unmarshalerIface) {
+		fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
+		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalText(data) )")
 		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
