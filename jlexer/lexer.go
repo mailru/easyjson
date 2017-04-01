@@ -601,7 +601,7 @@ func (r *Lexer) unsafeString() (string, []byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() || (r.token.kind != tokenString && (!r.LooseType || r.token.kind != tokenNumber)) {
 		r.errInvalidToken("string")
 		return "", nil
 	}
@@ -631,7 +631,7 @@ func (r *Lexer) String() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() || (r.token.kind != tokenString && (!r.LooseType || r.token.kind != tokenNumber)) {
 		r.errInvalidToken("string")
 		return ""
 	}
@@ -680,7 +680,7 @@ func (r *Lexer) number() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenNumber {
+	if !r.Ok() || (r.token.kind != tokenNumber && (!r.LooseType || r.token.kind != tokenString)) {
 		r.errInvalidToken("number")
 		return ""
 	}
