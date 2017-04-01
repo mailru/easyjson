@@ -50,6 +50,8 @@ type Lexer struct {
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
 	multipleErrors    []*LexerError // Semantic errors occurred during lexing. Marshalling will be continued after finding this errors.
+
+	LooseType bool //Relatively loose json type, numeric and string are compatible with each other
 }
 
 // FetchToken scans the input for the next token.
