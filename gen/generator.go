@@ -35,6 +35,7 @@ type Generator struct {
 
 	noStdMarshalers bool
 	omitEmpty       bool
+	looseType       bool
 	fieldNamer      FieldNamer
 
 	// package path to local alias map for tracking imports
@@ -92,6 +93,11 @@ func (g *Generator) SetBuildTags(tags string) {
 // SetFieldNamer sets field naming strategy.
 func (g *Generator) SetFieldNamer(n FieldNamer) {
 	g.fieldNamer = n
+}
+
+// OmitEmpty sets loose json numeric and string type
+func (g *Generator) SetLooseType() {
+	g.looseType = true
 }
 
 // UseSnakeCase sets snake_case field naming strategy.
