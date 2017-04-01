@@ -66,6 +66,7 @@ func generate(fname string) (err error) {
 		OutName:         outName,
 		StubsOnly:       *stubs,
 		NoFormat:        *noformat,
+		LooseType:       *looseType,
 	}
 
 	if err := g.Run(); err != nil {
