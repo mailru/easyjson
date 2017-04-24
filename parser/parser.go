@@ -1,9 +1,13 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -88,4 +92,30 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 		ast.Walk(&visitor{Parser: p}, f)
 	}
 	return nil
+}
+
+func getPkgPath(fname string, isDir bool) (string, error) {
+	fname, err := filepath.Abs(fname)
+	if err != nil {
+		return "", err
+	}
+
+	for _, p := range filepath.SplitList(os.Getenv("GOPATH")) {
+		gopath := filepath.Join(p, "src")
+		pkg, err := filepath.Rel(gopath, fname)
+		if err != nil {
+			continue
+		}
+
+		if pkg != fname {
+			p := normalizePath(pkg)
+
+			if !isDir {
+				return path.Dir(p), nil
+			}
+			return p, nil
+		}
+	}
+
+	return "", fmt.Errorf("file '%v' is not in GOPATH", fname)
 }
