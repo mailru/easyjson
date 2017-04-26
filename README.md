@@ -216,7 +216,7 @@ used with a writer.
 
 ### easyjson vs. go/codec
 
-[go/codec](https://github.com/ugorji/go/codec) provides
+[go/codec](https://github.com/ugorji/go) provides
 compile-time helpers for JSON generation. In this case, helpers do not work
 like marshalers as they are encoding-independent.
 
