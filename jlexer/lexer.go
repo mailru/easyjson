@@ -582,7 +582,7 @@ func (r *Lexer) Consumed() {
 
 	for _, c := range r.Data[r.pos:] {
 		if c != ' ' && c != '\t' && c != '\r' && c != '\n' {
-			r.addError(&LexerError{
+			r.AddError(&LexerError{
 				Reason: "invalid character '" + string(c) + "' after top-level value",
 				Offset: r.pos,
 				Data:   string(r.Data[r.pos:]),
