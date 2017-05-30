@@ -395,6 +395,10 @@ func (r *Lexer) Ok() bool {
 	return r.fatalError == nil
 }
 
+func (r *Lexer) GetPos() int {
+	return r.pos
+}
+
 const maxErrorContextLen = 13
 
 func (r *Lexer) errParse(what string) {
