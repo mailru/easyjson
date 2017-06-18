@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 const pkgWriter = "github.com/mailru/easyjson/jwriter"
@@ -97,6 +98,11 @@ func (g *Generator) SetFieldNamer(n FieldNamer) {
 // UseSnakeCase sets snake_case field naming strategy.
 func (g *Generator) UseSnakeCase() {
 	g.fieldNamer = SnakeCaseFieldNamer{}
+}
+
+// UseLowerCamelCase sets lowerCamelCase field naming strategy.
+func (g *Generator) UseLowerCamelCase() {
+	g.fieldNamer = LowerCamelCaseFieldNamer{}
 }
 
 // NoStdMarshalers instructs not to generate standard MarshalJSON/UnmarshalJSON
@@ -371,6 +377,25 @@ func (DefaultFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField)
 		return jsonName
 	} else {
 		return f.Name
+	}
+}
+
+// LowerCamelCaseFieldNamer
+type LowerCamelCaseFieldNamer struct {}
+func lowerFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[n:]
+}
+
+func (LowerCamelCaseFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField) string {
+	jsonName := strings.Split(f.Tag.Get("json"), ",")[0]
+	if jsonName != "" {
+		return jsonName
+	} else {
+		return lowerFirst(f.Name)
 	}
 }
 
