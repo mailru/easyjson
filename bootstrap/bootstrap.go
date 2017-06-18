@@ -111,7 +111,7 @@ func (g *Generator) writeMain() (path string, err error) {
 	if g.SnakeCase {
 		fmt.Fprintln(f, "  g.UseSnakeCase()")
 	}
-	if g.SnakeCase {
+	if g.LowerCamelCase {
 		fmt.Fprintln(f, "  g.UseLowerCamelCase()")
 	}
 	if g.OmitEmpty {
