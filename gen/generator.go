@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 )
 
 const pkgWriter = "github.com/mailru/easyjson/jwriter"
@@ -382,12 +381,61 @@ func (DefaultFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField)
 
 // LowerCamelCaseFieldNamer
 type LowerCamelCaseFieldNamer struct {}
+
+func isLower(b byte) bool {
+	return b <= 122 && b >= 97
+}
+
+func isUpper(b byte) bool {
+	return b >= 65 && b <= 90
+}
+
+func isNumeric(b byte) bool {
+	return b >= 48 && b <= 57
+}
+// convert HTTPRestClient to httpRestClient
 func lowerFirst(s string) string {
 	if s == "" {
 		return ""
 	}
-	r, n := utf8.DecodeRuneInString(s)
-	return string(unicode.ToLower(r)) + s[n:]
+
+	str := ""
+	strlen := len(s)
+
+	/**
+	  Loop each char
+	  If is uppercase:
+	    If is first char, LOWER it
+	    If the following char is lower, LEAVE it
+	    If the following char is upper OR numeric, LOWER it
+	    If is the end of string, LEAVE it
+	  Else lowercase
+	 */
+
+	foundLower := false
+	for i := range s {
+		ch := s[i]
+		if isUpper(ch) {
+			if i == 0 {
+				str += string(ch + 32)
+			} else if !foundLower { // Currently just a stream of capitals, eg JSONRESTS[erver]
+				if strlen > (i+1) && isLower(s[i+1]) {
+					// Next char is lower, keep this a capital
+					str += string(ch)
+				} else {
+					// Either at end of string or next char is capital
+					str += string(ch + 32)
+				}
+			} else {
+				str += string(ch)
+			}
+		} else {
+			foundLower = true
+			str += string(ch)
+		}
+	}
+
+	return str
 }
 
 func (LowerCamelCaseFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField) string {
