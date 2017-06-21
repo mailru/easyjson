@@ -60,7 +60,7 @@ generated. For example:
 
 ```go
 //easyjson:json
-struct A{}
+type A struct {}
 ```
 
 Additional option notes:
