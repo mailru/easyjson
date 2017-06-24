@@ -390,9 +390,6 @@ func isUpper(b byte) bool {
 	return b >= 65 && b <= 90
 }
 
-func isNumeric(b byte) bool {
-	return b >= 48 && b <= 57
-}
 // convert HTTPRestClient to httpRestClient
 func lowerFirst(s string) string {
 	if s == "" {
