@@ -127,7 +127,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-			g.genTypeDecoder(elem, tmpVar, tags, indent+2)
+			if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
+				return err
+			}
 
 			fmt.Fprintln(g.out, ws+"    "+out+" = append("+out+", "+tmpVar+")")
 			fmt.Fprintln(g.out, ws+"    in.WantComma()")
@@ -159,7 +161,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    if "+iterVar+" < "+fmt.Sprint(length)+" {")
 
-			g.genTypeDecoder(elem, out+"["+iterVar+"]", tags, indent+3)
+			if err := g.genTypeDecoder(elem, out+"["+iterVar+"]", tags, indent+3); err != nil {
+				return err
+			}
 
 			fmt.Fprintln(g.out, ws+"      "+iterVar+"++")
 			fmt.Fprintln(g.out, ws+"    } else {")
@@ -186,7 +190,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"    "+out+" = new("+g.getType(t.Elem())+")")
 		fmt.Fprintln(g.out, ws+"  }")
 
-		g.genTypeDecoder(t.Elem(), "*"+out, tags, indent+1)
+		if err := g.genTypeDecoder(t.Elem(), "*"+out, tags, indent+1); err != nil {
+			return err
+		}
 
 		fmt.Fprintln(g.out, ws+"}")
 
@@ -213,7 +219,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"    in.WantColon()")
 		fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-		g.genTypeDecoder(elem, tmpVar, tags, indent+2)
+		if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
+			return err
+		}
 
 		fmt.Fprintln(g.out, ws+"    ("+out+")[key] = "+tmpVar)
 		fmt.Fprintln(g.out, ws+"    in.WantComma()")
