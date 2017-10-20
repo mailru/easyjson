@@ -903,6 +903,10 @@ func (r *Lexer) UintStr() uint {
 	return uint(r.Uint64Str())
 }
 
+func (r *Lexer) UintptrStr() uintptr {
+	return uintptr(r.Uint64Str())
+}
+
 func (r *Lexer) Int8Str() int8 {
 	s, b := r.unsafeString()
 	if !r.Ok() {
