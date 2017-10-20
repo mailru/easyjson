@@ -51,6 +51,8 @@ type Lexer struct {
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
 	multipleErrors    []*LexerError // Semantic errors occurred during lexing. Marshalling will be continued after finding this errors.
+
+	LooseType bool //Relatively loose json type, numeric and string are compatible with each other
 }
 
 // FetchToken scans the input for the next token.
@@ -600,7 +602,7 @@ func (r *Lexer) unsafeString() (string, []byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() || (r.token.kind != tokenString && (!r.LooseType || r.token.kind != tokenNumber)) {
 		r.errInvalidToken("string")
 		return "", nil
 	}
@@ -630,7 +632,7 @@ func (r *Lexer) String() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() || (r.token.kind != tokenString && (!r.LooseType || r.token.kind != tokenNumber)) {
 		r.errInvalidToken("string")
 		return ""
 	}
@@ -679,7 +681,7 @@ func (r *Lexer) number() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenNumber {
+	if !r.Ok() || (r.token.kind != tokenNumber && (!r.LooseType || r.token.kind != tokenString)) {
 		r.errInvalidToken("number")
 		return ""
 	}

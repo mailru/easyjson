@@ -472,6 +472,9 @@ func (g *Generator) genStructUnmarshaler(t reflect.Type) error {
 		fmt.Fprintln(g.out, "// UnmarshalJSON supports json.Unmarshaler interface")
 		fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalJSON(data []byte) error {")
 		fmt.Fprintln(g.out, "  r := jlexer.Lexer{Data: data}")
+		if g.looseType {
+			fmt.Fprintln(g.out, "  r.LooseType = true")
+		}
 		fmt.Fprintln(g.out, "  "+fname+"(&r, v)")
 		fmt.Fprintln(g.out, "  return r.Error()")
 		fmt.Fprintln(g.out, "}")
@@ -479,6 +482,9 @@ func (g *Generator) genStructUnmarshaler(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "// UnmarshalEasyJSON supports easyjson.Unmarshaler interface")
 	fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalEasyJSON(l *jlexer.Lexer) {")
+	if g.looseType {
+		fmt.Fprintln(g.out, "  l.LooseType = true")
+	}
 	fmt.Fprintln(g.out, "  "+fname+"(l, v)")
 	fmt.Fprintln(g.out, "}")
 

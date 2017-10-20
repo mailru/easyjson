@@ -27,6 +27,7 @@ var stubs = flag.Bool("stubs", false, "only generate stubs for marshaler/unmarsh
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
+var looseType = flag.Bool("loose_type", false, "relatively loose json type, numeric and string are compatible with each other")
 
 func generate(fname string) (err error) {
 	fInfo, err := os.Stat(fname)
@@ -72,6 +73,7 @@ func generate(fname string) (err error) {
 		OutName:         outName,
 		StubsOnly:       *stubs,
 		NoFormat:        *noformat,
+		LooseType:       *looseType,
 	}
 
 	if err := g.Run(); err != nil {
