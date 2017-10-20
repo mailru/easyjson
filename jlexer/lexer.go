@@ -48,6 +48,8 @@ type Lexer struct {
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
 
+	// UseNumber causes the Lexer to unmarshal a number into an interface{} as a json.Number instead of a float64.
+	UseNumber         bool
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
 	multipleErrors    []*LexerError // Semantic errors occurred during lexing. Marshalling will be continued after finding this errors.
@@ -1010,6 +1012,15 @@ func (r *Lexer) Float64() float64 {
 	return n
 }
 
+func (r *Lexer) Number() json.Number {
+	s := r.number()
+	if !r.Ok() {
+		return json.Number("0")
+	}
+
+	return json.Number(s)
+}
+
 func (r *Lexer) Error() error {
 	return r.fatalError
 }
@@ -1079,6 +1090,9 @@ func (r *Lexer) Interface() interface{} {
 	case tokenString:
 		return r.String()
 	case tokenNumber:
+		if r.UseNumber {
+			return r.Number()
+		}
 		return r.Float64()
 	case tokenBool:
 		return r.Bool()

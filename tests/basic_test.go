@@ -8,6 +8,7 @@ import (
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/jwriter"
+	"github.com/mailru/easyjson/jlexer"
 )
 
 type testType interface {
@@ -218,5 +219,17 @@ func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
 	}
 	if !reflect.DeepEqual(s, structWithInterfaceValueFilled) {
 		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceValueFilled)
+	}
+}
+
+func TestUnmarshalStructWithJSONNumber(t *testing.T) {
+	var s = StructWithInterface{}
+	l := jlexer.Lexer{Data: []byte(structWithInterfaceNumberString), UseNumber: true}
+	s.UnmarshalEasyJSON(&l)
+	if err := l.Error(); err != nil {
+		t.Errorf("easyjson.Unmarshal() error: %v", err)
+	}
+	if !reflect.DeepEqual(s, structWithInterfaceNumberValue) {
+		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceNumberValue)
 	}
 }

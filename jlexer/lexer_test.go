@@ -25,9 +25,9 @@ func TestString(t *testing.T) {
 
 		{toParse: `"test"junk`, want: "test"},
 
-		{toParse: `5`, wantError: true},        // not a string
-		{toParse: `"\x"`, wantError: true},     // invalid escape
-		{toParse: `"\ud800"`, want: "�"},      // invalid utf-8 char; return replacement char
+		{toParse: `5`, wantError: true},    	// not a string
+		{toParse: `"\x"`, wantError: true}, 	// invalid escape
+		{toParse: `"\ud800"`, want: "�"},   	// invalid utf-8 char; return replacement char
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
@@ -187,11 +187,13 @@ func TestInterface(t *testing.T) {
 		toParse   string
 		want      interface{}
 		wantError bool
+		useNumber bool
 	}{
 		{toParse: "null", want: nil},
 		{toParse: "true", want: true},
 		{toParse: `"a"`, want: "a"},
 		{toParse: "5", want: float64(5)},
+		{toParse: "5", want: json.Number("5"), useNumber: true},
 
 		{toParse: `{}`, want: map[string]interface{}{}},
 		{toParse: `[]`, want: []interface{}(nil)},
@@ -212,7 +214,7 @@ func TestInterface(t *testing.T) {
 		{toParse: `[1  2]`, wantError: true},
 		{toParse: `[,]`, wantError: true},
 	} {
-		l := Lexer{Data: []byte(test.toParse)}
+		l := Lexer{Data: []byte(test.toParse), UseNumber: test.useNumber}
 
 		got := l.Interface()
 		if !reflect.DeepEqual(got, test.want) {
