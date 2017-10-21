@@ -265,24 +265,21 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	if tags.omit {
 		return nil
 	}
-	if !tags.omitEmpty && !g.omitEmpty || tags.noOmitEmpty {
-		fmt.Fprintln(g.out, "  if first {")
-		fmt.Fprintln(g.out, "    first = false")
-		fmt.Fprintf(g.out, "    out.RawString(%q)\n", strconv.Quote(jsonName)+":")
-		fmt.Fprintln(g.out, "  } else {")
-		fmt.Fprintf(g.out, "    out.RawString(%q)\n", ","+strconv.Quote(jsonName)+":")
-		fmt.Fprintln(g.out, "  }")
-		return g.genTypeEncoder(f.Type, "in."+f.Name, tags, 1, false)
+	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
+	if noOmitEmpty {
+		fmt.Fprintln(g.out, "  {")
+	} else {
+		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
 	}
-
-	fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
+	fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
 	fmt.Fprintln(g.out, "    if first {")
 	fmt.Fprintln(g.out, "      first = false")
-	fmt.Fprintf(g.out, "      out.RawString(%q)\n", strconv.Quote(jsonName)+":")
+	fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
 	fmt.Fprintln(g.out, "    } else {")
-	fmt.Fprintf(g.out, "      out.RawString(%q)\n", ","+strconv.Quote(jsonName)+":")
+	fmt.Fprintln(g.out, "      out.RawString(prefix)")
 	fmt.Fprintln(g.out, "    }")
-	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, true); err != nil {
+
+	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, !noOmitEmpty); err != nil {
 		return err
 	}
 	fmt.Fprintln(g.out, "  }")
