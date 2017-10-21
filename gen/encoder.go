@@ -141,7 +141,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			fmt.Fprintln(g.out, ws+"      out.RawByte(',')")
 			fmt.Fprintln(g.out, ws+"    }")
 
-			g.genTypeEncoder(elem, vVar, tags, indent+2, false)
+			if err := g.genTypeEncoder(elem, vVar, tags, indent+2, false); err != nil {
+				return err
+			}
 
 			fmt.Fprintln(g.out, ws+"  }")
 			fmt.Fprintln(g.out, ws+"  out.RawByte(']')")
@@ -161,7 +163,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			fmt.Fprintln(g.out, ws+"    out.RawByte(',')")
 			fmt.Fprintln(g.out, ws+"  }")
 
-			g.genTypeEncoder(elem, in+"["+iVar+"]", tags, indent+1, false)
+			if err := g.genTypeEncoder(elem, in+"["+iVar+"]", tags, indent+1, false); err != nil {
+				return err
+			}
 
 			fmt.Fprintln(g.out, ws+"}")
 			fmt.Fprintln(g.out, ws+"out.RawByte(']')")
@@ -180,7 +184,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			fmt.Fprintln(g.out, ws+"} else {")
 		}
 
-		g.genTypeEncoder(t.Elem(), "*"+in, tags, indent+1, false)
+		if err := g.genTypeEncoder(t.Elem(), "*"+in, tags, indent+1, false); err != nil {
+			return err
+		}
 
 		if !assumeNonEmpty {
 			fmt.Fprintln(g.out, ws+"}")
@@ -207,7 +213,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		fmt.Fprintln(g.out, ws+"    out.String(string("+tmpVar+"Name))")
 		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
-		g.genTypeEncoder(t.Elem(), tmpVar+"Value", tags, indent+2, false)
+		if err := g.genTypeEncoder(t.Elem(), tmpVar+"Value", tags, indent+2, false); err != nil {
+			return err
+		}
 
 		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
