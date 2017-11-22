@@ -35,6 +35,7 @@ type Generator struct {
 
 	noStdMarshalers bool
 	omitEmpty       bool
+	simpleBytes     bool
 	fieldNamer      FieldNamer
 
 	// package path to local alias map for tracking imports
@@ -113,6 +114,11 @@ func (g *Generator) NoStdMarshalers() {
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
 func (g *Generator) OmitEmpty() {
 	g.omitEmpty = true
+}
+
+// SimpleBytes triggers generate output bytes as slice byte
+func (g *Generator) SimpleBytes() {
+	g.simpleBytes = true
 }
 
 // addTypes requests to generate encoding/decoding funcs for the given type.

@@ -128,7 +128,12 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		vVar := g.uniqueVarName()
 
 		if t.Elem().Kind() == reflect.Uint8 {
-			fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+")")
+			if g.simpleBytes {
+				fmt.Fprintln(g.out, ws+"out.String(string("+in+"))")
+			} else {
+				fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+")")
+			}
+
 		} else {
 			if !assumeNonEmpty {
 				fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilSliceAsEmpty) == 0 {")
@@ -157,7 +162,11 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		iVar := g.uniqueVarName()
 
 		if t.Elem().Kind() == reflect.Uint8 {
-			fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+"[:])")
+			if g.simpleBytes {
+				fmt.Fprintln(g.out, ws+"out.String(string("+in+"[:]))")
+			} else {
+				fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+"[:])")
+			}
 		} else {
 			fmt.Fprintln(g.out, ws+"out.RawByte('[')")
 			fmt.Fprintln(g.out, ws+"for "+iVar+" := range "+in+" {")
