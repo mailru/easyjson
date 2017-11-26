@@ -48,8 +48,8 @@ var primitiveStringDecoders = map[reflect.Kind]string{
 	reflect.Uint32:  "in.Uint32Str()",
 	reflect.Uint64:  "in.Uint64Str()",
 	reflect.Uintptr: "in.UintptrStr()",
-	reflect.Float32: "in.Float32()Str",
-	reflect.Float64: "in.Float64()Str",
+	reflect.Float32: "in.Float32Str()",
+	reflect.Float64: "in.Float64Str()",
 }
 
 var customDecoders = map[string]string{

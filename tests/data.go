@@ -38,8 +38,11 @@ type PrimitiveTypes struct {
 	Uint32String uint32 `json:",string"`
 	Uint64String uint64 `json:",string"`
 
-	Float32 float32 `json:",string"`
-	Float64 float64 `json:",string"`
+	Float32 float32
+	Float64 float64
+
+	Float32String float32 `json:",string"`
+	Float64String float64 `json:",string"`
 
 	Ptr    *string
 	PtrNil *string
@@ -77,6 +80,9 @@ var primitiveTypesValue = PrimitiveTypes{
 	Float32: 1.5,
 	Float64: math.MaxFloat64,
 
+	Float32String: 1.5,
+	Float64String: math.MaxFloat64,
+
 	Ptr: &str,
 }
 
@@ -109,6 +115,9 @@ var primitiveTypesString = "{" +
 
 	`"Float32":` + fmt.Sprint(1.5) + `,` +
 	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
+
+	`"Float32String":"` + fmt.Sprint(1.5) + `",` +
+	`"Float64String":"` + fmt.Sprint(math.MaxFloat64) + `",` +
 
 	`"Ptr":"bla",` +
 	`"PtrNil":null` +
