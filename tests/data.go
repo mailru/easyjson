@@ -38,8 +38,8 @@ type PrimitiveTypes struct {
 	Uint32String uint32 `json:",string"`
 	Uint64String uint64 `json:",string"`
 
-	Float32 float32
-	Float64 float64
+	Float32 float32 `json:", string"`
+	Float64 float64 `json:", string"`
 
 	Ptr    *string
 	PtrNil *string
