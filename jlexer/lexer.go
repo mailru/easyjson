@@ -1043,7 +1043,7 @@ func (r *Lexer) Float64Str() float64 {
 			Data:   string(b),
 		})
 	}
-	return float64(n)
+	return n
 }
 
 func (r *Lexer) Error() error {
