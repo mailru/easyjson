@@ -5,6 +5,8 @@ import (
 	"math"
 	"net"
 	"time"
+	"encoding/json"
+	"strings"
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/opt"
@@ -313,7 +315,7 @@ var structsString = "{" +
 
 	`"Slice":["test5","test6"],` +
 
-	// Embedded fields go last.
+// Embedded fields go last.
 	`"V":"subp",` +
 	`"Value":"test"` +
 	"}"
@@ -667,6 +669,40 @@ var mapStringStringString = `{"a":"b"}`
 type RequiredOptionalStruct struct {
 	FirstName string `json:"first_name,required"`
 	Lastname  string `json:"last_name"`
+}
+
+type InlineMapStruct struct {
+	FirstName string     `json:"first_name"`
+	Lastname  string     `json:"last_name"`
+	InlineMap Extensions `json:",inline"`
+}
+
+type Extensions map[string]interface{}
+
+func (v Extensions) MarshalJSON() ([]byte, error) {
+	values := make(map[string]interface{})
+	for k := range v {
+		if strings.HasPrefix(strings.ToLower(k), "x-") {
+			values[k] = v[k]
+		}
+	}
+	return json.Marshal(values)
+}
+
+func (v *Extensions) UnmarshalJSON(data []byte) error {
+	var d map[string]interface{}
+	if err := json.Unmarshal(data, &d); err != nil {
+		return err
+	}
+	for k := range d {
+		if !strings.HasPrefix(strings.ToLower(k), "x-") {
+			delete(d, k)
+		}
+	}
+	if len(d) > 0 {
+		*v = d
+	}
+	return nil
 }
 
 //easyjson:json

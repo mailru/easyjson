@@ -257,11 +257,28 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 
 }
 
-func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField, inline bool) error {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if tags.omit {
+		return nil
+	}
+
+	if inline {
+		if tags.inline {
+			// each inline should clone Lexer Data
+			fmt.Fprintln(g.out, "{")
+			fmt.Fprintln(g.out, "  in := &jlexer.Lexer{Data: in.Data}")
+			if err := g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3); err != nil {
+				return err
+			}
+			fmt.Fprintln(g.out, "}")
+		}
+		return nil
+	}
+
+	if tags.inline {
 		return nil
 	}
 
@@ -425,6 +442,12 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 		g.genRequiredFieldSet(t, f)
 	}
 
+	for _, f := range fs {
+		if err := g.genStructFieldDecoder(t, f, true); err != nil {
+			return err
+		}
+	}
+
 	fmt.Fprintln(g.out, "  in.Delim('{')")
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
 	fmt.Fprintln(g.out, "    key := in.UnsafeString()")
@@ -437,7 +460,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "    switch key {")
 	for _, f := range fs {
-		if err := g.genStructFieldDecoder(t, f); err != nil {
+		if err := g.genStructFieldDecoder(t, f, false); err != nil {
 			return err
 		}
 	}

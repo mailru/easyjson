@@ -56,6 +56,7 @@ type fieldTags struct {
 	noOmitEmpty bool
 	asString    bool
 	required    bool
+	inline      bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -76,6 +77,10 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.asString = true
 		case s == "required":
 			ret.required = true
+		case s == "inline":
+			if f.Type.Kind() == reflect.Map {
+				ret.inline = true
+			}
 		}
 	}
 
@@ -94,7 +99,22 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 
 	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
+		fmt.Fprintln(g.out, ws+"data, err := ("+in+").MarshalJSON()")
+		if tags.inline {
+			fmt.Fprintln(g.out, ws+"if len(out.Buffer.Buf) > 0 {")
+			fmt.Fprintln(g.out, ws+"  previousChar := string(out.Buffer.Buf[len(out.Buffer.Buf) - 1])")
+			fmt.Fprintln(g.out, ws+"  if !(previousChar == \":\" || previousChar == \"[\" || previousChar == \",\") {")
+			fmt.Fprintln(g.out, ws+"    if len(data) > 2 && string(data[0]) == \"{\" {")
+			fmt.Fprintln(g.out, ws+" 	  data = append([]byte(\",\"), data[1:len(data)-1]...)")
+			fmt.Fprintln(g.out, ws+"    } else {")
+			fmt.Fprintln(g.out, ws+" 	  data = []byte(\"\")")
+			fmt.Fprintln(g.out, ws+"    }")
+			fmt.Fprintln(g.out, ws+"  }")
+			fmt.Fprintln(g.out, ws+"}")
+		}
+		fmt.Fprintln(g.out, ws+"if len(data) > 0 {")
+		fmt.Fprintln(g.out, ws+"  out.Raw(data, err)")
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
 
@@ -202,15 +222,29 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		}
 		tmpVar := g.uniqueVarName()
 
+		fmt.Fprintln(g.out, ws+"needToWrapper := true")
+
+		fmt.Fprintln(g.out, ws+"if len(out.Buffer.Buf) > 0 {")
+		fmt.Fprintln(g.out, ws+"  previousChar := string(out.Buffer.Buf[len(out.Buffer.Buf) - 1])")
+		fmt.Fprintln(g.out, ws+"  if !(previousChar == \":\" || previousChar == \"[\" || previousChar == \",\") {")
+		fmt.Fprintln(g.out, ws+"  	needToWrapper = false")
+		fmt.Fprintln(g.out, ws+"  }")
+		fmt.Fprintln(g.out, ws+"}")
+
 		if !assumeNonEmpty {
 			fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilMapAsEmpty) == 0 {")
-			fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
+			fmt.Fprintln(g.out, ws+"  if needToWrapper {")
+			fmt.Fprintln(g.out, ws+"    out.RawString(`null`)")
+			fmt.Fprintln(g.out, ws+"  }")
 			fmt.Fprintln(g.out, ws+"} else {")
 		} else {
 			fmt.Fprintln(g.out, ws+"{")
 		}
-		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
-		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First := true")
+		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First := false")
+		fmt.Fprintln(g.out, ws+"  if needToWrapper {")
+		fmt.Fprintln(g.out, ws+"     out.RawByte('{')")
+		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First = true")
+		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"Name, "+tmpVar+"Value := range "+in+" {")
 		fmt.Fprintln(g.out, ws+"    if "+tmpVar+"First { "+tmpVar+"First = false } else { out.RawByte(',') }")
 		fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
@@ -221,7 +255,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		}
 
 		fmt.Fprintln(g.out, ws+"  }")
-		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
+		fmt.Fprintln(g.out, ws+"  if needToWrapper {")
+		fmt.Fprintln(g.out, ws+"    out.RawByte('}')")
+		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"}")
 
 	case reflect.Interface:
@@ -282,13 +318,16 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField)
 	} else {
 		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
 	}
-	fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
-	fmt.Fprintln(g.out, "    if first {")
-	fmt.Fprintln(g.out, "      first = false")
-	fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
-	fmt.Fprintln(g.out, "    } else {")
-	fmt.Fprintln(g.out, "      out.RawString(prefix)")
-	fmt.Fprintln(g.out, "    }")
+
+	if !tags.inline {
+		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
+		fmt.Fprintln(g.out, "    if first {")
+		fmt.Fprintln(g.out, "      first = false")
+		fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+		fmt.Fprintln(g.out, "    } else {")
+		fmt.Fprintln(g.out, "      out.RawString(prefix)")
+		fmt.Fprintln(g.out, "    }")
+	}
 
 	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, !noOmitEmpty); err != nil {
 		return err
