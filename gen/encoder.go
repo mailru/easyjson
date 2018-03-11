@@ -45,6 +45,8 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 	reflect.Uint32:  "out.Uint32Str(uint32(%v))",
 	reflect.Uint64:  "out.Uint64Str(uint64(%v))",
 	reflect.Uintptr: "out.UintptrStr(uintptr(%v))",
+	reflect.Float32: "out.Float32Str(float32(%v))",
+	reflect.Float64: "out.Float64Str(float64(%v))",
 }
 
 // fieldTags contains parsed version of json struct field tags.
