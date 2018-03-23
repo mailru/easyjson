@@ -1097,6 +1097,7 @@ func (r *Lexer) JsonNumber() json.Number {
 	case tokenNumber:
 		return json.Number(r.Raw())
 	case tokenNull:
+		r.Null()
 		return json.Number("")
 	default:
 		r.errSyntax()
