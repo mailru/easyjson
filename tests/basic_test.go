@@ -50,6 +50,8 @@ var testCases = []struct {
 	{&mapUintptrStringValue, mapUintptrStringValueString},
 	{&intKeyedMapStructValue, intKeyedMapStructValueString},
 	{&intArrayStructValue, intArrayStructValueString},
+	{&myUInt8SliceValue, myUInt8SliceString},
+	{&myUInt8ArrayValue, myUInt8ArrayString},
 }
 
 func TestMarshal(t *testing.T) {

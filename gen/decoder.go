@@ -114,7 +114,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		tmpVar := g.uniqueVarName()
 		elem := t.Elem()
 
-		if elem.Kind() == reflect.Uint8 {
+		if elem.Kind() == reflect.Uint8 && elem.Name() == "uint8" {
 			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
 			fmt.Fprintln(g.out, ws+"  in.Skip()")
 			fmt.Fprintln(g.out, ws+"  "+out+" = nil")
@@ -161,7 +161,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		iterVar := g.uniqueVarName()
 		elem := t.Elem()
 
-		if elem.Kind() == reflect.Uint8 {
+		if elem.Kind() == reflect.Uint8 && elem.Name() == "uint8" {
 			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
 			fmt.Fprintln(g.out, ws+"  in.Skip()")
 			fmt.Fprintln(g.out, ws+"} else {")
