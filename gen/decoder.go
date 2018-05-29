@@ -461,7 +461,15 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	}
 
 	fmt.Fprintln(g.out, "    default:")
-	fmt.Fprintln(g.out, "      in.SkipRecursive()")
+	if g.disallowUnknownFields {
+		fmt.Fprintln(g.out, `      in.AddError(&jlexer.LexerError{
+          Offset: in.GetPos(),
+          Reason: "unknown field",
+          Data: key,
+      })`)
+	} else {
+		fmt.Fprintln(g.out, "      in.SkipRecursive()")
+	}
 	fmt.Fprintln(g.out, "    }")
 	fmt.Fprintln(g.out, "    in.WantComma()")
 	fmt.Fprintln(g.out, "  }")
