@@ -27,7 +27,7 @@ var stubs = flag.Bool("stubs", false, "only generate stubs for marshaler/unmarsh
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
-var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json found")
+var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
 
 func generate(fname string) (err error) {
 	fInfo, err := os.Stat(fname)
