@@ -232,3 +232,11 @@ func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
 		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceValueFilled)
 	}
 }
+
+func TestDisallowUnknown(t *testing.T) {
+	var d DisallowUnknown
+	err := easyjson.Unmarshal([]byte(disallowUnknownString), &d)
+	if err == nil {
+		t.Error("want error, got nil")
+	}
+}

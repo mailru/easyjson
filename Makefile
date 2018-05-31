@@ -37,6 +37,7 @@ generate: root build
 	.root/bin/easyjson .root/src/$(PKG)/tests/named_type.go
 	.root/bin/easyjson .root/src/$(PKG)/tests/custom_map_key_type.go
 	.root/bin/easyjson .root/src/$(PKG)/tests/embedded_type.go
+	.root/bin/easyjson -disallow_unknown_fields .root/src/$(PKG)/tests/disallow_unknown.go
 
 test: generate root
 	go test \
