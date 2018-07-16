@@ -9,7 +9,7 @@ import (
 )
 
 func normalizePath(path string) string {
-	// use lower case, as Windows file systems will almost always be case insensitive 
+	// use lower case, as Windows file systems will almost always be case insensitive
 	return strings.ToLower(strings.Replace(path, "\\", "/", -1))
 }
 
@@ -34,7 +34,7 @@ func getPkgPath(fname string, isDir bool) (string, error) {
 		}
 	}
 
-	for _, p := range strings.Split(os.Getenv("GOPATH"), ";") {
+	for _, p := range strings.Split(gopath, ";") {
 		prefix := path.Join(normalizePath(p), "src") + "/"
 		if rel := strings.TrimPrefix(fname, prefix); rel != fname {
 			if !isDir {
