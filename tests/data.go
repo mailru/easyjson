@@ -41,6 +41,9 @@ type PrimitiveTypes struct {
 	Float32 float32
 	Float64 float64
 
+	Float32String float32 `json:",string"`
+	Float64String float64 `json:",string"`
+
 	Ptr    *string
 	PtrNil *string
 }
@@ -77,6 +80,9 @@ var primitiveTypesValue = PrimitiveTypes{
 	Float32: 1.5,
 	Float64: math.MaxFloat64,
 
+	Float32String: 1.5,
+	Float64String: math.MaxFloat64,
+
 	Ptr: &str,
 }
 
@@ -109,6 +115,9 @@ var primitiveTypesString = "{" +
 
 	`"Float32":` + fmt.Sprint(1.5) + `,` +
 	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
+
+	`"Float32String":"` + fmt.Sprint(1.5) + `",` +
+	`"Float64String":"` + fmt.Sprint(math.MaxFloat64) + `",` +
 
 	`"Ptr":"bla",` +
 	`"PtrNil":null` +
@@ -757,3 +766,37 @@ var intKeyedMapStructValueString = `{` +
 	`"foo":{"42":"life"},` +
 	`"bar":{"32":{"354634382":"life"}}` +
 	`}`
+
+type IntArray [2]int
+
+//easyjson:json
+type IntArrayStruct struct {
+	Pointer *IntArray `json:"pointer"`
+	Value   IntArray  `json:"value"`
+}
+
+var intArrayStructValue = IntArrayStruct{
+	Pointer: &IntArray{1, 2},
+	Value:   IntArray{1, 2},
+}
+
+var intArrayStructValueString = `{` +
+	`"pointer":[1,2],` +
+	`"value":[1,2]` +
+	`}`
+
+type MyUInt8 uint8
+
+//easyjson:json
+type MyUInt8Slice []MyUInt8
+
+var myUInt8SliceValue = MyUInt8Slice{1, 2, 3, 4, 5}
+
+var myUInt8SliceString = `[1,2,3,4,5]`
+
+//easyjson:json
+type MyUInt8Array [2]MyUInt8
+
+var myUInt8ArrayValue = MyUInt8Array{1, 2}
+
+var myUInt8ArrayString = `[1,2]`

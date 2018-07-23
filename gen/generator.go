@@ -33,9 +33,10 @@ type Generator struct {
 
 	varCounter int
 
-	noStdMarshalers bool
-	omitEmpty       bool
-	fieldNamer      FieldNamer
+	noStdMarshalers       bool
+	omitEmpty             bool
+	disallowUnknownFields bool
+	fieldNamer            FieldNamer
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -108,6 +109,11 @@ func (g *Generator) UseLowerCamelCase() {
 // methods (only the custom interface).
 func (g *Generator) NoStdMarshalers() {
 	g.noStdMarshalers = true
+}
+
+// DisallowUnknownFields instructs not to skip unknown fields in json and return error.
+func (g *Generator) DisallowUnknownFields() {
+	g.disallowUnknownFields = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
@@ -284,7 +290,11 @@ func (g *Generator) getType(t reflect.Type) string {
 			lines := make([]string, 0, nf)
 			for i := 0; i < nf; i++ {
 				f := t.Field(i)
-				line := f.Name + " " + g.getType(f.Type)
+				var line string
+				if !f.Anonymous {
+					line = f.Name + " "
+				} // else the field is anonymous (an embedded type)
+				line += g.getType(f.Type)
 				t := f.Tag
 				if t != "" {
 					line += " " + escapeTag(t)
