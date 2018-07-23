@@ -9,8 +9,7 @@ import (
 )
 
 func normalizePath(path string) string {
-	// use lower case, as Windows file systems will almost always be case insensitive
-	return strings.ToLower(strings.Replace(path, "\\", "/", -1))
+	return strings.Replace(path, "\\", "/", -1)
 }
 
 func getPkgPath(fname string, isDir bool) (string, error) {
