@@ -345,7 +345,7 @@ func (r *Lexer) fetchString() {
 	isValid, hasEscapes, length := findStringLen(data)
 	if !isValid {
 		r.pos += length
-		r.errParse("missing trailing string literal")
+		r.errParse("unterminated string literal")
 		return
 	}
 	if !hasEscapes {
