@@ -172,6 +172,7 @@ func (g *Generator) Run() error {
 	cmd := exec.Command("go", "run", "-tags", g.BuildTags, path)
 	cmd.Stdout = f
 	cmd.Stderr = os.Stderr
+	cmd.Dir = filepath.Dir(path)
 	if err = cmd.Run(); err != nil {
 		return err
 	}
