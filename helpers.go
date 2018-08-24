@@ -41,6 +41,7 @@ type Optional interface {
 func Marshal(v Marshaler) ([]byte, error) {
 	w := jwriter.Writer{}
 	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
 		c.MarshalEasyJSON(&w)
 	} else {
 		v.MarshalEasyJSON(&w)
@@ -52,6 +53,7 @@ func Marshal(v Marshaler) ([]byte, error) {
 func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 	jw := jwriter.Writer{}
 	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
 		c.MarshalEasyJSON(&jw)
 	} else {
 		v.MarshalEasyJSON(&jw)
@@ -66,6 +68,7 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bool, written int, err error) {
 	jw := jwriter.Writer{}
 	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
 		c.MarshalEasyJSON(&jw)
 	} else {
 		v.MarshalEasyJSON(&jw)
@@ -86,6 +89,7 @@ func Unmarshal(data []byte, v Unmarshaler) error {
 	l := jlexer.Lexer{Data: data}
 	if c, ok := v.(AdvancedUnmarshaler); ok {
 		c.UnmarshalEasyJSON(&l)
+		c.AfterUnmarshalEasyJSON()
 	} else {
 		v.UnmarshalEasyJSON(&l)
 	}
@@ -101,6 +105,7 @@ func UnmarshalFromReader(r io.Reader, v Unmarshaler) error {
 	l := jlexer.Lexer{Data: data}
 	if c, ok := v.(AdvancedUnmarshaler); ok {
 		c.UnmarshalEasyJSON(&l)
+		c.AfterUnmarshalEasyJSON()
 	} else {
 		v.UnmarshalEasyJSON(&l)
 	}
