@@ -61,19 +61,19 @@ func generate(fname string) (err error) {
 	}
 
 	g := bootstrap.Generator{
-		BuildTags:             trimmedBuildTags,
-		PkgPath:               p.PkgPath,
-		PkgName:               p.PkgName,
-		Types:                 p.StructNames,
-		SnakeCase:             *snakeCase,
-		LowerCamelCase:        *lowerCamelCase,
-		NoStdMarshalers:       *noStdMarshalers,
-		DisallowUnknownFields: *disallowUnknownFields,
-		OmitEmpty:             *omitEmpty,
-		LeaveTemps:            *leaveTemps,
-		OutName:               outName,
-		StubsOnly:             *stubs,
-		NoFormat:              *noformat,
+		BuildTags: trimmedBuildTags,
+		PkgPath:   p.PkgPath,
+		PkgName:   p.PkgName,
+		Types:     p.StructNames,
+		SnakeCase: *snakeCase,
+		// LowerCamelCase:        *lowerCamelCase,
+		NoStdMarshalers: *noStdMarshalers,
+		// DisallowUnknownFields: *disallowUnknownFields,
+		OmitEmpty:  *omitEmpty,
+		LeaveTemps: *leaveTemps,
+		OutName:    outName,
+		StubsOnly:  *stubs,
+		NoFormat:   *noformat,
 	}
 
 	if err := g.Run(); err != nil {

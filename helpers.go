@@ -16,9 +16,19 @@ type Marshaler interface {
 	MarshalEasyJSON(w *jwriter.Writer)
 }
 
+type AdvancedMarshaler interface {
+	Marshaler
+	BeforeMarshalEasyJSON()
+}
+
 // Marshaler is an easyjson-compatible unmarshaler interface.
 type Unmarshaler interface {
 	UnmarshalEasyJSON(w *jlexer.Lexer)
+}
+
+type AdvancedUnmarshaler interface {
+	UnmarshalEasyJSON(w *jlexer.Lexer)
+	AfterUnmarshalEasyJSON()
 }
 
 // Optional defines an undefined-test method for a type to integrate with 'omitempty' logic.
@@ -30,14 +40,24 @@ type Optional interface {
 // from a chain of smaller chunks.
 func Marshal(v Marshaler) ([]byte, error) {
 	w := jwriter.Writer{}
-	v.MarshalEasyJSON(&w)
+	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
+		c.MarshalEasyJSON(&w)
+	} else {
+		v.MarshalEasyJSON(&w)
+	}
 	return w.BuildBytes()
 }
 
 // MarshalToWriter marshals the data to an io.Writer.
 func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 	jw := jwriter.Writer{}
-	v.MarshalEasyJSON(&jw)
+	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
+		c.MarshalEasyJSON(&jw)
+	} else {
+		v.MarshalEasyJSON(&jw)
+	}
 	return jw.DumpTo(w)
 }
 
@@ -47,7 +67,12 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 // invoked (in this case a 500 reply is possible).
 func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bool, written int, err error) {
 	jw := jwriter.Writer{}
-	v.MarshalEasyJSON(&jw)
+	if c, ok := v.(AdvancedMarshaler); ok {
+		c.BeforeMarshalEasyJSON()
+		c.MarshalEasyJSON(&jw)
+	} else {
+		v.MarshalEasyJSON(&jw)
+	}
 	if jw.Error != nil {
 		return false, 0, jw.Error
 	}
@@ -62,7 +87,12 @@ func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bo
 // Unmarshal decodes the JSON in data into the object.
 func Unmarshal(data []byte, v Unmarshaler) error {
 	l := jlexer.Lexer{Data: data}
-	v.UnmarshalEasyJSON(&l)
+	if c, ok := v.(AdvancedUnmarshaler); ok {
+		c.UnmarshalEasyJSON(&l)
+		c.AfterUnmarshalEasyJSON()
+	} else {
+		v.UnmarshalEasyJSON(&l)
+	}
 	return l.Error()
 }
 
@@ -73,6 +103,11 @@ func UnmarshalFromReader(r io.Reader, v Unmarshaler) error {
 		return err
 	}
 	l := jlexer.Lexer{Data: data}
-	v.UnmarshalEasyJSON(&l)
+	if c, ok := v.(AdvancedUnmarshaler); ok {
+		c.UnmarshalEasyJSON(&l)
+		c.AfterUnmarshalEasyJSON()
+	} else {
+		v.UnmarshalEasyJSON(&l)
+	}
 	return l.Error()
 }
