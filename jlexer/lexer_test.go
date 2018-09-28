@@ -194,7 +194,7 @@ func TestInterface(t *testing.T) {
 		{toParse: "5", want: float64(5)},
 
 		{toParse: `{}`, want: map[string]interface{}{}},
-		{toParse: `[]`, want: []interface{}(nil)},
+		{toParse: `[]`, want: []interface{}{}},
 
 		{toParse: `{"a": "b"}`, want: map[string]interface{}{"a": "b"}},
 		{toParse: `[5]`, want: []interface{}{float64(5)}},
