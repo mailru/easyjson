@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"errors"
 	"flag"
 	"fmt"
@@ -99,10 +100,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, fname := range files {
-		if err := generate(fname); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+	var (
+		prevFailCount int64 = math.MaxInt64
+		failCount int64
+	)
+	for {
+		failCount = 0
+		for _, fname := range files {
+			if err := generate(fname); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				failCount++
+			}
 		}
+		// Fails caused by changing dependent structs are reduced by repeated execution
+		if failCount == 0 || failCount >= prevFailCount{
+			break
+		}
+		fmt.Fprintf(os.Stdout, "Retry (fails: %d)\n", failCount)
+		prevFailCount = failCount
 	}
+	if failCount > 0 {
+		fmt.Fprintln(os.Stderr, "Failure")
+		os.Exit(1)
+	}
+	fmt.Fprintln(os.Stdout, "Success")
 }
