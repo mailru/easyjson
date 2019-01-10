@@ -343,7 +343,8 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 	var efields []reflect.StructField
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		if !f.Anonymous {
+		tags := parseFieldTags(f)
+		if !f.Anonymous || tags.name != "" {
 			continue
 		}
 
@@ -362,7 +363,8 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 	var fields []reflect.StructField
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		if f.Anonymous {
+		tags := parseFieldTags(f)
+		if f.Anonymous && tags.name == "" {
 			continue
 		}
 
