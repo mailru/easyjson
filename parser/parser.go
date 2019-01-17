@@ -39,6 +39,11 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 	case *ast.Package:
 		return v
 	case *ast.File:
+		if n.Name.String() == v.PkgName + "_test" {
+			//don't overwrite if new package name is
+			//_test derivative of earlier name
+			return v
+		}
 		v.PkgName = n.Name.String()
 		return v
 
