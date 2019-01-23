@@ -243,20 +243,29 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 
 	case reflect.Interface:
 		if t.NumMethod() != 0 {
-			return fmt.Errorf("interface type %v not supported: only interface{} is allowed", t)
+			if g.interfaceIsEasyjsonMarshaller(t) {
+				fmt.Fprintln(g.out, ws+in+".MarshalEasyJSON(out)")
+			} else if g.interfaceIsJsonMarshaller(t) {
+				fmt.Fprintln(g.out, ws+in+".MarshalJSON(out)")
+			} else {
+				return fmt.Errorf("interface type %v not supported: only interface{} was allowed", t)
+			}
 		}
-		fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
-		fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
-		fmt.Fprintln(g.out, ws+"} else if m, ok := "+in+".(json.Marshaler); ok {")
-		fmt.Fprintln(g.out, ws+"  out.Raw(m.MarshalJSON())")
-		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  out.Raw(json.Marshal("+in+"))")
-		fmt.Fprintln(g.out, ws+"}")
-
 	default:
 		return fmt.Errorf("don't know how to encode %v", t)
 	}
 	return nil
+}
+
+func (g *Generator) interfaceIsEasyjsonMarshaller(t reflect.Type) bool {
+	marshalerType := reflect.TypeOf((*easyjson.Marshaler)(nil))
+	return t.Implements(marshalerType)
+}
+
+func (g *Generator) interfaceIsJsonMarshaller(t reflect.Type) bool {
+	marshalerType := reflect.TypeOf((*json.Marshaler)(nil))
+	return t.Implements(marshalerType)
 }
 
 func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
