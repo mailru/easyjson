@@ -198,7 +198,12 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		dec := g.getDecoderName(t)
 		g.addType(t)
 
-		fmt.Fprintln(g.out, ws+dec+"(in, &"+out+")")
+		if len(out) > 0 && out[0] == '*' {
+			// NOTE: In order to remove an extra reference to a pointer
+			fmt.Fprintln(g.out, ws+dec+"(in, "+out[1:]+")")
+		} else {
+			fmt.Fprintln(g.out, ws+dec+"(in, &"+out+")")
+		}
 
 	case reflect.Ptr:
 		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
