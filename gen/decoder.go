@@ -86,7 +86,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 	return err
 }
 
-// returns true of the type t implements one of the custom unmarshaler interfaces
+// returns true if the type t implements one of the custom unmarshaler interfaces
 func hasCustomUnmarshaler(t reflect.Type) bool {
 	t = reflect.PtrTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()) ||
@@ -258,6 +258,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"}")
 
 	case reflect.Interface:
+		fmt.Printf("//%v: %v", out, g.interfaceIsEasyjsonUnmarshaller(t))
 		if t.NumMethod() != 0 {
 			if g.interfaceIsEasyjsonUnmarshaller(t) {
 				fmt.Fprintln(g.out, ws+out+".UnmarshalEasyJSON(in)")
@@ -266,8 +267,15 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			} else {
 				return fmt.Errorf("interface type %v not supported: only interface{} and easyjson/json Unmarshaler are allowed", t)
 			}
+		} else {
+			fmt.Fprintln(g.out, ws+"if m, ok := "+out+".(easyjson.Unmarshaler); ok {")
+			fmt.Fprintln(g.out, ws+"m.UnmarshalEasyJSON(in)")
+			fmt.Fprintln(g.out, ws+"} else if m, ok := "+out+".(json.Unmarshaler); ok {")
+			fmt.Fprintln(g.out, ws+"_ = m.UnmarshalJSON(in.Raw())")
+			fmt.Fprintln(g.out, ws+"} else {")
+			fmt.Fprintln(g.out, ws+"  "+out+" = in.Interface()")
+			fmt.Fprintln(g.out, ws+"}")
 		}
-		fmt.Fprintln(g.out, ws+out+" = in.Interface()")
 	default:
 		return fmt.Errorf("don't know how to decode %v", t)
 	}
@@ -276,13 +284,11 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 }
 
 func (g *Generator) interfaceIsEasyjsonUnmarshaller(t reflect.Type) bool {
-	unmarshalerType := reflect.TypeOf((*easyjson.Unmarshaler)(nil))
-	return t.Implements(unmarshalerType)
+	return t.Implements(reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem())
 }
 
 func (g *Generator) interfaceIsJsonUnmarshaller(t reflect.Type) bool {
-	unmarshalerType := reflect.TypeOf((*json.Unmarshaler)(nil))
-	return t.Implements(unmarshalerType)
+	return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
 }
 
 func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
