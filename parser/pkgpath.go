@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"go/build"
 )
 
@@ -35,9 +36,12 @@ func getPkgPath(fname string, isDir bool) (string, error) {
 	return getPkgPathFromGOPATH(fname, isDir)
 }
 
-var (
-	goModPathCache = make(map[string]string)
-)
+var goModPathCache = struct {
+	paths map[string]string
+	sync.RWMutex
+}{
+	paths: make(map[string]string),
+}
 
 // empty if no go.mod, GO111MODULE=off or go without go modules support
 func goModPath(fname string, isDir bool) (string, error) {
@@ -46,13 +50,17 @@ func goModPath(fname string, isDir bool) (string, error) {
 		root = filepath.Dir(fname)
 	}
 
-	goModPath, ok := goModPathCache[root]
+	goModPathCache.RLock()
+	goModPath, ok := goModPathCache.paths[root]
+	goModPathCache.RUnlock()
 	if ok {
 		return goModPath, nil
 	}
 
 	defer func() {
-		goModPathCache[root] = goModPath
+		goModPathCache.Lock()
+		goModPathCache.paths[root] = goModPath
+		goModPathCache.Unlock()
 	}()
 
 	cmd := exec.Command("go", "env", "GOMOD")

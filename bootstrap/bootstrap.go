@@ -36,7 +36,7 @@ type Generator struct {
 	NoFormat   bool
 }
 
-// writeStub outputs an initial stubs for marshalers/unmarshalers so that the package
+// writeStub outputs an initial stub for marshalers/unmarshalers so that the package
 // using marshalers/unmarshales compiles correctly for boostrapping code.
 func (g *Generator) writeStub() error {
 	f, err := os.Create(g.OutName)
