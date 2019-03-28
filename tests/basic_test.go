@@ -52,6 +52,9 @@ var testCases = []struct {
 	{&intArrayStructValue, intArrayStructValueString},
 	{&myUInt8SliceValue, myUInt8SliceString},
 	{&myUInt8ArrayValue, myUInt8ArrayString},
+	{&myGenDeclaredValue, myGenDeclaredString},
+	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
+	{&myTypeDeclaredValue, myTypeDeclaredString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -240,5 +243,24 @@ func TestDisallowUnknown(t *testing.T) {
 	err := easyjson.Unmarshal([]byte(disallowUnknownString), &d)
 	if err == nil {
 		t.Error("want error, got nil")
+	}
+}
+
+var testNotGeneratedTypeCases = []interface{}{
+	TypeNotDeclared{},
+}
+
+func TestMethodsNoGenerated(t *testing.T) {
+	var ok bool
+	for i, instance := range testNotGeneratedTypeCases {
+		_, ok = instance.(json.Marshaler)
+		if ok {
+			t.Errorf("[%d, %T] Unexpected MarshalJSON()", i, instance)
+		}
+
+		_, ok = instance.(json.Unmarshaler)
+		if ok {
+			t.Errorf("[%d, %T] Unexpected Unmarshaler()", i, instance)
+		}
 	}
 }
