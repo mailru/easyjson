@@ -21,8 +21,7 @@ type Parser struct {
 type visitor struct {
 	*Parser
 
-	name     string
-	explicit bool
+	name string
 }
 
 func (p *Parser) needType(comments string) bool {
@@ -43,20 +42,33 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 		return v
 
 	case *ast.GenDecl:
-		v.explicit = v.needType(n.Doc.Text())
-
-		if !v.explicit && !v.AllStructs {
-			return nil
+		explicit := v.needType(n.Doc.Text())
+		if !explicit {
+			return v
 		}
+
+		for _, nc := range n.Specs {
+			switch nct := nc.(type) {
+			case *ast.TypeSpec:
+				nct.Doc = n.Doc
+			}
+		}
+
 		return v
 	case *ast.TypeSpec:
+		explicit := v.needType(n.Doc.Text())
+		if !explicit && !v.AllStructs {
+			return nil
+		}
+
 		v.name = n.Name.String()
 
 		// Allow to specify non-structs explicitly independent of '-all' flag.
-		if v.explicit {
+		if explicit {
 			v.StructNames = append(v.StructNames, v.name)
 			return nil
 		}
+
 		return v
 	case *ast.StructType:
 		v.StructNames = append(v.StructNames, v.name)
