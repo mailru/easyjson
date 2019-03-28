@@ -340,7 +340,7 @@ func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect
 	return
 }
 
-func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
+func getStructFields(t reflect.Type, includePrivateFields bool) ([]reflect.StructField, error) {
 	if t.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("got %v; expected a struct", t)
 	}
@@ -358,7 +358,7 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			t1 = t1.Elem()
 		}
 
-		fs, err := getStructFields(t1)
+		fs, err := getStructFields(t1, includePrivateFields)
 		if err != nil {
 			return nil, fmt.Errorf("error processing embedded field: %v", err)
 		}
@@ -374,7 +374,7 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 		}
 
 		c := []rune(f.Name)[0]
-		if unicode.IsUpper(c) {
+		if includePrivateFields || unicode.IsUpper(c) {
 			fields = append(fields, f)
 		}
 	}
@@ -441,7 +441,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 		fmt.Fprintln(g.out, "  out."+f.Name+" = new("+g.getType(f.Type.Elem())+")")
 	}
 
-	fs, err := getStructFields(t)
+	fs, err := getStructFields(t, g.includePrivateFields)
 	if err != nil {
 		return fmt.Errorf("cannot generate decoder for %v: %v", t, err)
 	}

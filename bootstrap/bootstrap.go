@@ -27,6 +27,7 @@ type Generator struct {
 	LowerCamelCase        bool
 	OmitEmpty             bool
 	DisallowUnknownFields bool
+	IncludePrivateFields  bool
 
 	OutName   string
 	BuildTags string
@@ -123,6 +124,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.DisallowUnknownFields {
 		fmt.Fprintln(f, "  g.DisallowUnknownFields()")
+	}
+	if g.IncludePrivateFields {
+		fmt.Fprintln(f, "  g.IncludePrivateFields()")
 	}
 
 	sort.Strings(g.Types)

@@ -28,6 +28,7 @@ var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output fil
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
+var includePrivateFields = flag.Bool("include_private_fields", false, "generate marshal/unmarshal code for private fields of a struct")
 
 func generate(fname string) (err error) {
 	fInfo, err := os.Stat(fname)
@@ -69,6 +70,7 @@ func generate(fname string) (err error) {
 		LowerCamelCase:        *lowerCamelCase,
 		NoStdMarshalers:       *noStdMarshalers,
 		DisallowUnknownFields: *disallowUnknownFields,
+		IncludePrivateFields:  *includePrivateFields,
 		OmitEmpty:             *omitEmpty,
 		LeaveTemps:            *leaveTemps,
 		OutName:               outName,

@@ -55,6 +55,8 @@ Usage of easyjson:
     	only generate stubs for marshaler/unmarshaler funcs
   -disallow_unknown_fields
         return error if some unknown field in json appeared
+  -include_private_fields
+        generate marshal/unmarshal code for private fields of a struct
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the

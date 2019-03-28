@@ -36,6 +36,7 @@ type Generator struct {
 	noStdMarshalers       bool
 	omitEmpty             bool
 	disallowUnknownFields bool
+	includePrivateFields  bool
 	fieldNamer            FieldNamer
 
 	// package path to local alias map for tracking imports
@@ -119,6 +120,11 @@ func (g *Generator) DisallowUnknownFields() {
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
 func (g *Generator) OmitEmpty() {
 	g.omitEmpty = true
+}
+
+// IncludePrivateFields instructs to include private struct fields.
+func (g *Generator) IncludePrivateFields() {
+	g.includePrivateFields = true
 }
 
 // addTypes requests to generate encoding/decoding funcs for the given type.
