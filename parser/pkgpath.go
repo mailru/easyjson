@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -151,8 +152,8 @@ func getPkgPathFromGOPATH(fname string, isDir bool) (string, error) {
 			return "", fmt.Errorf("cannot determine GOPATH: %s", err)
 		}
 	}
-
 	for _, p := range strings.Split(gopath, string(filepath.ListSeparator)) {
+		p = makePartitionNameUpperCaseOnWindows(p)
 		prefix := filepath.Join(p, "src") + string(filepath.Separator)
 		if rel := strings.TrimPrefix(fname, prefix); rel != fname {
 			if !isDir {
@@ -168,4 +169,16 @@ func getPkgPathFromGOPATH(fname string, isDir bool) (string, error) {
 
 func filePathToPackagePath(path string) string {
 	return filepath.ToSlash(path)
+}
+
+func makePartitionNameUpperCaseOnWindows(path string) string {
+	if runtime.GOOS != "windows" {
+		return path
+	}
+	parts := strings.Split(path, ":\\")
+	if len(parts) != 2 {
+		return path
+	}
+	partition := strings.ToUpper(parts[0])
+	return partition + ":\\" + parts[1]
 }
