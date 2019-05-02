@@ -1,12 +1,14 @@
 package parser
 
 import (
+	"bufio"
 	"bytes"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -17,6 +19,8 @@ type Parser struct {
 	PkgName     string
 	StructNames []string
 	AllStructs  bool
+
+	workingDirectory string
 }
 
 type visitor struct {
@@ -71,10 +75,13 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 	if p.PkgPath, err = getPkgPath(fname, isDir); err != nil {
 		return err
 	}
+	if isDir {
+		p.workingDirectory = filepath.Clean(fname)
+	}
 
 	fset := token.NewFileSet()
 	if isDir {
-		packages, err := parser.ParseDir(fset, fname, excludeTestFiles, parser.ParseComments)
+		packages, err := parser.ParseDir(fset, fname, p.isFileAllowed, parser.ParseComments)
 		if err != nil {
 			return err
 		}
@@ -98,6 +105,29 @@ func getDefaultGoPath() (string, error) {
 	return string(bytes.TrimSpace(output)), err
 }
 
-func excludeTestFiles(fi os.FileInfo) bool {
-	return !strings.HasSuffix(fi.Name(), "_test.go")
+var prefixBuildTagIgnore = []byte(`// +build ignore`)
+var prefixPackage = []byte(`package `)
+
+func (p *Parser) isFileAllowed(fi os.FileInfo) bool {
+	if strings.HasSuffix(fi.Name(), "_test.go") {
+		return false
+	}
+
+	f, err := os.Open(filepath.Join(p.workingDirectory, fi.Name()))
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	s := bufio.NewScanner(f)
+	s.Split(bufio.ScanLines)
+	for s.Scan() {
+		if bytes.HasPrefix(s.Bytes(), prefixBuildTagIgnore) {
+			return false
+		}
+		if bytes.HasPrefix(s.Bytes(), prefixPackage) {
+			return true // no need to process the whole file
+		}
+	}
+	return true
 }

@@ -76,6 +76,13 @@ Additional option notes:
 
 * `-build_tags` will add the specified build tags to generated Go sources.
 
+## Excluded files
+
+While parsing the Go files the following files are getting excluded:
+
+* `_test.go` filename suffix
+* Files containing the build tag: `// +build ignore` (one white space in-between)
+
 ## Generated Marshaler/Unmarshaler Funcs
 
 For Go struct types, easyjson generates the funcs `MarshalEasyJSON` /
