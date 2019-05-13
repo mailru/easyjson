@@ -1,4 +1,4 @@
-.root
+bin
 *_easyjson.go
 *.iml
 .idea
