@@ -7,4 +7,5 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20181028064349-e517b90714f7
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/ugorji/go v1.1.4
+	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 )

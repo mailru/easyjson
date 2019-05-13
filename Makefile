@@ -32,14 +32,17 @@ generate: build
 	bin/easyjson ./tests/key_marshaler_map.go
 	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
 
-test: generate root
+golint:
+	go build -o bin/golint golang.org/x/lint/golint
+
+test: generate root golint
 	go test \
 		./tests \
 		./jlexer \
 		./gen \
 		./buffer
 	go test -benchmem -tags use_easyjson -bench . ./benchmark
-	golint -set_exit_status ./tests/*_easyjson.go
+	bin/golint -set_exit_status ./tests/*_easyjson.go
 
 bench-other: generate root
 	@go test -benchmem -bench . ./benchmark
