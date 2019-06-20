@@ -290,32 +290,43 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	}
 }
 
-func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField, first bool) (bool, error) {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if tags.omit {
-		return nil
+		return first, nil
 	}
+
+	toggleFirst := first
+
 	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
 	if noOmitEmpty {
 		fmt.Fprintln(g.out, "  {")
+		toggleFirst = false
 	} else {
 		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
+		// can be any in runtime, so toggleFirst stay as is
 	}
-	fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
-	fmt.Fprintln(g.out, "    if first {")
-	fmt.Fprintln(g.out, "      first = false")
-	fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
-	fmt.Fprintln(g.out, "    } else {")
-	fmt.Fprintln(g.out, "      out.RawString(prefix)")
-	fmt.Fprintln(g.out, "    }")
+
+	if first {
+		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
+		fmt.Fprintln(g.out, "    if first {")
+		fmt.Fprintln(g.out, "      first = false")
+		fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+		fmt.Fprintln(g.out, "    } else {")
+		fmt.Fprintln(g.out, "      out.RawString(prefix)")
+		fmt.Fprintln(g.out, "    }")
+	} else {
+		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
+		fmt.Fprintln(g.out, "    out.RawString(prefix)")
+	}
 
 	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, !noOmitEmpty); err != nil {
-		return err
+		return toggleFirst, err
 	}
 	fmt.Fprintln(g.out, "  }")
-	return nil
+	return toggleFirst, nil
 }
 
 func (g *Generator) genEncoder(t reflect.Type) error {
@@ -363,8 +374,12 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	if err != nil {
 		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
 	}
+
+	first := true
 	for _, f := range fs {
-		if err := g.genStructFieldEncoder(t, f); err != nil {
+		first, err = g.genStructFieldEncoder(t, f, first)
+
+		if err != nil {
 			return err
 		}
 	}
