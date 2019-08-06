@@ -346,9 +346,9 @@ func mergeStructFields(fields1, fields2 []reflect.StructField) (fields []reflect
 	return
 }
 
-func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
+func getStructFields(t reflect.Type) (fields []reflect.StructField, extra *reflect.StructField, err error) {
 	if t.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("got %v; expected a struct", t)
+		return nil, nil, fmt.Errorf("got %v; expected a struct", t)
 	}
 
 	var efields []reflect.StructField
@@ -364,17 +364,28 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			t1 = t1.Elem()
 		}
 
-		fs, err := getStructFields(t1)
+		fs, _, err := getStructFields(t1)
 		if err != nil {
-			return nil, fmt.Errorf("error processing embedded field: %v", err)
+			return nil, nil, fmt.Errorf("error processing embedded field: %v", err)
 		}
 		efields = mergeStructFields(efields, fs)
 	}
 
-	var fields []reflect.StructField
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		tags := parseFieldTags(f)
+
+		if tags.extra {
+			if !tags.omit {
+				return nil, nil, fmt.Errorf(`field %s tagged as extra must be omited with a hyphen, as in "-,extra"`, f.Name)
+			}
+			if f.Type.Kind() != reflect.Map || f.Type.Key().Kind() != reflect.String || f.Type.Elem().Kind() != reflect.Interface || f.Type.Elem().NumMethod() != 0 {
+				return nil, nil, fmt.Errorf("field %s tagged as extra must be a map[string]interface{}", f.Name)
+			}
+			extra = &f
+			continue
+		}
+
 		if f.Anonymous && tags.name == "" {
 			continue
 		}
@@ -384,7 +395,7 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			fields = append(fields, f)
 		}
 	}
-	return mergeStructFields(efields, fields), nil
+	return mergeStructFields(efields, fields), extra, nil
 }
 
 func (g *Generator) genDecoder(t reflect.Type) error {
@@ -447,7 +458,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 		fmt.Fprintln(g.out, "  out."+f.Name+" = new("+g.getType(f.Type.Elem())+")")
 	}
 
-	fs, err := getStructFields(t)
+	fs, extraField, err := getStructFields(t)
 	if err != nil {
 		return fmt.Errorf("cannot generate decoder for %v: %v", t, err)
 	}
@@ -466,6 +477,13 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "       continue")
 	fmt.Fprintln(g.out, "    }")
 
+	if extraField != nil {
+		// reset value; compiler optimises remove all
+		fmt.Fprintln(g.out, "    for key := range out."+extraField.Name+" {")
+		fmt.Fprintln(g.out, "      delete(out."+extraField.Name+", key)")
+		fmt.Fprintln(g.out, "    }")
+	}
+
 	fmt.Fprintln(g.out, "    switch key {")
 	for _, f := range fs {
 		if err := g.genStructFieldDecoder(t, f); err != nil {
@@ -474,7 +492,12 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	}
 
 	fmt.Fprintln(g.out, "    default:")
-	if g.disallowUnknownFields {
+	if extraField != nil {
+		fmt.Fprintln(g.out, "      if out."+extraField.Name+" == nil {")
+		fmt.Fprintln(g.out, "        out."+extraField.Name+" = make(map[string]interface{})")
+		fmt.Fprintln(g.out, "      }")
+		fmt.Fprintln(g.out, "      out."+extraField.Name+"[key] = in.Interface()")
+	} else if g.disallowUnknownFields {
 		fmt.Fprintln(g.out, `      in.AddError(&jlexer.LexerError{
           Offset: in.GetPos(),
           Reason: "unknown field",

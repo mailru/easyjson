@@ -101,6 +101,18 @@ utility funcs that are available.
 
 ## Controlling easyjson Marshaling and Unmarshaling Behavior
 
+easyjson recognises the `extra` tag as an extention, to support combinations of
+defined and undefined fields. Unmarshal puts any undefined field into an extra
+field map, when present. Marshal writes any undefined field from an extra field
+map, when present.
+
+```go
+type Flexible struct {
+	Field1      string
+	OtherFields map[string]interface{} `json:"-,extra"`
+}
+```
+
 Go types can provide their own `MarshalEasyJSON` and `UnmarshalEasyJSON` funcs
 that satisify the `easyjson.Marshaler` / `easyjson.Unmarshaler` interfaces.
 These will be used by `easyjson.Marshal` and `easyjson.Unmarshal` when defined

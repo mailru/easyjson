@@ -58,6 +58,7 @@ type fieldTags struct {
 	noOmitEmpty bool
 	asString    bool
 	required    bool
+	extra       bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -78,6 +79,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.asString = true
 		case s == "required":
 			ret.required = true
+		case s == "extra":
+			ret.extra = true
 		}
 	}
 
@@ -338,6 +341,43 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 	return toggleFirstCondition, nil
 }
 
+func (g *Generator) genStructExtraFieldsEncoder(structType reflect.Type, extraField reflect.StructField, fields []reflect.StructField) {
+	fmt.Fprintln(g.out, "  for k, v := range in."+extraField.Name+" {")
+
+	// check non-overlapping key
+	fmt.Fprintln(g.out, "    switch k {")
+	fmt.Fprint(g.out, "    case ")
+	for i, f := range fields {
+		if i != 0 {
+			fmt.Fprint(g.out, ", ")
+		}
+		fmt.Fprintf(g.out, "%q", g.fieldNamer.GetJSONFieldName(structType, f))
+	}
+	fmt.Fprintln(g.out, ":")
+	fmt.Fprintln(g.out, "      continue // don't allow field overwrites")
+	fmt.Fprintln(g.out, "    }")
+
+	// print key
+	fmt.Fprintln(g.out, "    if first {")
+	fmt.Fprintln(g.out, "      first = false")
+	fmt.Fprintln(g.out, "    } else {")
+	fmt.Fprintln(g.out, "      out.RawByte(',')")
+	fmt.Fprintln(g.out, "    }")
+	fmt.Fprintln(g.out, "    out.String(string(k))")
+	fmt.Fprintln(g.out, "    out.RawByte(':')")
+
+	// print value
+	fmt.Fprintln(g.out, "    if m, ok := v.(easyjson.Marshaler); ok {")
+	fmt.Fprintln(g.out, "      m.MarshalEasyJSON(out)")
+	fmt.Fprintln(g.out, "    } else if m, ok := v.(json.Marshaler); ok {")
+	fmt.Fprintln(g.out, "      out.Raw(m.MarshalJSON())")
+	fmt.Fprintln(g.out, "    } else {")
+	fmt.Fprintln(g.out, "      out.Raw(json.Marshal(v))")
+	fmt.Fprintln(g.out, "    }")
+
+	fmt.Fprintln(g.out, "  }")
+}
+
 func (g *Generator) genEncoder(t reflect.Type) error {
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array, reflect.Map:
@@ -379,7 +419,7 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
 
-	fs, err := getStructFields(t)
+	fs, extraField, err := getStructFields(t)
 	if err != nil {
 		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
 	}
@@ -391,6 +431,10 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if extraField != nil {
+		g.genStructExtraFieldsEncoder(t, *extraField, fs)
 	}
 
 	fmt.Fprintln(g.out, "  out.RawByte('}')")
