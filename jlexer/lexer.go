@@ -483,7 +483,7 @@ func (r *Lexer) IsDelim(c byte) bool {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	return !r.Ok() || r.token.delimValue == c
+	return r.Ok() && r.token.delimValue == c
 }
 
 // Null verifies that the next token is null and consumes it.
