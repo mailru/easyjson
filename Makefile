@@ -1,15 +1,15 @@
 all: test
 
 clean:
-	rm -rf .root
+	rm -rf bin
 	rm -rf tests/*_easyjson.go
 	rm -rf benchmark/*_easyjson.go
 
 build:
-	go build -i -o .root/bin/easyjson ./easyjson
+	go build -i -o ./bin/easyjson ./easyjson
 
 generate: build
-	.root/bin/easyjson -stubs \
+	bin/easyjson -stubs \
 		./tests/snake.go \
 		./tests/data.go \
 		./tests/omitempty.go \
@@ -19,19 +19,19 @@ generate: build
 		./tests/embedded_type.go \
 		./tests/reference_to_pointer.go \
 
-	.root/bin/easyjson -all ./tests/data.go
-	.root/bin/easyjson -all ./tests/nothing.go
-	.root/bin/easyjson -all ./tests/errors.go
-	.root/bin/easyjson -snake_case ./tests/snake.go
-	.root/bin/easyjson -omit_empty ./tests/omitempty.go
-	.root/bin/easyjson -build_tags=use_easyjson ./benchmark/data.go
-	.root/bin/easyjson ./tests/nested_easy.go
-	.root/bin/easyjson ./tests/named_type.go
-	.root/bin/easyjson ./tests/custom_map_key_type.go
-	.root/bin/easyjson ./tests/embedded_type.go
-	.root/bin/easyjson ./tests/reference_to_pointer.go
-	.root/bin/easyjson ./tests/key_marshaler_map.go
-	.root/bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
+	bin/easyjson -all ./tests/data.go
+	bin/easyjson -all ./tests/nothing.go
+	bin/easyjson -all ./tests/errors.go
+	bin/easyjson -snake_case ./tests/snake.go
+	bin/easyjson -omit_empty ./tests/omitempty.go
+	bin/easyjson -build_tags=use_easyjson ./benchmark/data.go
+	bin/easyjson ./tests/nested_easy.go
+	bin/easyjson ./tests/named_type.go
+	bin/easyjson ./tests/custom_map_key_type.go
+	bin/easyjson ./tests/embedded_type.go
+	bin/easyjson ./tests/reference_to_pointer.go
+	bin/easyjson ./tests/key_marshaler_map.go
+	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
 
 test: generate
 	go test \
