@@ -43,11 +43,7 @@ test: generate
 	golint -set_exit_status ./tests/*_easyjson.go
 
 bench-other: generate
-	cd benchmark
-	@go test -benchmem -bench .
-	@go test -benchmem -tags use_ffjson -bench .
-	@go test -benchmem -tags use_jsoniter -bench .
-	@go test -benchmem -tags use_codec -bench .
+	cd benchmark && make
 
 bench-python:
 	benchmark/ujson.sh
