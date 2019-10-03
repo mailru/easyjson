@@ -7,6 +7,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -176,18 +177,21 @@ func (g *Generator) Run() error {
 	if err = cmd.Run(); err != nil {
 		return err
 	}
-
 	f.Close()
 
-	if !g.NoFormat {
-		cmd = exec.Command("gofmt", "-w", f.Name())
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-
-		if err = cmd.Run(); err != nil {
-			return err
-		}
+	// move unformatted file to out path
+	if g.NoFormat {
+		return os.Rename(f.Name(), g.OutName)
 	}
 
-	return os.Rename(f.Name(), g.OutName)
+	// format file and write to out path
+	in, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		return err
+	}
+	out, err := format.Source(in)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(g.OutName, out, 0644)
 }
