@@ -90,19 +90,27 @@ func getPkgPathFromGoMod(fname string, isDir bool, goModPath string) (string, er
 	return path.Clean(rel), nil
 }
 
-var (
-	modulePrefix          = []byte("\nmodule ")
-	pkgPathFromGoModCache = make(map[string]string)
-)
+var modulePrefix = []byte("\nmodule ")
+
+var pkgPathFromGoModCache = struct {
+	paths map[string]string
+	sync.RWMutex
+}{
+	paths: make(map[string]string),
+}
 
 func getModulePath(goModPath string) string {
-	pkgPath, ok := pkgPathFromGoModCache[goModPath]
+	pkgPathFromGoModCache.RLock()
+	pkgPath, ok := pkgPathFromGoModCache.paths[goModPath]
+	pkgPathFromGoModCache.RUnlock()
 	if ok {
 		return pkgPath
 	}
 
 	defer func() {
-		pkgPathFromGoModCache[goModPath] = pkgPath
+		pkgPathFromGoModCache.Lock()
+		pkgPathFromGoModCache.paths[goModPath] = pkgPath
+		pkgPathFromGoModCache.Unlock()
 	}()
 
 	data, err := ioutil.ReadFile(goModPath)
