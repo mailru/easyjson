@@ -154,7 +154,8 @@ func getPkgPathFromGOPATH(fname string, isDir bool) (string, error) {
 
 	for _, p := range strings.Split(gopath, string(filepath.ListSeparator)) {
 		prefix := filepath.Join(p, "src") + string(filepath.Separator)
-		if rel := strings.TrimPrefix(fname, prefix); rel != fname {
+		rel, err := filepath.Rel(prefix, fname)
+		if err == nil && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			if !isDir {
 				return path.Dir(filePathToPackagePath(rel)), nil
 			} else {
@@ -163,7 +164,7 @@ func getPkgPathFromGOPATH(fname string, isDir bool) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("file '%v' is not in GOPATH", fname)
+	return "", fmt.Errorf("file '%v' is not in GOPATH '%v'", fname, gopath)
 }
 
 func filePathToPackagePath(path string) string {
