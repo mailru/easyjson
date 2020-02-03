@@ -260,6 +260,7 @@ func findStringLen(data []byte) (isValid bool, length int) {
 // if no escaping is needed, original string is returned, otherwise - a new one allocated
 func (r *Lexer) unescapeStringToken() (err error) {
 	data := r.token.byteValue
+	wasEscaped := false
 	var unescapedData []byte
 
 	for {
@@ -273,6 +274,12 @@ func (r *Lexer) unescapeStringToken() (err error) {
 			r.errParse(err.Error())
 			return err
 		}
+
+		if !wasEscaped {
+			unescapedData = make([]byte, 0, len(r.token.byteValue))
+			wasEscaped = true
+		}
+
 		var d [4]byte
 		s := utf8.EncodeRune(d[:], escapedRune)
 		unescapedData = append(unescapedData, data[:i]...)
@@ -281,7 +288,7 @@ func (r *Lexer) unescapeStringToken() (err error) {
 		data = data[i+escapedBytes:]
 	}
 
-	if len(unescapedData) > 0 {
+	if wasEscaped {
 		r.token.byteValue = append(unescapedData, data...)
 		r.token.byteValueCloned = true
 	}
