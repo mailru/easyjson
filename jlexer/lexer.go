@@ -49,6 +49,7 @@ type Lexer struct {
 
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
+	SkipUnescape bool // Skip unescaping on all but user returned strings (i.e. member names, numbers, bytes etc.)
 
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
@@ -606,9 +607,11 @@ func (r *Lexer) unsafeString() (string, []byte) {
 		r.errInvalidToken("string")
 		return "", nil
 	}
-	if err := r.unescapeStringToken(); err != nil {
-		r.errInvalidToken("string")
-		return "", nil
+	if !r.SkipUnescape {
+		if err := r.unescapeStringToken(); err != nil {
+			r.errInvalidToken("string")
+			return "", nil
+		}
 	}
 
 	bytes := r.token.byteValue

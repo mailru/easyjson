@@ -28,7 +28,7 @@ generate: build
 	bin/easyjson -all ./tests/html.go
 	bin/easyjson -snake_case ./tests/snake.go
 	bin/easyjson -omit_empty ./tests/omitempty.go
-	bin/easyjson -build_tags=use_easyjson ./benchmark/data.go
+	bin/easyjson -build_tags=use_easyjson -disable_members_unescape ./benchmark/data.go
 	bin/easyjson ./tests/nested_easy.go
 	bin/easyjson ./tests/named_type.go
 	bin/easyjson ./tests/custom_map_key_type.go

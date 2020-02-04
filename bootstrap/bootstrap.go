@@ -23,18 +23,19 @@ type Generator struct {
 	PkgPath, PkgName string
 	Types            []string
 
-	NoStdMarshalers       bool
-	SnakeCase             bool
-	LowerCamelCase        bool
-	OmitEmpty             bool
-	DisallowUnknownFields bool
+	NoStdMarshalers          bool
+	SnakeCase                bool
+	LowerCamelCase           bool
+	OmitEmpty                bool
+	DisallowUnknownFields    bool
+	SkipMemberNameUnescaping bool
 
 	OutName   string
 	BuildTags string
 
-	StubsOnly  bool
-	LeaveTemps bool
-	NoFormat   bool
+	StubsOnly   bool
+	LeaveTemps  bool
+	NoFormat    bool
 	SimpleBytes bool
 }
 
@@ -128,6 +129,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.SimpleBytes {
 		fmt.Fprintln(f, "  g.SimpleBytes()")
+	}
+	if g.SkipMemberNameUnescaping {
+		fmt.Fprintln(f, "  g.SkipMemberNameUnescaping()")
 	}
 
 	sort.Strings(g.Types)
