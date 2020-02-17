@@ -26,6 +26,16 @@ type Optional interface {
 	IsDefined() bool
 }
 
+// UnknownsUnmarshaler provides a method to unmarshal unknown struct fileds and save them as you want
+type UnknownsUnmarshaler interface {
+	UnmarshalUnknown(key string, value interface{})
+}
+
+// UnknownsMarshaler provides a method to write additional struct fields
+type UnknownsMarshaler interface {
+	MarshalUnknowns() map[string]interface{}
+}
+
 // Marshal returns data as a single byte slice. Method is suboptimal as the data is likely to be copied
 // from a chain of smaller chunks.
 func Marshal(v Marshaler) ([]byte, error) {

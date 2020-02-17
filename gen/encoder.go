@@ -384,13 +384,24 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
 	}
 
+	useUnknownsMarshaler := hasUnknownsMarshaler(t)
+
 	firstCondition := true
 	for i, f := range fs {
-		firstCondition, err = g.genStructFieldEncoder(t, f, i == 0, firstCondition)
+		firstCondition, err = g.genStructFieldEncoder(t, f, i == 0 && !useUnknownsMarshaler, firstCondition)
 
 		if err != nil {
 			return err
 		}
+	}
+
+	if useUnknownsMarshaler {
+		fmt.Fprintln(g.out, "  for key, value := range in.MarshalUnknowns() {")
+		fmt.Fprintln(g.out, "    if first { first = false } else { out.RawByte(',') }")
+		fmt.Fprintln(g.out, "    out.String(key)")
+		fmt.Fprintln(g.out, "    out.RawByte(':')")
+		fmt.Fprintln(g.out, "    out.Raw(json.Marshal(value))")
+		fmt.Fprintln(g.out, "  }")
 	}
 
 	fmt.Fprintln(g.out, "  out.RawByte('}')")

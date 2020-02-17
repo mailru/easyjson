@@ -94,6 +94,16 @@ func hasCustomUnmarshaler(t reflect.Type) bool {
 		t.Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem())
 }
 
+func hasUnknownsUnmarshaler(t reflect.Type) bool {
+	t = reflect.PtrTo(t)
+	return t.Implements(reflect.TypeOf((*easyjson.UnknownsUnmarshaler)(nil)).Elem())
+}
+
+func hasUnknownsMarshaler(t reflect.Type) bool {
+	t = reflect.PtrTo(t)
+	return t.Implements(reflect.TypeOf((*easyjson.UnknownsMarshaler)(nil)).Elem())
+}
+
 // genTypeDecoderNoCheck generates decoding code for the type t.
 func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
@@ -485,6 +495,8 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
           Reason: "unknown field",
           Data: key,
       })`)
+	} else if hasUnknownsUnmarshaler(t) {
+		fmt.Fprintln(g.out, "      out.UnmarshalUnknown(key, in.Interface())")
 	} else {
 		fmt.Fprintln(g.out, "      in.SkipRecursive()")
 	}

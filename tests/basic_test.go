@@ -53,6 +53,7 @@ var testCases = []struct {
 	{&myUInt8SliceValue, myUInt8SliceString},
 	{&myUInt8ArrayValue, myUInt8ArrayString},
 	{&mapWithEncodingMarshaler, mapWithEncodingMarshalerString},
+	{&structWithUnknowns, structWithUnknownsString},
 }
 
 func TestMarshal(t *testing.T) {
