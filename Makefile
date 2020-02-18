@@ -19,6 +19,7 @@ generate: build
 		./tests/embedded_type.go \
 		./tests/reference_to_pointer.go \
 		./tests/html.go \
+		./tests/unknown_fields.go \
 
 	bin/easyjson -all ./tests/data.go
 	bin/easyjson -all ./tests/nothing.go
@@ -34,6 +35,7 @@ generate: build
 	bin/easyjson ./tests/reference_to_pointer.go
 	bin/easyjson ./tests/key_marshaler_map.go
 	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
+	bin/easyjson ./tests/unknown_fields.go
 
 test: generate
 	go test \
