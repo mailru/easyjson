@@ -4,6 +4,7 @@ package buffer
 
 import (
 	"io"
+	"net"
 	"sync"
 )
 
@@ -52,14 +53,12 @@ func putBuf(buf []byte) {
 
 // getBuf gets a chunk from reuse pool or creates a new one if reuse failed.
 func getBuf(size int) []byte {
-	if size < config.PooledSize {
-		return make([]byte, 0, size)
-	}
-
-	if c := buffers[size]; c != nil {
-		v := c.Get()
-		if v != nil {
-			return v.([]byte)
+	if size >= config.PooledSize {
+		if c := buffers[size]; c != nil {
+			v := c.Get()
+			if v != nil {
+				return v.([]byte)
+			}
 		}
 	}
 	return make([]byte, 0, size)
@@ -156,18 +155,14 @@ func (b *Buffer) Size() int {
 
 // DumpTo outputs the contents of a buffer to a writer and resets the buffer.
 func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
-	var n int
-	for _, buf := range b.bufs {
-		if err == nil {
-			n, err = w.Write(buf)
-			written += n
-		}
-		putBuf(buf)
+	bufs := net.Buffers(b.bufs)
+	if len(b.Buf) > 0 {
+		bufs = append(bufs, b.Buf)
 	}
+	n, err := bufs.WriteTo(w)
 
-	if err == nil {
-		n, err = w.Write(b.Buf)
-		written += n
+	for _, buf := range b.bufs {
+		putBuf(buf)
 	}
 	putBuf(b.toPool)
 
@@ -175,7 +170,7 @@ func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
 	b.Buf = nil
 	b.toPool = nil
 
-	return
+	return int(n), err
 }
 
 // BuildBytes creates a single byte slice with all the contents of the buffer. Data is
@@ -192,7 +187,7 @@ func (b *Buffer) BuildBytes(reuse ...[]byte) []byte {
 	var ret []byte
 	size := b.Size()
 
-	// If we got a buffer as argument and it is big enought, reuse it.
+	// If we got a buffer as argument and it is big enough, reuse it.
 	if len(reuse) == 1 && cap(reuse[0]) >= size {
 		ret = reuse[0][:0]
 	} else {
