@@ -659,6 +659,20 @@ var deepNestString = `{` +
 	`"NamedStringSlice":["value4","value5"]` +
 	`}`
 
+type DeepNestOptional struct {
+	MapSlice []map[Str]Str `json:",omitempty"`
+}
+
+var deepNestOptionalValue = DeepNestOptional{
+	MapSlice: []map[Str]Str{map[Str]Str{}},
+}
+
+var deepNestOptionalString = `{` +
+	`"MapSlice":[` +
+	`{}` +
+	`]` +
+	`}`
+
 //easyjson:json
 type Ints []int
 
