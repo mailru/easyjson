@@ -35,7 +35,6 @@ type Generator struct {
 	StubsOnly  bool
 	LeaveTemps bool
 	NoFormat   bool
-
 	SimpleBytes bool
 }
 
@@ -127,9 +126,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	if g.DisallowUnknownFields {
 		fmt.Fprintln(f, "  g.DisallowUnknownFields()")
 	}
-  if g.SimpleBytes {
+	if g.SimpleBytes {
 		fmt.Fprintln(f, "  g.SimpleBytes()")
-  }
+	}
 
 	sort.Strings(g.Types)
 	for _, v := range g.Types {
