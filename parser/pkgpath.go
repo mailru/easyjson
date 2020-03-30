@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -90,8 +89,6 @@ func getPkgPathFromGoMod(fname string, isDir bool, goModPath string) (string, er
 	return path.Clean(rel), nil
 }
 
-var modulePrefix = []byte("\nmodule ")
-
 var pkgPathFromGoModCache = struct {
 	paths map[string]string
 	sync.RWMutex
@@ -117,36 +114,7 @@ func getModulePath(goModPath string) string {
 	if err != nil {
 		return ""
 	}
-	var i int
-	if bytes.HasPrefix(data, modulePrefix[1:]) {
-		i = 0
-	} else {
-		i = bytes.Index(data, modulePrefix)
-		if i < 0 {
-			return ""
-		}
-		i++
-	}
-	line := data[i:]
-
-	// Cut line at \n, drop trailing \r if present.
-	if j := bytes.IndexByte(line, '\n'); j >= 0 {
-		line = line[:j]
-	}
-	if line[len(line)-1] == '\r' {
-		line = line[:len(line)-1]
-	}
-	line = line[len("module "):]
-
-	// If quoted, unquote.
-	pkgPath = strings.TrimSpace(string(line))
-	if pkgPath != "" && pkgPath[0] == '"' {
-		s, err := strconv.Unquote(pkgPath)
-		if err != nil {
-			return ""
-		}
-		pkgPath = s
-	}
+	pkgPath = modulePath(data)
 	return pkgPath
 }
 
