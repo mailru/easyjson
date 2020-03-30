@@ -240,9 +240,23 @@ func (w *Writer) Float32(n float32) {
 	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 32)
 }
 
+func (w *Writer) Float32Str(n float32) {
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 32)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
 func (w *Writer) Float64(n float64) {
 	w.Buffer.EnsureSpace(20)
 	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, n, 'g', -1, 64)
+}
+
+func (w *Writer) Float64Str(n float64) {
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 64)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
 }
 
 func (w *Writer) Bool(v bool) {
@@ -256,15 +270,24 @@ func (w *Writer) Bool(v bool) {
 
 const chars = "0123456789abcdef"
 
-func isNotEscapedSingleChar(c byte, escapeHTML bool) bool {
-	// Note: might make sense to use a table if there are more chars to escape. With 4 chars
-	// it benchmarks the same.
-	if escapeHTML {
-		return c != '<' && c != '>' && c != '&' && c != '\\' && c != '"' && c >= 0x20 && c < utf8.RuneSelf
-	} else {
-		return c != '\\' && c != '"' && c >= 0x20 && c < utf8.RuneSelf
+func getTable(falseValues ...int) [128]bool {
+	table := [128]bool{}
+
+	for i := 0; i < 128; i++ {
+		table[i] = true
 	}
+
+	for _, v := range falseValues {
+		table[v] = false
+	}
+
+	return table
 }
+
+var (
+	htmlEscapeTable   = getTable(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, '"', '&', '<', '>', '\\')
+	htmlNoEscapeTable = getTable(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, '"', '\\')
+)
 
 func (w *Writer) String(s string) {
 	w.Buffer.AppendByte('"')
@@ -274,15 +297,21 @@ func (w *Writer) String(s string) {
 
 	p := 0 // last non-escape symbol
 
+	escapeTable := &htmlEscapeTable
+	if w.NoEscapeHTML {
+		escapeTable = &htmlNoEscapeTable
+	}
+
 	for i := 0; i < len(s); {
 		c := s[i]
 
-		if isNotEscapedSingleChar(c, !w.NoEscapeHTML) {
-			// single-width character, no escaping is required
-			i++
-			continue
-		} else if c < utf8.RuneSelf {
-			// single-with character, need to escape
+		if c < utf8.RuneSelf {
+			if escapeTable[c] {
+				// single-width character, no escaping is required
+				i++
+				continue
+			}
+
 			w.Buffer.AppendString(s[p:i])
 			switch c {
 			case '\t':
@@ -340,11 +369,10 @@ func (w *Writer) base64(in []byte) {
 		return
 	}
 
-	w.Buffer.EnsureSpace(((len(in) - 1) / 3 + 1) * 4)
+	w.Buffer.EnsureSpace(((len(in)-1)/3 + 1) * 4)
 
 	si := 0
 	n := (len(in) / 3) * 3
-
 
 	for si < n {
 		// Convert 3x 8bit source bytes into 4 bytes

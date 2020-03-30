@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"bytes"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -20,8 +22,7 @@ type Parser struct {
 type visitor struct {
 	*Parser
 
-	name     string
-	explicit bool
+	name string
 }
 
 func (p *Parser) needType(comments string) bool {
@@ -42,20 +43,33 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 		return v
 
 	case *ast.GenDecl:
-		v.explicit = v.needType(n.Doc.Text())
-
-		if !v.explicit && !v.AllStructs {
-			return nil
+		explicit := v.needType(n.Doc.Text())
+		if !explicit {
+			return v
 		}
+
+		for _, nc := range n.Specs {
+			switch nct := nc.(type) {
+			case *ast.TypeSpec:
+				nct.Doc = n.Doc
+			}
+		}
+
 		return v
 	case *ast.TypeSpec:
+		explicit := v.needType(n.Doc.Text())
+		if !explicit && !v.AllStructs {
+			return nil
+		}
+
 		v.name = n.Name.String()
 
 		// Allow to specify non-structs explicitly independent of '-all' flag.
-		if v.explicit {
+		if explicit {
 			v.StructNames = append(v.StructNames, v.name)
 			return nil
 		}
+
 		return v
 	case *ast.StructType:
 		v.StructNames = append(v.StructNames, v.name)
@@ -72,7 +86,7 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 
 	fset := token.NewFileSet()
 	if isDir {
-		packages, err := parser.ParseDir(fset, fname, nil, parser.ParseComments)
+		packages, err := parser.ParseDir(fset, fname, excludeTestFiles, parser.ParseComments)
 		if err != nil {
 			return err
 		}
@@ -93,5 +107,9 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 
 func getDefaultGoPath() (string, error) {
 	output, err := exec.Command("go", "env", "GOPATH").Output()
-	return string(output), err
+	return string(bytes.TrimSpace(output)), err
+}
+
+func excludeTestFiles(fi os.FileInfo) bool {
+	return !strings.HasSuffix(fi.Name(), "_test.go")
 }

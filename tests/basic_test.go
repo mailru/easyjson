@@ -38,6 +38,8 @@ var testCases = []struct {
 	{&IntsValue, IntsString},
 	{&mapStringStringValue, mapStringStringString},
 	{&namedTypeValue, namedTypeValueString},
+	{&customMapKeyTypeValue, customMapKeyTypeValueString},
+	{&embeddedTypeValue, embeddedTypeValueString},
 	{&mapMyIntStringValue, mapMyIntStringValueString},
 	{&mapIntStringValue, mapIntStringValueString},
 	{&mapInt32StringValue, mapInt32StringValueString},
@@ -47,6 +49,13 @@ var testCases = []struct {
 	{&mapUint64StringValue, mapUint64StringValueString},
 	{&mapUintptrStringValue, mapUintptrStringValueString},
 	{&intKeyedMapStructValue, intKeyedMapStructValueString},
+	{&intArrayStructValue, intArrayStructValueString},
+	{&myUInt8SliceValue, myUInt8SliceString},
+	{&myUInt8ArrayValue, myUInt8ArrayString},
+	{&mapWithEncodingMarshaler, mapWithEncodingMarshalerString},
+	{&myGenDeclaredValue, myGenDeclaredString},
+	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
+	{&myTypeDeclaredValue, myTypeDeclaredString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -227,5 +236,32 @@ func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
 	}
 	if !reflect.DeepEqual(s, structWithInterfaceValueFilled) {
 		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s, structWithInterfaceValueFilled)
+	}
+}
+
+func TestDisallowUnknown(t *testing.T) {
+	var d DisallowUnknown
+	err := easyjson.Unmarshal([]byte(disallowUnknownString), &d)
+	if err == nil {
+		t.Error("want error, got nil")
+	}
+}
+
+var testNotGeneratedTypeCases = []interface{}{
+	TypeNotDeclared{},
+}
+
+func TestMethodsNoGenerated(t *testing.T) {
+	var ok bool
+	for i, instance := range testNotGeneratedTypeCases {
+		_, ok = instance.(json.Marshaler)
+		if ok {
+			t.Errorf("[%d, %T] Unexpected MarshalJSON()", i, instance)
+		}
+
+		_, ok = instance.(json.Unmarshaler)
+		if ok {
+			t.Errorf("[%d, %T] Unexpected Unmarshaler()", i, instance)
+		}
 	}
 }

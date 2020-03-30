@@ -45,6 +45,8 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 	reflect.Uint32:  "out.Uint32Str(uint32(%v))",
 	reflect.Uint64:  "out.Uint64Str(uint64(%v))",
 	reflect.Uintptr: "out.UintptrStr(uintptr(%v))",
+	reflect.Float32: "out.Float32Str(float32(%v))",
+	reflect.Float64: "out.Float64Str(float64(%v))",
 }
 
 // fieldTags contains parsed version of json struct field tags.
@@ -108,6 +110,14 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 	return err
 }
 
+// returns true of the type t implements one of the custom marshaler interfaces
+func hasCustomMarshaler(t reflect.Type) bool {
+	t = reflect.PtrTo(t)
+	return t.Implements(reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()) ||
+		t.Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem()) ||
+		t.Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem())
+}
+
 // genTypeEncoderNoCheck generates code that encodes in of type t into the writer.
 func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldTags, indent int, assumeNonEmpty bool) error {
 	ws := strings.Repeat("  ", indent)
@@ -116,7 +126,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 	if enc := primitiveStringEncoders[t.Kind()]; enc != "" && tags.asString {
 		fmt.Fprintf(g.out, ws+enc+"\n", in)
 		return nil
-	} else if enc := primitiveEncoders[t.Kind()]; enc != "" {
+	}
+
+	if enc := primitiveEncoders[t.Kind()]; enc != "" {
 		fmt.Fprintf(g.out, ws+enc+"\n", in)
 		return nil
 	}
@@ -127,13 +139,12 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		iVar := g.uniqueVarName()
 		vVar := g.uniqueVarName()
 
-		if t.Elem().Kind() == reflect.Uint8 {
+		if t.Elem().Kind() == reflect.Uint8 && elem.Name() == "uint8" {
 			if g.simpleBytes {
 				fmt.Fprintln(g.out, ws+"out.String(string("+in+"))")
 			} else {
 				fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+")")
 			}
-
 		} else {
 			if !assumeNonEmpty {
 				fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilSliceAsEmpty) == 0 {")
@@ -161,7 +172,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		elem := t.Elem()
 		iVar := g.uniqueVarName()
 
-		if t.Elem().Kind() == reflect.Uint8 {
+		if t.Elem().Kind() == reflect.Uint8 && elem.Name() == "uint8" {
 			if g.simpleBytes {
 				fmt.Fprintln(g.out, ws+"out.String(string("+in+"[:]))")
 			} else {
@@ -174,7 +185,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			fmt.Fprintln(g.out, ws+"    out.RawByte(',')")
 			fmt.Fprintln(g.out, ws+"  }")
 
-			if err := g.genTypeEncoder(elem, in+"["+iVar+"]", tags, indent+1, false); err != nil {
+			if err := g.genTypeEncoder(elem, "("+in+")["+iVar+"]", tags, indent+1, false); err != nil {
 				return err
 			}
 
@@ -206,9 +217,9 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 	case reflect.Map:
 		key := t.Key()
 		keyEnc, ok := primitiveStringEncoders[key.Kind()]
-		if !ok {
-			return fmt.Errorf("map key type %v not supported: only string and integer keys are allowed", key)
-		}
+		if !ok && !hasCustomMarshaler(key) {
+			return fmt.Errorf("map key type %v not supported: only string and integer keys and types implementing Marshaler interfaces are allowed", key)
+		} // else assume the caller knows what they are doing and that the custom marshaler performs the translation from the key type to a string or integer
 		tmpVar := g.uniqueVarName()
 
 		if !assumeNonEmpty {
@@ -222,7 +233,18 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First := true")
 		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"Name, "+tmpVar+"Value := range "+in+" {")
 		fmt.Fprintln(g.out, ws+"    if "+tmpVar+"First { "+tmpVar+"First = false } else { out.RawByte(',') }")
-		fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
+
+		// NOTE: extra check for TextMarshaler. It overrides default methods.
+		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
+			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("out.RawText(("+tmpVar+"Name).MarshalText()"+")"))
+		} else if keyEnc != "" {
+			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
+		} else {
+			if err := g.genTypeEncoder(key, tmpVar+"Name", tags, indent+2, false); err != nil {
+				return err
+			}
+		}
+
 		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
 
 		if err := g.genTypeEncoder(t.Elem(), tmpVar+"Value", tags, indent+2, false); err != nil {
@@ -278,32 +300,50 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	}
 }
 
-func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField, first, firstCondition bool) (bool, error) {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
 	if tags.omit {
-		return nil
+		return firstCondition, nil
 	}
+
+	toggleFirstCondition := firstCondition
+
 	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
 	if noOmitEmpty {
 		fmt.Fprintln(g.out, "  {")
+		toggleFirstCondition = false
 	} else {
 		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
+		// can be any in runtime, so toggleFirstCondition stay as is
 	}
-	fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
-	fmt.Fprintln(g.out, "    if first {")
-	fmt.Fprintln(g.out, "      first = false")
-	fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
-	fmt.Fprintln(g.out, "    } else {")
-	fmt.Fprintln(g.out, "      out.RawString(prefix)")
-	fmt.Fprintln(g.out, "    }")
+
+	if firstCondition {
+		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
+		if first {
+			if !noOmitEmpty {
+				fmt.Fprintln(g.out, "      first = false")
+			}
+			fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+		} else {
+			fmt.Fprintln(g.out, "    if first {")
+			fmt.Fprintln(g.out, "      first = false")
+			fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+			fmt.Fprintln(g.out, "    } else {")
+			fmt.Fprintln(g.out, "      out.RawString(prefix)")
+			fmt.Fprintln(g.out, "    }")
+		}
+	} else {
+		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
+		fmt.Fprintln(g.out, "    out.RawString(prefix)")
+	}
 
 	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, !noOmitEmpty); err != nil {
-		return err
+		return toggleFirstCondition, err
 	}
 	fmt.Fprintln(g.out, "  }")
-	return nil
+	return toggleFirstCondition, nil
 }
 
 func (g *Generator) genEncoder(t reflect.Type) error {
@@ -351,9 +391,21 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	if err != nil {
 		return fmt.Errorf("cannot generate encoder for %v: %v", t, err)
 	}
-	for _, f := range fs {
-		if err := g.genStructFieldEncoder(t, f); err != nil {
+
+	firstCondition := true
+	for i, f := range fs {
+		firstCondition, err = g.genStructFieldEncoder(t, f, i == 0, firstCondition)
+
+		if err != nil {
 			return err
+		}
+	}
+
+	if hasUnknownsMarshaler(t) {
+		if !firstCondition {
+			fmt.Fprintln(g.out, "  in.MarshalUnknowns(out, false)")
+		} else {
+			fmt.Fprintln(g.out, "  in.MarshalUnknowns(out, first)")
 		}
 	}
 
