@@ -367,6 +367,7 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 	}
 
 	var efields []reflect.StructField
+	var fields []reflect.StructField
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		tags := parseFieldTags(f)
@@ -379,14 +380,21 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			t1 = t1.Elem()
 		}
 
-		fs, err := getStructFields(t1)
-		if err != nil {
-			return nil, fmt.Errorf("error processing embedded field: %v", err)
+
+		if t1.Kind() == reflect.Struct {
+			fs, err := getStructFields(t1)
+			if err != nil {
+				return nil, fmt.Errorf("error processing embedded field: %v", err)
+			}
+			efields = mergeStructFields(efields, fs)
+		} else if (t1.Kind() >= reflect.Bool && t1.Kind() < reflect.Complex128) || t1.Kind() == reflect.String {
+			if strings.Contains(f.Name, ".") || unicode.IsUpper([]rune(f.Name)[0]) {
+				fields = append(fields, f)
+			}
 		}
-		efields = mergeStructFields(efields, fs)
 	}
 
-	var fields []reflect.StructField
+
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		tags := parseFieldTags(f)
