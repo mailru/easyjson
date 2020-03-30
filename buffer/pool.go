@@ -113,6 +113,14 @@ func (b *Buffer) AppendByte(data byte) {
 
 // AppendBytes appends a byte slice to buffer.
 func (b *Buffer) AppendBytes(data []byte) {
+	if len(data) <= cap(b.Buf)-len(b.Buf) {
+		b.Buf = append(b.Buf, data...) // fast path
+	} else {
+		b.appendBytesSlow(data)
+	}
+}
+
+func (b *Buffer) appendBytesSlow(data []byte) {
 	for len(data) > 0 {
 		if cap(b.Buf) == len(b.Buf) { // EnsureSpace won't be inlined.
 			b.EnsureSpace(1)
@@ -128,8 +136,16 @@ func (b *Buffer) AppendBytes(data []byte) {
 	}
 }
 
-// AppendBytes appends a string to buffer.
+// AppendString appends a string to buffer.
 func (b *Buffer) AppendString(data string) {
+	if len(data) <= cap(b.Buf)-len(b.Buf) {
+		b.Buf = append(b.Buf, data...) // fast path
+	} else {
+		b.appendStringSlow(data)
+	}
+}
+
+func (b *Buffer) appendStringSlow(data string) {
 	for len(data) > 0 {
 		if cap(b.Buf) == len(b.Buf) { // EnsureSpace won't be inlined.
 			b.EnsureSpace(1)
