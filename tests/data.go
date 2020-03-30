@@ -678,6 +678,12 @@ type RequiredOptionalStruct struct {
 	Lastname  string `json:"last_name"`
 }
 
+type RequiredOptionalMap struct {
+	ReqMap         map[int]string `json:"req_map,required"`
+	OmitEmptyMap   map[int]string `json:"oe_map,omitempty"`
+	NoOmitEmptyMap map[int]string `json:"noe_map,!omitempty"`
+}
+
 //easyjson:json
 type EncodingFlagsTestMap struct {
 	F map[string]string

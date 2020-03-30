@@ -94,6 +94,16 @@ func hasCustomUnmarshaler(t reflect.Type) bool {
 		t.Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem())
 }
 
+func hasUnknownsUnmarshaler(t reflect.Type) bool {
+	t = reflect.PtrTo(t)
+	return t.Implements(reflect.TypeOf((*easyjson.UnknownsUnmarshaler)(nil)).Elem())
+}
+
+func hasUnknownsMarshaler(t reflect.Type) bool {
+	t = reflect.PtrTo(t)
+	return t.Implements(reflect.TypeOf((*easyjson.UnknownsMarshaler)(nil)).Elem())
+}
+
 // genTypeDecoderNoCheck generates decoding code for the type t.
 func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
@@ -124,9 +134,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 
 		} else {
 
-			capacity := minSliceBytes / elem.Size()
-			if capacity == 0 {
-				capacity = 1
+			capacity := 1
+			if elem.Size() > 0 {
+				capacity = minSliceBytes / int(elem.Size())
 			}
 
 			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
@@ -228,19 +238,30 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		} // else assume the caller knows what they are doing and that the custom unmarshaler performs the translation from string or integer keys to the key type
 		elem := t.Elem()
 		tmpVar := g.uniqueVarName()
+		keepEmpty := tags.required || tags.noOmitEmpty || (!g.omitEmpty && !tags.omitEmpty)
 
 		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
 		fmt.Fprintln(g.out, ws+"  in.Skip()")
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  in.Delim('{')")
-		fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
+		if !keepEmpty {
+			fmt.Fprintln(g.out, ws+"  if !in.IsDelim('}') {")
+		}
 		fmt.Fprintln(g.out, ws+"  "+out+" = make("+g.getType(t)+")")
-		fmt.Fprintln(g.out, ws+"  } else {")
-		fmt.Fprintln(g.out, ws+"  "+out+" = nil")
-		fmt.Fprintln(g.out, ws+"  }")
+		if !keepEmpty {
+			fmt.Fprintln(g.out, ws+"  } else {")
+			fmt.Fprintln(g.out, ws+"  "+out+" = nil")
+			fmt.Fprintln(g.out, ws+"  }")
+		}
 
 		fmt.Fprintln(g.out, ws+"  for !in.IsDelim('}') {")
-		if keyDec != "" {
+		// NOTE: extra check for TextUnmarshaler. It overrides default methods.
+		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()) {
+			fmt.Fprintln(g.out, ws+"    var key "+g.getType(key))
+			fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
+			fmt.Fprintln(g.out, ws+"  in.AddError(key.UnmarshalText(data) )")
+			fmt.Fprintln(g.out, ws+"}")
+		} else if keyDec != "" {
 			fmt.Fprintln(g.out, ws+"    key := "+g.getType(key)+"("+keyDec+")")
 		} else {
 			fmt.Fprintln(g.out, ws+"    var key "+g.getType(key))
@@ -474,6 +495,8 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
           Reason: "unknown field",
           Data: key,
       })`)
+	} else if hasUnknownsUnmarshaler(t) {
+		fmt.Fprintln(g.out, "      out.UnmarshalUnknown(in, key)")
 	} else {
 		fmt.Fprintln(g.out, "      in.SkipRecursive()")
 	}

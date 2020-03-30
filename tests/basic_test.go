@@ -52,6 +52,7 @@ var testCases = []struct {
 	{&intArrayStructValue, intArrayStructValueString},
 	{&myUInt8SliceValue, myUInt8SliceString},
 	{&myUInt8ArrayValue, myUInt8ArrayString},
+	{&mapWithEncodingMarshaler, mapWithEncodingMarshalerString},
 	{&myGenDeclaredValue, myGenDeclaredString},
 	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
 	{&myTypeDeclaredValue, myTypeDeclaredString},

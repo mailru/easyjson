@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -85,7 +86,7 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 
 	fset := token.NewFileSet()
 	if isDir {
-		packages, err := parser.ParseDir(fset, fname, nil, parser.ParseComments)
+		packages, err := parser.ParseDir(fset, fname, excludeTestFiles, parser.ParseComments)
 		if err != nil {
 			return err
 		}
@@ -107,4 +108,8 @@ func (p *Parser) Parse(fname string, isDir bool) error {
 func getDefaultGoPath() (string, error) {
 	output, err := exec.Command("go", "env", "GOPATH").Output()
 	return string(bytes.TrimSpace(output)), err
+}
+
+func excludeTestFiles(fi os.FileInfo) bool {
+	return !strings.HasSuffix(fi.Name(), "_test.go")
 }

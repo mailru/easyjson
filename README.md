@@ -79,7 +79,7 @@ Additional option notes:
 ## Generated Marshaler/Unmarshaler Funcs
 
 For Go struct types, easyjson generates the funcs `MarshalEasyJSON` /
-`UnmarshalEasyJSON` for marshaling/unmarshaling JSON. In turn, these satisify
+`UnmarshalEasyJSON` for marshaling/unmarshaling JSON. In turn, these satisfy
 the `easyjson.Marshaler` and `easyjson.Unmarshaler` interfaces and when used in
 conjunction with `easyjson.Marshal` / `easyjson.Unmarshal` avoid unnecessary
 reflection / type assertions during marshaling/unmarshaling to/from JSON for Go
@@ -102,17 +102,17 @@ utility funcs that are available.
 ## Controlling easyjson Marshaling and Unmarshaling Behavior
 
 Go types can provide their own `MarshalEasyJSON` and `UnmarshalEasyJSON` funcs
-that satisify the `easyjson.Marshaler` / `easyjson.Unmarshaler` interfaces.
+that satisfy the `easyjson.Marshaler` / `easyjson.Unmarshaler` interfaces.
 These will be used by `easyjson.Marshal` and `easyjson.Unmarshal` when defined
 for a Go type.
 
-Go types can also satisify the `easyjson.Optional` interface, which allows the
+Go types can also satisfy the `easyjson.Optional` interface, which allows the
 type to define its own `omitempty` logic.
 
 ## Type Wrappers
 
 easyjson provides additional type wrappers defined in the `easyjson/opt`
-package. These wrap the standard Go primitives and in turn satisify the
+package. These wrap the standard Go primitives and in turn satisfy the
 easyjson interfaces.
 
 The `easyjson/opt` type wrappers are useful when needing to distinguish between
@@ -173,6 +173,9 @@ for more information.
   typically for many uses/protocols the final, marshaled length of the JSON
   needs to be known prior to sending the data. Currently this is not possible
   with easyjson's architecture.
+  
+* easyjson parser and codegen based on reflection, so it won't work on `package main` 
+  files, because they cant be imported by parser.
 
 ## Benchmarks
 
@@ -236,7 +239,7 @@ since the memory is not freed between marshaling operations.
 ### easyjson vs 'ujson' python module
 
 [ujson](https://github.com/esnme/ultrajson) is using C code for parsing, so it
-is interesting to see how plain golang compares to that. It is imporant to note
+is interesting to see how plain golang compares to that. It is important to note
 that the resulting object for python is slower to access, since the library
 parses JSON object into dictionaries.
 
