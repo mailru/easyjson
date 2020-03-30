@@ -75,7 +75,7 @@ func generate(fname string) (err error) {
 		OutName:               outName,
 		StubsOnly:             *stubs,
 		NoFormat:              *noformat,
-    SimpleBytes:           *simpleBytes,
+		SimpleBytes:           *simpleBytes,
 	}
 
 	if err := g.Run(); err != nil {
