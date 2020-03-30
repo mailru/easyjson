@@ -35,6 +35,8 @@ Usage of easyjson:
     	generate marshaler/unmarshalers for all structs in a file
   -build_tags string
     	build tags to add to generated file
+  -byte
+        use simple bytes instead of Base64Bytes for slice of bytes
   -leave_temps
     	do not delete temporary files
   -no_std_marshalers

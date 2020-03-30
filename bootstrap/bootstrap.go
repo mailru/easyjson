@@ -35,6 +35,7 @@ type Generator struct {
 	StubsOnly  bool
 	LeaveTemps bool
 	NoFormat   bool
+	SimpleBytes bool
 }
 
 // writeStub outputs an initial stub for marshalers/unmarshalers so that the package
@@ -124,6 +125,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.DisallowUnknownFields {
 		fmt.Fprintln(f, "  g.DisallowUnknownFields()")
+	}
+	if g.SimpleBytes {
+		fmt.Fprintln(f, "  g.SimpleBytes()")
 	}
 
 	sort.Strings(g.Types)

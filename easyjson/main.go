@@ -22,6 +22,7 @@ var lowerCamelCase = flag.Bool("lower_camel_case", false, "use lowerCamelCase na
 var noStdMarshalers = flag.Bool("no_std_marshalers", false, "don't generate MarshalJSON/UnmarshalJSON funcs")
 var omitEmpty = flag.Bool("omit_empty", false, "omit empty fields by default")
 var allStructs = flag.Bool("all", false, "generate marshaler/unmarshalers for all structs in a file")
+var simpleBytes = flag.Bool("byte", false, "use simple bytes instead of Base64Bytes for slice of bytes")
 var leaveTemps = flag.Bool("leave_temps", false, "do not delete temporary files")
 var stubs = flag.Bool("stubs", false, "only generate stubs for marshaler/unmarshaler funcs")
 var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output file")
@@ -74,6 +75,7 @@ func generate(fname string) (err error) {
 		OutName:               outName,
 		StubsOnly:             *stubs,
 		NoFormat:              *noformat,
+		SimpleBytes:           *simpleBytes,
 	}
 
 	if err := g.Run(); err != nil {

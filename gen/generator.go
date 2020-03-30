@@ -37,6 +37,7 @@ type Generator struct {
 	omitEmpty             bool
 	disallowUnknownFields bool
 	fieldNamer            FieldNamer
+	simpleBytes           bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -119,6 +120,11 @@ func (g *Generator) DisallowUnknownFields() {
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
 func (g *Generator) OmitEmpty() {
 	g.omitEmpty = true
+}
+
+// SimpleBytes triggers generate output bytes as slice byte
+func (g *Generator) SimpleBytes() {
+	g.simpleBytes = true
 }
 
 // addTypes requests to generate encoding/decoding funcs for the given type.

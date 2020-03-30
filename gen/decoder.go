@@ -129,7 +129,12 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  in.Skip()")
 			fmt.Fprintln(g.out, ws+"  "+out+" = nil")
 			fmt.Fprintln(g.out, ws+"} else {")
-			fmt.Fprintln(g.out, ws+"  "+out+" = in.Bytes()")
+			if g.simpleBytes {
+				fmt.Fprintln(g.out, ws+"  "+out+" = []byte(in.String())")
+			} else {
+				fmt.Fprintln(g.out, ws+"  "+out+" = in.Bytes()")
+			}
+
 			fmt.Fprintln(g.out, ws+"}")
 
 		} else {
