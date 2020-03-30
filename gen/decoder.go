@@ -134,9 +134,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 
 		} else {
 
-			capacity := minSliceBytes / elem.Size()
-			if capacity == 0 {
-				capacity = 1
+			capacity := 1
+			if elem.Size() > 0 {
+				capacity = minSliceBytes / int(elem.Size())
 			}
 
 			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
