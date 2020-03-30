@@ -37,7 +37,7 @@ type Generator struct {
 	omitEmpty             bool
 	disallowUnknownFields bool
 	fieldNamer            FieldNamer
-  simpleBytes           bool
+	simpleBytes           bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
