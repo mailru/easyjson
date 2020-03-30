@@ -78,9 +78,12 @@ type Buffer struct {
 // EnsureSpace makes sure that the current chunk contains at least s free bytes,
 // possibly creating a new chunk.
 func (b *Buffer) EnsureSpace(s int) {
-	if cap(b.Buf)-len(b.Buf) >= s {
-		return
+	if cap(b.Buf)-len(b.Buf) < s {
+		b.ensureSpaceSlow(s)
 	}
+}
+
+func (b *Buffer) ensureSpaceSlow(s int) {
 	l := len(b.Buf)
 	if l > 0 {
 		if cap(b.toPool) != cap(b.Buf) {
@@ -105,9 +108,7 @@ func (b *Buffer) EnsureSpace(s int) {
 
 // AppendByte appends a single byte to buffer.
 func (b *Buffer) AppendByte(data byte) {
-	if cap(b.Buf) == len(b.Buf) { // EnsureSpace won't be inlined.
-		b.EnsureSpace(1)
-	}
+	b.EnsureSpace(1)
 	b.Buf = append(b.Buf, data)
 }
 
@@ -122,9 +123,7 @@ func (b *Buffer) AppendBytes(data []byte) {
 
 func (b *Buffer) appendBytesSlow(data []byte) {
 	for len(data) > 0 {
-		if cap(b.Buf) == len(b.Buf) { // EnsureSpace won't be inlined.
-			b.EnsureSpace(1)
-		}
+		b.EnsureSpace(1)
 
 		sz := cap(b.Buf) - len(b.Buf)
 		if sz > len(data) {
@@ -147,9 +146,7 @@ func (b *Buffer) AppendString(data string) {
 
 func (b *Buffer) appendStringSlow(data string) {
 	for len(data) > 0 {
-		if cap(b.Buf) == len(b.Buf) { // EnsureSpace won't be inlined.
-			b.EnsureSpace(1)
-		}
+		b.EnsureSpace(1)
 
 		sz := cap(b.Buf) - len(b.Buf)
 		if sz > len(data) {
