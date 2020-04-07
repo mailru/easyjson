@@ -14,6 +14,8 @@ import (
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/josharian/intern"
 )
 
 // tokenKind determines type of a token.
@@ -641,6 +643,20 @@ func (r *Lexer) String() string {
 		return ""
 	}
 	ret := string(r.token.byteValue)
+	r.consume()
+	return ret
+}
+
+// StringIntern reads a string literal, and performs string interning on it.
+func (r *Lexer) StringIntern() string {
+	if r.token.kind == tokenUndef && r.Ok() {
+		r.FetchToken()
+	}
+	if !r.Ok() || r.token.kind != tokenString {
+		r.errInvalidToken("string")
+		return ""
+	}
+	ret := intern.Bytes(r.token.byteValue)
 	r.consume()
 	return ret
 }

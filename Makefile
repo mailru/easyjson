@@ -20,7 +20,8 @@ generate: build
 		./tests/reference_to_pointer.go \
 		./tests/html.go \
 		./tests/unknown_fields.go \
-		./tests/type_declaration.go
+		./tests/type_declaration.go \
+		./tests/intern.go
 
 	bin/easyjson -all ./tests/data.go
 	bin/easyjson -all ./tests/nothing.go
@@ -38,6 +39,7 @@ generate: build
 	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
 	bin/easyjson ./tests/unknown_fields.go
 	bin/easyjson ./tests/type_declaration.go
+	bin/easyjson ./tests/intern.go
 
 test: generate
 	go test \

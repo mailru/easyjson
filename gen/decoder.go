@@ -112,9 +112,15 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+out+" = "+dec)
 		return nil
 	} else if dec := primitiveStringDecoders[t.Kind()]; dec != "" && tags.asString {
+		if tags.intern && t.Kind() == reflect.String {
+			dec = "in.StringIntern()"
+		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
 	} else if dec := primitiveDecoders[t.Kind()]; dec != "" {
+		if tags.intern && t.Kind() == reflect.String {
+			dec = "in.StringIntern()"
+		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
 	}
@@ -385,7 +391,6 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			t1 = t1.Elem()
 		}
 
-
 		if t1.Kind() == reflect.Struct {
 			fs, err := getStructFields(t1)
 			if err != nil {
@@ -398,7 +403,6 @@ func getStructFields(t reflect.Type) ([]reflect.StructField, error) {
 			}
 		}
 	}
-
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)

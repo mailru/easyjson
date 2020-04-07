@@ -56,6 +56,7 @@ var testCases = []struct {
 	{&myGenDeclaredValue, myGenDeclaredString},
 	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
 	{&myTypeDeclaredValue, myTypeDeclaredString},
+	{&intern, internString},
 }
 
 func TestMarshal(t *testing.T) {
