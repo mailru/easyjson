@@ -80,14 +80,6 @@ Additional option notes:
 
 * `-build_tags` will add the specified build tags to generated Go sources.
 
-## Structure json tag options
-
-Besides standart json tag options like 'omitempty' the following are supported:
-
-* 'noclone' - disables allocation and copying of string values, making them
-  refer to original json buffer memory. This works great for short lived
-  objects which are not hold in memory after decoding and immediate usage.
-
 ## Generated Marshaler/Unmarshaler Funcs
 
 For Go struct types, easyjson generates the funcs `MarshalEasyJSON` /
