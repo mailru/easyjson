@@ -57,6 +57,8 @@ Usage of easyjson:
     	only generate stubs for marshaler/unmarshaler funcs
   -disallow_unknown_fields
         return error if some unknown field in json appeared
+  -disable_members_unescape
+        disable unescaping of \uXXXX string sequences in member names
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
@@ -77,6 +79,14 @@ Additional option notes:
   "http_version").
 
 * `-build_tags` will add the specified build tags to generated Go sources.
+
+## Structure json tag options
+
+Besides standart json tag options like 'omitempty' the following are supported:
+
+* 'noclone' - disables allocation and copying of string values, making them
+  refer to original json buffer memory. This works great for short lived
+  objects which are not hold in memory after decoding and immediate usage.
 
 ## Generated Marshaler/Unmarshaler Funcs
 
