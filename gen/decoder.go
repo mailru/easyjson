@@ -457,9 +457,6 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(in *jlexer.Lexer, out *"+typ+") {")
-	if g.skipMemberNameUnescaping {
-		fmt.Fprintln(g.out, "  in.SkipUnescape = true")
-	}
 	fmt.Fprintln(g.out, "  isTopLevel := in.IsStart()")
 	fmt.Fprintln(g.out, "  if in.IsNull() {")
 	fmt.Fprintln(g.out, "    if isTopLevel {")
@@ -489,7 +486,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "  in.Delim('{')")
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
-	fmt.Fprintln(g.out, "    key := in.UnsafeString()")
+	fmt.Fprintf(g.out, "    key := in.UnsafeFieldName(%v)\n", g.skipMemberNameUnescaping)
 	fmt.Fprintln(g.out, "    in.WantColon()")
 	fmt.Fprintln(g.out, "    if in.IsNull() {")
 	fmt.Fprintln(g.out, "       in.Skip()")

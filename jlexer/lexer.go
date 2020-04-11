@@ -49,7 +49,6 @@ type Lexer struct {
 
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
-	SkipUnescape bool // Skip unescaping on all but user returned strings (i.e. member names, numbers, bytes etc.)
 
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
@@ -599,7 +598,7 @@ func (r *Lexer) Consumed() {
 	}
 }
 
-func (r *Lexer) unsafeString() (string, []byte) {
+func (r *Lexer) unsafeString(skipUnescape bool) (string, []byte) {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
@@ -607,7 +606,7 @@ func (r *Lexer) unsafeString() (string, []byte) {
 		r.errInvalidToken("string")
 		return "", nil
 	}
-	if !r.SkipUnescape {
+	if !skipUnescape {
 		if err := r.unescapeStringToken(); err != nil {
 			r.errInvalidToken("string")
 			return "", nil
@@ -625,13 +624,19 @@ func (r *Lexer) unsafeString() (string, []byte) {
 // Warning: returned string may point to the input buffer, so the string should not outlive
 // the input buffer. Intended pattern of usage is as an argument to a switch statement.
 func (r *Lexer) UnsafeString() string {
-	ret, _ := r.unsafeString()
+	ret, _ := r.unsafeString(false)
 	return ret
 }
 
 // UnsafeBytes returns the byte slice if the token is a string literal.
 func (r *Lexer) UnsafeBytes() []byte {
-	_, ret := r.unsafeString()
+	_, ret := r.unsafeString(false)
+	return ret
+}
+
+// UnsafeFieldName returns current member name string token
+func (r *Lexer) UnsafeFieldName(skipUnescape bool) string {
+	ret, _ := r.unsafeString(skipUnescape)
 	return ret
 }
 
@@ -852,7 +857,7 @@ func (r *Lexer) Int() int {
 }
 
 func (r *Lexer) Uint8Str() uint8 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -869,7 +874,7 @@ func (r *Lexer) Uint8Str() uint8 {
 }
 
 func (r *Lexer) Uint16Str() uint16 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -886,7 +891,7 @@ func (r *Lexer) Uint16Str() uint16 {
 }
 
 func (r *Lexer) Uint32Str() uint32 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -903,7 +908,7 @@ func (r *Lexer) Uint32Str() uint32 {
 }
 
 func (r *Lexer) Uint64Str() uint64 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -928,7 +933,7 @@ func (r *Lexer) UintptrStr() uintptr {
 }
 
 func (r *Lexer) Int8Str() int8 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -945,7 +950,7 @@ func (r *Lexer) Int8Str() int8 {
 }
 
 func (r *Lexer) Int16Str() int16 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -962,7 +967,7 @@ func (r *Lexer) Int16Str() int16 {
 }
 
 func (r *Lexer) Int32Str() int32 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -979,7 +984,7 @@ func (r *Lexer) Int32Str() int32 {
 }
 
 func (r *Lexer) Int64Str() int64 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -1017,7 +1022,7 @@ func (r *Lexer) Float32() float32 {
 }
 
 func (r *Lexer) Float32Str() float32 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
@@ -1050,7 +1055,7 @@ func (r *Lexer) Float64() float64 {
 }
 
 func (r *Lexer) Float64Str() float64 {
-	s, b := r.unsafeString()
+	s, b := r.unsafeString(false)
 	if !r.Ok() {
 		return 0
 	}
