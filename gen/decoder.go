@@ -121,6 +121,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		if tags.intern && t.Kind() == reflect.String {
 			dec = "in.StringIntern()"
 		}
+		if tags.noCopy && t.Kind() == reflect.String {
+			dec = "in.UnsafeString()"
+		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
 	}
