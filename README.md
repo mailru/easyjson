@@ -137,6 +137,27 @@ through a call to `buffer.Init()` prior to any marshaling or unmarshaling.
 Please see the [GoDoc listing](https://godoc.org/github.com/mailru/easyjson/buffer)
 for more information.
 
+## String interning
+
+During unmarshaling, `string` field values can be optionally
+[interned](https://en.wikipedia.org/wiki/String_interning) to reduce memory
+allocations and usage by deduplicating strings in memory, at the expense of slightly
+increased CPU usage.
+
+This will work effectively only for `string` fields being decoded that have frequently
+the same value (e.g. if you have a string field that can only assume a small number
+of possible values).
+
+To enable string interning, add the `intern` keyword tag to your `json` tag on `string`
+fields, e.g.:
+
+```go
+type Foo struct {
+  UUID  string `json:"uuid"`         // will not be interned during unmarshaling
+  State string `json:"state,intern"` // will be interned during unmarshaling
+}
+```
+
 ## Issues, Notes, and Limitations
 
 * easyjson is still early in its development. As such, there are likely to be
