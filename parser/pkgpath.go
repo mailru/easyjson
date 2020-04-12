@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+	"go/build"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -10,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"go/build"
 )
 
 func getPkgPath(fname string, isDir bool) (string, error) {
