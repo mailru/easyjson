@@ -113,7 +113,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 	return err
 }
 
-// returns true of the type t implements one of the custom marshaler interfaces
+// returns true if the type t implements one of the custom marshaler interfaces
 func hasCustomMarshaler(t reflect.Type) bool {
 	t = reflect.PtrTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()) ||
@@ -260,7 +260,17 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 
 	case reflect.Interface:
 		if t.NumMethod() != 0 {
-			return fmt.Errorf("interface type %v not supported: only interface{} is allowed", t)
+			if g.interfaceIsEasyjsonMarshaller(t) {
+				fmt.Fprintln(g.out, ws+in+".MarshalEasyJSON(out)")
+			} else if g.interfaceIsJSONMarshaller(t) {
+				fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
+				fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
+				fmt.Fprintln(g.out, ws+"} else {")
+				fmt.Fprintln(g.out, ws+in+".MarshalJSON(out)")
+				fmt.Fprintln(g.out, ws+"}")
+			} else {
+				return fmt.Errorf("interface type %v not supported: only interface{} and interfaces that implement json or easyjson Marshaling are allowed", t)
+			}
 		}
 		fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
 		fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
@@ -269,11 +279,18 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		fmt.Fprintln(g.out, ws+"} else {")
 		fmt.Fprintln(g.out, ws+"  out.Raw(json.Marshal("+in+"))")
 		fmt.Fprintln(g.out, ws+"}")
-
 	default:
 		return fmt.Errorf("don't know how to encode %v", t)
 	}
 	return nil
+}
+
+func (g *Generator) interfaceIsEasyjsonMarshaller(t reflect.Type) bool {
+	return t.Implements(reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem())
+}
+
+func (g *Generator) interfaceIsJSONMarshaller(t reflect.Type) bool {
+	return t.Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem())
 }
 
 func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
