@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"bytes"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 
@@ -265,5 +267,37 @@ func TestMethodsNoGenerated(t *testing.T) {
 		if ok {
 			t.Errorf("[%d, %T] Unexpected Unmarshaler()", i, instance)
 		}
+	}
+}
+
+func TestNil(t *testing.T) {
+	var p *PrimitiveTypes
+
+	data, err := easyjson.Marshal(p)
+	if err != nil {
+		t.Errorf("easyjson.Marshal() error: %v", err)
+	}
+	if string(data) != "null" {
+		t.Errorf("Wanted null, got %q", string(data))
+	}
+
+	var b bytes.Buffer
+	if n, err := easyjson.MarshalToWriter(p, &b); err != nil || n != 4 {
+		t.Errorf("easyjson.MarshalToWriter() error: %v, written %d", err, n)
+	}
+
+	if s := b.String(); s != "null" {
+		t.Errorf("Wanted null, got %q", s)
+	}
+
+	w := httptest.NewRecorder()
+	started, written, err := easyjson.MarshalToHTTPResponseWriter(p, w)
+	if !started || written != 4 || err != nil {
+		t.Errorf("easyjson.MarshalToHTTPResponseWriter() error: %v, written %d, started %t",
+			err, written, started)
+	}
+
+	if s := w.Body.String(); s != "null" {
+		t.Errorf("Wanted null, got %q", s)
 	}
 }
