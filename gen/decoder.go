@@ -486,7 +486,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "  in.Delim('{')")
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
-	fmt.Fprintln(g.out, "    key := in.UnsafeString()")
+	fmt.Fprintf(g.out, "    key := in.UnsafeFieldName(%v)\n", g.skipMemberNameUnescaping)
 	fmt.Fprintln(g.out, "    in.WantColon()")
 	fmt.Fprintln(g.out, "    if in.IsNull() {")
 	fmt.Fprintln(g.out, "       in.Skip()")

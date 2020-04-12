@@ -33,11 +33,12 @@ type Generator struct {
 
 	varCounter int
 
-	noStdMarshalers       bool
-	omitEmpty             bool
-	disallowUnknownFields bool
-	fieldNamer            FieldNamer
-	simpleBytes           bool
+	noStdMarshalers          bool
+	omitEmpty                bool
+	disallowUnknownFields    bool
+	fieldNamer               FieldNamer
+	simpleBytes              bool
+	skipMemberNameUnescaping bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -115,6 +116,11 @@ func (g *Generator) NoStdMarshalers() {
 // DisallowUnknownFields instructs not to skip unknown fields in json and return error.
 func (g *Generator) DisallowUnknownFields() {
 	g.disallowUnknownFields = true
+}
+
+// SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance
+func (g *Generator) SkipMemberNameUnescaping() {
+	g.skipMemberNameUnescaping = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.

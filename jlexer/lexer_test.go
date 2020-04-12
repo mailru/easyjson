@@ -33,7 +33,7 @@ func TestString(t *testing.T) {
 
 		got := l.String()
 		if got != test.want {
-			t.Errorf("[%d, %q] String() = %v; want %v", i, test.toParse, got, test.want)
+			t.Errorf("[%d, %q] String() = '%v'; want '%v'", i, test.toParse, got, test.want)
 		}
 		err := l.Error()
 		if err != nil && !test.wantError {
@@ -262,12 +262,12 @@ func TestJsonNumber(t *testing.T) {
 		{toParse: `10`, want: json.Number("10"), wantValue: int64(10)},
 		{toParse: `0`, want: json.Number("0"), wantValue: int64(0)},
 		{toParse: `0.12`, want: json.Number("0.12"), wantValue: 0.12},
-		{toParse: `25E-4`, want: json.Number("25E-4"), wantValue: 25E-4},
+		{toParse: `25E-4`, want: json.Number("25E-4"), wantValue: 25e-4},
 
 		{toParse: `"10"`, want: json.Number("10"), wantValue: int64(10)},
 		{toParse: `"0"`, want: json.Number("0"), wantValue: int64(0)},
 		{toParse: `"0.12"`, want: json.Number("0.12"), wantValue: 0.12},
-		{toParse: `"25E-4"`, want: json.Number("25E-4"), wantValue: 25E-4},
+		{toParse: `"25E-4"`, want: json.Number("25E-4"), wantValue: 25e-4},
 
 		{toParse: `"foo"`, want: json.Number("foo"), wantValueError: true},
 		{toParse: `null`, want: json.Number(""), wantValueError: true},
@@ -324,7 +324,7 @@ func TestFetchStringUnterminatedString(t *testing.T) {
 		l := Lexer{Data: test.data}
 		l.fetchString()
 		if l.pos > len(l.Data) {
-			t.Errorf("fetchString(%s): pos should not be greater than length of Data", test.data)
+			t.Errorf("fetchString(%s): pos=%v should not be greater than length of Data = %v", test.data, l.pos, len(l.Data))
 		}
 		if l.Error() == nil {
 			t.Errorf("fetchString(%s): should add parsing error", test.data)
