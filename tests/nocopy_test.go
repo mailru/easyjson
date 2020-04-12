@@ -48,6 +48,17 @@ func TestNocopy(t *testing.T) {
 		}
 	})
 	if allocsPerRun != 1 {
-		t.Fatalf("expected 1 allocs, got %f", allocsPerRun)
+		t.Fatalf("noCopy field unmarshal: expected 1 allocs, got %f", allocsPerRun)
+	}
+
+	data = []byte(`{"a": "valueNoCopy"}`)
+	allocsPerRun = testing.AllocsPerRun(1000, func() {
+		easyjson.Unmarshal(data, &res)
+		if res.A != "valueNoCopy" {
+			t.Fatalf("wrong value: %q", res.A)
+		}
+	})
+	if allocsPerRun != 2 {
+		t.Fatalf("copy field unmarshal: expected 2 allocs, got %f", allocsPerRun)
 	}
 }

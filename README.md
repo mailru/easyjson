@@ -89,7 +89,7 @@ Besides standart json tag options like 'omitempty' the following are supported:
   objects which are not hold in memory after decoding and immediate usage.
   Note if string requires unescaping it will be processed as normally.
 * 'intern' - string "interning" (deduplication) to save memory when the very
-  same string dictionory values are often met all over the structure.
+  same string dictionary values are often met all over the structure.
   See below for more details.
 
 ## Generated Marshaler/Unmarshaler Funcs
