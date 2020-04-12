@@ -38,4 +38,16 @@ func TestNocopy(t *testing.T) {
 	if !strBelongsTo(res.B, data) {
 		t.Error("TestNocopy(): field B was copied rather than refer to bufferr")
 	}
+
+	data = []byte(`{"b": "valueNoCopy"}`)
+	res = NocopyStruct{}
+	allocsPerRun := testing.AllocsPerRun(1000, func() {
+		easyjson.Unmarshal(data, &res)
+		if res.B != "valueNoCopy" {
+			t.Fatalf("wrong value: %q", res.B)
+		}
+	})
+	if allocsPerRun != 1 {
+		t.Fatalf("expected 1 allocs, got %f", allocsPerRun)
+	}
 }
