@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"go/build"
 )
 
 func getPkgPath(fname string, isDir bool) (string, error) {
@@ -121,11 +122,7 @@ func getModulePath(goModPath string) string {
 func getPkgPathFromGOPATH(fname string, isDir bool) (string, error) {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
-		var err error
-		gopath, err = getDefaultGoPath()
-		if err != nil {
-			return "", fmt.Errorf("cannot determine GOPATH: %s", err)
-		}
+		gopath = build.Default.GOPATH
 	}
 
 	for _, p := range strings.Split(gopath, string(filepath.ListSeparator)) {
