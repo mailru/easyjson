@@ -674,6 +674,10 @@ func (r *Lexer) StringIntern() string {
 		r.errInvalidToken("string")
 		return ""
 	}
+	if err := r.unescapeStringToken(); err != nil {
+		r.errInvalidToken("string")
+		return ""
+	}
 	ret := intern.Bytes(r.token.byteValue)
 	r.consume()
 	return ret
