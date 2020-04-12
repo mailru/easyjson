@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/mailru/easyjson/jlexer"
@@ -36,10 +37,18 @@ type UnknownsMarshaler interface {
 	MarshalUnknowns(w *jwriter.Writer, first bool)
 }
 
+func isNilInterface(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	return v.Kind() == reflect.Ptr && v.IsNil()
+}
+
 // Marshal returns data as a single byte slice. Method is suboptimal as the data is likely to be copied
 // from a chain of smaller chunks.
 func Marshal(v Marshaler) ([]byte, error) {
 	w := jwriter.Writer{}
+	if isNilInterface(v) {
+		return nullBytes, nil
+	}
 	v.MarshalEasyJSON(&w)
 	return w.BuildBytes()
 }
@@ -47,6 +56,9 @@ func Marshal(v Marshaler) ([]byte, error) {
 // MarshalToWriter marshals the data to an io.Writer.
 func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 	jw := jwriter.Writer{}
+	if isNilInterface(v) {
+		return w.Write(nullBytes)
+	}
 	v.MarshalEasyJSON(&jw)
 	return jw.DumpTo(w)
 }
@@ -57,6 +69,13 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 // invoked (in this case a 500 reply is possible).
 func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bool, written int, err error) {
 	jw := jwriter.Writer{}
+	if isNilInterface(v) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Length", strconv.Itoa(len(nullBytes)))
+		written, err = w.Write(nullBytes)
+		return true, written, err
+	}
+
 	v.MarshalEasyJSON(&jw)
 	if jw.Error != nil {
 		return false, 0, jw.Error
