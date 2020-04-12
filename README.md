@@ -142,7 +142,7 @@ During unmarshaling, `string` field values can be optionally
 allocations and usage by deduplicating strings in memory, at the expense of slightly
 increased CPU usage.
 
-This will work effectively only for `string` fields being decoded have frequently
+This will work effectively only for `string` fields being decoded that have frequently
 the same value (e.g. if you have a string field that can only assume a small number
 of possible values).
 
