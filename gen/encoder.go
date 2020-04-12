@@ -59,6 +59,7 @@ type fieldTags struct {
 	asString    bool
 	required    bool
 	intern      bool
+	noCopy      bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -81,6 +82,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.required = true
 		case s == "intern":
 			ret.intern = true
+		case s == "nocopy":
+			ret.noCopy = true
 		}
 	}
 

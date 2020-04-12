@@ -3,6 +3,7 @@ package gen
 import (
 	"encoding"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -120,6 +121,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 	} else if dec := primitiveDecoders[t.Kind()]; dec != "" {
 		if tags.intern && t.Kind() == reflect.String {
 			dec = "in.StringIntern()"
+		}
+		if tags.noCopy && t.Kind() == reflect.String {
+			dec = "in.UnsafeString()"
 		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
 		return nil
@@ -334,6 +338,9 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 
 	if tags.omit {
 		return nil
+	}
+	if tags.intern && tags.noCopy {
+		return errors.New("Mutually exclusive tags are specified: 'intern' and 'nocopy'")
 	}
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
