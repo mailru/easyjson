@@ -171,7 +171,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-			if err := g.genTypeDecoder(elem, tmpVar, fieldTags{}, indent+2); err != nil {
+			if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
 				return err
 			}
 
@@ -205,7 +205,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    if "+iterVar+" < "+fmt.Sprint(length)+" {")
 
-			if err := g.genTypeDecoder(elem, "("+out+")["+iterVar+"]", fieldTags{}, indent+3); err != nil {
+			if err := g.genTypeDecoder(elem, "("+out+")["+iterVar+"]", tags, indent+3); err != nil {
 				return err
 			}
 
@@ -239,7 +239,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"    "+out+" = new("+g.getType(t.Elem())+")")
 		fmt.Fprintln(g.out, ws+"  }")
 
-		if err := g.genTypeDecoder(t.Elem(), "*"+out, fieldTags{}, indent+1); err != nil {
+		if err := g.genTypeDecoder(t.Elem(), "*"+out, tags, indent+1); err != nil {
 			return err
 		}
 
@@ -280,7 +280,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"    key := "+g.getType(key)+"("+keyDec+")")
 		} else {
 			fmt.Fprintln(g.out, ws+"    var key "+g.getType(key))
-			if err := g.genTypeDecoder(key, "key", fieldTags{}, indent+2); err != nil {
+			if err := g.genTypeDecoder(key, "key", tags, indent+2); err != nil {
 				return err
 			}
 		}
@@ -288,7 +288,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"    in.WantColon()")
 		fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-		if err := g.genTypeDecoder(elem, tmpVar, fieldTags{}, indent+2); err != nil {
+		if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
 			return err
 		}
 
