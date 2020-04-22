@@ -253,6 +253,16 @@ func findStringLen(data []byte) (isValid bool, length int) {
 		if idx == 0 || (idx > 0 && data[idx-1] != '\\') {
 			return true, length + idx
 		}
+
+		// count \\\\\\\ sequences. even number of slashes means quote is not really escaped
+		cnt := 1
+		for idx-cnt-1 >= 0 && data[idx-cnt-1] == '\\' {
+			cnt++
+		}
+		if cnt%2 == 0 {
+			return true, length + idx
+		}
+
 		length += idx + 1
 		data = data[idx+1:]
 	}
@@ -325,7 +335,7 @@ func getu4(s []byte) rune {
 // decodeEscape processes a single escape sequence and returns number of bytes processed.
 func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 	if len(data) < 2 {
-		return 0, 0, fmt.Errorf("syntax error at %v", string(data))
+		return 0, 0, errors.New("incorrect escape symbol \\ at the end of token")
 	}
 
 	c := data[1]
@@ -345,7 +355,7 @@ func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 	case 'u':
 		rr := getu4(data)
 		if rr < 0 {
-			return 0, 0, errors.New("syntax error")
+			return 0, 0, errors.New("incorrectly escaped \\uXXXX sequence")
 		}
 
 		read := 6
@@ -361,7 +371,7 @@ func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 		return rr, read, nil
 	}
 
-	return 0, 0, errors.New("syntax error")
+	return 0, 0, errors.New("incorrectly escaped bytes")
 }
 
 // fetchString scans a string literal token.
