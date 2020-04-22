@@ -27,7 +27,10 @@ func TestNocopy(t *testing.T) {
 	}
 	res := NocopyStruct{}
 
-	easyjson.Unmarshal(data, &res)
+	err := easyjson.Unmarshal(data, &res)
+	if err != nil {
+		t.Error(err)
+	}
 	if !reflect.DeepEqual(exp, res) {
 		t.Errorf("TestNocopy(): got=%+v, exp=%+v", res, exp)
 	}
@@ -42,7 +45,10 @@ func TestNocopy(t *testing.T) {
 	data = []byte(`{"b": "valueNoCopy"}`)
 	res = NocopyStruct{}
 	allocsPerRun := testing.AllocsPerRun(1000, func() {
-		easyjson.Unmarshal(data, &res)
+		err := easyjson.Unmarshal(data, &res)
+		if err != nil {
+			t.Error(err)
+		}
 		if res.B != "valueNoCopy" {
 			t.Fatalf("wrong value: %q", res.B)
 		}
@@ -53,7 +59,10 @@ func TestNocopy(t *testing.T) {
 
 	data = []byte(`{"a": "valueNoCopy"}`)
 	allocsPerRun = testing.AllocsPerRun(1000, func() {
-		easyjson.Unmarshal(data, &res)
+		err := easyjson.Unmarshal(data, &res)
+		if err != nil {
+			t.Error(err)
+		}
 		if res.A != "valueNoCopy" {
 			t.Fatalf("wrong value: %q", res.A)
 		}
