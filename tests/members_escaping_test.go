@@ -37,13 +37,19 @@ func TestMembersEscaping(t *testing.T) {
 
 	for i, c := range cases {
 		var esc MembersEscaped
-		easyjson.Unmarshal([]byte(c.data), &esc)
+		err := easyjson.Unmarshal([]byte(c.data), &esc)
+		if err != nil {
+			t.Error(err)
+		}
 		if !reflect.DeepEqual(esc, c.esc) {
 			t.Errorf("[%d] TestMembersEscaping(): got=%+v, exp=%+v", i, esc, c.esc)
 		}
 
 		var unesc MembersUnescaped
-		easyjson.Unmarshal([]byte(c.data), &unesc)
+		err = easyjson.Unmarshal([]byte(c.data), &unesc)
+		if err != nil {
+			t.Error(err)
+		}
 		if !reflect.DeepEqual(unesc, c.unesc) {
 			t.Errorf("[%d] TestMembersEscaping(): no-unescaping case: got=%+v, exp=%+v", i, esc, c.esc)
 		}

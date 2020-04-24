@@ -12,7 +12,10 @@ func TestStringIntern(t *testing.T) {
 	var i Intern
 	allocsPerRun := testing.AllocsPerRun(1000, func() {
 		i = Intern{}
-		easyjson.Unmarshal(data, &i)
+		err := easyjson.Unmarshal(data, &i)
+		if err != nil {
+			t.Error(err)
+		}
 		if i.Field != "string interning test" {
 			t.Fatalf("wrong value: %q", i.Field)
 		}
@@ -24,7 +27,10 @@ func TestStringIntern(t *testing.T) {
 	var n NoIntern
 	allocsPerRun = testing.AllocsPerRun(1000, func() {
 		n = NoIntern{}
-		easyjson.Unmarshal(data, &n)
+		err := easyjson.Unmarshal(data, &n)
+		if err != nil {
+			t.Error(err)
+		}
 		if n.Field != "string interning test" {
 			t.Fatalf("wrong value: %q", n.Field)
 		}

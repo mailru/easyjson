@@ -25,6 +25,7 @@ generate: build
 		./tests/members_unescaped.go \
 		./tests/intern.go \
 		./tests/nocopy.go \
+		./tests/escaping.go \
 
 	bin/easyjson -all ./tests/data.go
 	bin/easyjson -all ./tests/nothing.go
@@ -46,6 +47,7 @@ generate: build
 	bin/easyjson -disable_members_unescape ./tests/members_unescaped.go
 	bin/easyjson ./tests/intern.go
 	bin/easyjson ./tests/nocopy.go
+	bin/easyjson ./tests/escaping.go
 
 test: generate
 	go test \
