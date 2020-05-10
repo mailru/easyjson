@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-const structComment = "easyjson:json"
+const (
+	structComment     = "easyjson:json"
+	structSkipComment = "easyjson:skip"
+)
 
 type Parser struct {
 	PkgPath     string
@@ -25,6 +28,9 @@ type visitor struct {
 
 func (p *Parser) needType(comments string) bool {
 	for _, v := range strings.Split(comments, "\n") {
+		if strings.HasPrefix(v, structSkipComment) {
+			return false
+		}
 		if strings.HasPrefix(v, structComment) {
 			return true
 		}

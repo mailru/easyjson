@@ -2,11 +2,10 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http/httptest"
 	"reflect"
 	"testing"
-
-	"encoding/json"
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/jwriter"
@@ -253,6 +252,7 @@ func TestDisallowUnknown(t *testing.T) {
 
 var testNotGeneratedTypeCases = []interface{}{
 	TypeNotDeclared{},
+	TypeSkipped{},
 }
 
 func TestMethodsNoGenerated(t *testing.T) {

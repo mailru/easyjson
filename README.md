@@ -62,7 +62,15 @@ Usage of easyjson:
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
-file. If `-all` is not provided, then only those structs whose preceding
+file excluding those structs whose preceding comment starts with `easyjson:skip`.
+For example: 
+
+```go
+//easyjson:skip
+type A struct {}
+```
+
+If `-all` is not provided, then only those structs whose preceding
 comment starts with `easyjson:json` will have marshalers/unmarshalers
 generated. For example:
 
