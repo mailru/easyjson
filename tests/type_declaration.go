@@ -23,11 +23,6 @@ type (
 	}
 )
 
-//easyjson:skip
-type TypeSkipped struct {
-	Value string
-}
-
 var (
 	myGenDeclaredValue             = TypeDeclared{Value: "GenDeclared"}
 	myGenDeclaredString            = `{"Value":"GenDeclared"}`

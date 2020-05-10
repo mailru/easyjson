@@ -57,6 +57,7 @@ var testCases = []struct {
 	{&myGenDeclaredValue, myGenDeclaredString},
 	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
 	{&myTypeDeclaredValue, myTypeDeclaredString},
+	{&myTypeNotSkippedValue, myTypeNotSkippedString},
 	{&intern, internString},
 }
 

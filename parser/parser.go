@@ -26,16 +26,16 @@ type visitor struct {
 	name string
 }
 
-func (p *Parser) needType(comments string) bool {
+func (p *Parser) needType(comments string) (skip, explicit bool) {
 	for _, v := range strings.Split(comments, "\n") {
 		if strings.HasPrefix(v, structSkipComment) {
-			return false
+			return true, false
 		}
 		if strings.HasPrefix(v, structComment) {
-			return true
+			return false, true
 		}
 	}
-	return false
+	return false, false
 }
 
 func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
@@ -47,21 +47,23 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 		return v
 
 	case *ast.GenDecl:
-		explicit := v.needType(n.Doc.Text())
-		if !explicit {
-			return v
-		}
+		skip, explicit := v.needType(n.Doc.Text())
 
-		for _, nc := range n.Specs {
-			switch nct := nc.(type) {
-			case *ast.TypeSpec:
-				nct.Doc = n.Doc
+		if skip || explicit {
+			for _, nc := range n.Specs {
+				switch nct := nc.(type) {
+				case *ast.TypeSpec:
+					nct.Doc = n.Doc
+				}
 			}
 		}
 
 		return v
 	case *ast.TypeSpec:
-		explicit := v.needType(n.Doc.Text())
+		skip, explicit := v.needType(n.Doc.Text())
+		if skip {
+			return nil
+		}
 		if !explicit && !v.AllStructs {
 			return nil
 		}
