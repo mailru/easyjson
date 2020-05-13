@@ -21,6 +21,7 @@ generate: build
 		./tests/html.go \
 		./tests/unknown_fields.go \
 		./tests/type_declaration.go \
+		./tests/type_declaration_skip.go \
 		./tests/members_escaped.go \
 		./tests/members_unescaped.go \
 		./tests/intern.go \
@@ -43,6 +44,7 @@ generate: build
 	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
 	bin/easyjson ./tests/unknown_fields.go
 	bin/easyjson ./tests/type_declaration.go
+	bin/easyjson -all ./tests/type_declaration_skip.go
 	bin/easyjson ./tests/members_escaped.go
 	bin/easyjson -disable_members_unescape ./tests/members_unescaped.go
 	bin/easyjson ./tests/intern.go

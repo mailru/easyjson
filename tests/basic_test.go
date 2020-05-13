@@ -2,11 +2,10 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http/httptest"
 	"reflect"
 	"testing"
-
-	"encoding/json"
 
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/jwriter"
@@ -58,6 +57,7 @@ var testCases = []struct {
 	{&myGenDeclaredValue, myGenDeclaredString},
 	{&myGenDeclaredWithCommentValue, myGenDeclaredWithCommentString},
 	{&myTypeDeclaredValue, myTypeDeclaredString},
+	{&myTypeNotSkippedValue, myTypeNotSkippedString},
 	{&intern, internString},
 }
 
@@ -253,6 +253,7 @@ func TestDisallowUnknown(t *testing.T) {
 
 var testNotGeneratedTypeCases = []interface{}{
 	TypeNotDeclared{},
+	TypeSkipped{},
 }
 
 func TestMethodsNoGenerated(t *testing.T) {
