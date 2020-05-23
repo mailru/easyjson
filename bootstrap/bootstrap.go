@@ -12,15 +12,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
-	"strings"
 )
 
 const genPackage = "github.com/mailru/easyjson/gen"
 const pkgWriter = "github.com/mailru/easyjson/jwriter"
 const pkgLexer = "github.com/mailru/easyjson/jlexer"
 
-const buildArgsSeparator = " "
+var buildFlagsRegexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 type Generator struct {
 	PkgPath, PkgName string
@@ -184,7 +184,8 @@ func (g *Generator) Run() error {
 
 	execArgs := []string{"run"}
 	if g.GenBuildFlags != "" {
-		execArgs = append(execArgs, strings.Split(g.GenBuildFlags, buildArgsSeparator)...)
+		buildFlags := buildFlagsRegexp.FindAllString(g.GenBuildFlags, -1)
+		execArgs = append(execArgs, buildFlags...)
 	}
 	execArgs = append(execArgs, "-tags", g.BuildTags, filepath.Base(path))
 	cmd := exec.Command("go", execArgs...)
