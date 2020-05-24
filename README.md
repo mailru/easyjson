@@ -34,7 +34,9 @@ Usage of easyjson:
   -all
     	generate marshaler/unmarshalers for all structs in a file
   -build_tags string
-    	build tags to add to generated file
+        build tags to add to generated file
+  -gen_build_flags string
+        build flags when running the generator while bootstrapping
   -byte
         use simple bytes instead of Base64Bytes for slice of bytes
   -leave_temps
@@ -87,6 +89,10 @@ Additional option notes:
   "http_version").
 
 * `-build_tags` will add the specified build tags to generated Go sources.
+
+* `-gen_build_flags` will execute the easyjson bootstapping code to launch the 
+  actual generator command with provided flags. Multiple arguments should be
+  separated by space e.g. `-gen_build_flags="-mod=mod -x"`.
 
 ## Structure json tag options
 
