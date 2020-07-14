@@ -231,6 +231,33 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 	}
 }
 
+func TestNestedMarshaler(t *testing.T) {
+	s := NestedMarshaler{
+		Value: &StructWithMarshaler{
+			Value: 5,
+		},
+		Value2: 10,
+	}
+
+	data, err := s.MarshalJSON()
+	if err != nil {
+		t.Errorf("Can't marshal NestedMarshaler: %s", err)
+	}
+
+	s2 := NestedMarshaler {
+		Value: &StructWithMarshaler{},
+	}
+
+	err = s2.UnmarshalJSON(data)
+	if err != nil {
+		t.Errorf("Can't unmarshal NestedMarshaler: %s", err)
+	}
+
+	if !reflect.DeepEqual(s2, s) {
+		t.Errorf("easyjson.Unmarshal() = %#v; want %#v", s2, s)
+	}
+}
+
 func TestUnmarshalStructWithEmbeddedPtrStruct(t *testing.T) {
 	var s = StructWithInterface{Field2: &EmbeddedStruct{}}
 	var err error
