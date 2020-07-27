@@ -22,6 +22,12 @@ type Unmarshaler interface {
 	UnmarshalEasyJSON(w *jlexer.Lexer)
 }
 
+// MarshalerUnmarshaler is an easyjson-compatible marshaler/unmarshaler interface.
+type MarshalerUnmarshaler interface {
+	Marshaler
+	Unmarshaler
+}
+
 // Optional defines an undefined-test method for a type to integrate with 'omitempty' logic.
 type Optional interface {
 	IsDefined() bool
