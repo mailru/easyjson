@@ -6,14 +6,9 @@ import (
 	"github.com/mailru/easyjson/jwriter"
 )
 
-type MarshalerUnmarshaler interface {
-	easyjson.Marshaler
-	easyjson.Unmarshaler
-}
-
 //easyjson:json
 type NestedMarshaler struct {
-	Value MarshalerUnmarshaler
+	Value easyjson.MarshalerUnmarshaler
 	Value2 int
 }
 
