@@ -299,7 +299,6 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"}")
 
 	case reflect.Interface:
-		fmt.Printf("//%v: %v", out, g.interfaceIsEasyjsonUnmarshaller(t))
 		if t.NumMethod() != 0 {
 			if g.interfaceIsEasyjsonUnmarshaller(t) {
 				fmt.Fprintln(g.out, ws+out+".UnmarshalEasyJSON(in)")
