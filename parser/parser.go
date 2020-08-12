@@ -26,28 +26,26 @@ type visitor struct {
 	name string
 }
 
-func removeMarkers(comment string) string {
-	switch comment[1] {
-	case '/':
-		//-style comment (no newline at the end)
-		comment = comment[2:]
-	case '*':
-		/*-style comment */
-		comment = comment[2 : len(comment)-2]
-	}
-
-	comment = strings.TrimSpace(comment)
-
-	return comment
-}
-
 func (p *Parser) needType(comments *ast.CommentGroup) (skip, explicit bool) {
 	if comments == nil {
 		return
 	}
 
 	for _, v := range comments.List {
-		comment := removeMarkers(v.Text)
+		comment := v.Text
+
+		if len(comment) > 2 {
+			switch comment[1] {
+			case '/':
+				// -style comment (no newline at the end)
+				comment = comment[2:]
+			case '*':
+				/*-style comment */
+				comment = comment[2 : len(comment)-2]
+			}
+		}
+
+		comment = strings.TrimSpace(comment)
 
 		if strings.HasPrefix(comment, structSkipComment) {
 			return true, false
