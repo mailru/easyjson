@@ -26,16 +26,38 @@ type visitor struct {
 	name string
 }
 
-func (p *Parser) needType(comments string) (skip, explicit bool) {
-	for _, v := range strings.Split(comments, "\n") {
-		if strings.HasPrefix(v, structSkipComment) {
+func removeMarkers(comment string) string {
+	switch comment[1] {
+	case '/':
+		//-style comment (no newline at the end)
+		comment = comment[2:]
+	case '*':
+		/*-style comment */
+		comment = comment[2 : len(comment)-2]
+	}
+
+	comment = strings.TrimSpace(comment)
+
+	return comment
+}
+
+func (p *Parser) needType(comments *ast.CommentGroup) (skip, explicit bool) {
+	if comments == nil {
+		return
+	}
+
+	for _, v := range comments.List {
+		comment := removeMarkers(v.Text)
+
+		if strings.HasPrefix(comment, structSkipComment) {
 			return true, false
 		}
-		if strings.HasPrefix(v, structComment) {
+		if strings.HasPrefix(comment, structComment) {
 			return false, true
 		}
 	}
-	return false, false
+
+	return
 }
 
 func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
@@ -47,7 +69,7 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 		return v
 
 	case *ast.GenDecl:
-		skip, explicit := v.needType(n.Doc.Text())
+		skip, explicit := v.needType(n.Doc)
 
 		if skip || explicit {
 			for _, nc := range n.Specs {
@@ -60,7 +82,7 @@ func (v *visitor) Visit(n ast.Node) (w ast.Visitor) {
 
 		return v
 	case *ast.TypeSpec:
-		skip, explicit := v.needType(n.Doc.Text())
+		skip, explicit := v.needType(n.Doc)
 		if skip {
 			return nil
 		}
