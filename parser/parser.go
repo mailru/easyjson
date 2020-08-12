@@ -45,13 +45,15 @@ func (p *Parser) needType(comments *ast.CommentGroup) (skip, explicit bool) {
 			}
 		}
 
-		comment = strings.TrimSpace(comment)
+		for _, comment := range strings.Split(comment, "\n") {
+			comment = strings.TrimSpace(comment)
 
-		if strings.HasPrefix(comment, structSkipComment) {
-			return true, false
-		}
-		if strings.HasPrefix(comment, structComment) {
-			return false, true
+			if strings.HasPrefix(comment, structSkipComment) {
+				return true, false
+			}
+			if strings.HasPrefix(comment, structComment) {
+				return false, true
+			}
 		}
 	}
 
