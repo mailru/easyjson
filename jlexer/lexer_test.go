@@ -368,3 +368,16 @@ func TestFetchStringUnterminatedString(t *testing.T) {
 		}
 	}
 }
+
+func TestCurrentToken(t *testing.T) {
+	data := []byte(`{"foo"`)
+	tokens := []TokenKind{TokenDelim, TokenString, TokenUndef}
+	l := Lexer{Data: data}
+	for _, want := range tokens {
+		got := l.CurrentToken()
+		if got != want {
+			t.Errorf("CurrentToken() = %v; want %v (err %s)", got, want, l.Error())
+		}
+		l.Skip()
+	}
+}
