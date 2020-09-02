@@ -528,6 +528,7 @@ func (r *Lexer) Skip() {
 func (r *Lexer) SkipRecursive() {
 	r.scanToken()
 	var start, end byte
+	startPos := r.start
 
 	switch r.token.delimValue {
 	case '{':
@@ -553,6 +554,14 @@ func (r *Lexer) SkipRecursive() {
 			level--
 			if level == 0 {
 				r.pos += i + 1
+				if !json.Valid(r.Data[startPos:r.pos]) {
+					r.pos = len(r.Data)
+					r.fatalError = &LexerError{
+						Reason: "skipped array/object json value is invalid",
+						Offset: r.pos,
+						Data:   string(r.Data[r.pos:]),
+					}
+				}
 				return
 			}
 		case c == '\\' && inQuotes:
