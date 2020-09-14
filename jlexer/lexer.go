@@ -667,6 +667,8 @@ func (r *Lexer) String() string {
 	}
 	var ret string
 	if r.token.byteValueCloned {
+		r.token.byteValueCloned = false
+
 		ret = bytesToStr(r.token.byteValue)
 	} else {
 		ret = string(r.token.byteValue)
