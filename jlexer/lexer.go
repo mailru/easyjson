@@ -401,6 +401,7 @@ func (r *Lexer) scanToken() {
 // consume resets the current token to allow scanning the next one.
 func (r *Lexer) consume() {
 	r.token.kind = tokenUndef
+	r.token.byteValueCloned = false
 	r.token.delimValue = 0
 }
 
@@ -667,8 +668,6 @@ func (r *Lexer) String() string {
 	}
 	var ret string
 	if r.token.byteValueCloned {
-		r.token.byteValueCloned = false
-
 		ret = bytesToStr(r.token.byteValue)
 	} else {
 		ret = string(r.token.byteValue)
