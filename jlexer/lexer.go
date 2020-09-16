@@ -401,6 +401,7 @@ func (r *Lexer) scanToken() {
 // consume resets the current token to allow scanning the next one.
 func (r *Lexer) consume() {
 	r.token.kind = tokenUndef
+	r.token.byteValueCloned = false
 	r.token.delimValue = 0
 }
 
