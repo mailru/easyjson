@@ -201,6 +201,10 @@ func TestSkipRecursive(t *testing.T) {
 
 		// object with double slashes at the end of string
 		{toParse: `{"a":"hey\\"}, 4`, left: ", 4"},
+
+		// make sure skipping an invalid json results in an error
+		{toParse: `{"a": [ ##invalid json## ]}, 4`, wantError: true},
+		{toParse: `{"a": [ [1], [ ##invalid json## ]]}, 4`, wantError: true},
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
