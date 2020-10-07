@@ -52,6 +52,7 @@ type Lexer struct {
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
 
+	CoerceToString    bool          // If we want the lexer just parse booleans and numbers as strings
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
 	multipleErrors    []*LexerError // Semantic errors occurred during lexing. Marshalling will be continued after finding this errors.
@@ -658,22 +659,41 @@ func (r *Lexer) String() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() {
 		r.errInvalidToken("string")
 		return ""
 	}
-	if err := r.unescapeStringToken(); err != nil {
+
+	if r.token.kind != tokenString && !r.CoerceToString {
 		r.errInvalidToken("string")
 		return ""
 	}
-	var ret string
-	if r.token.byteValueCloned {
-		ret = bytesToStr(r.token.byteValue)
-	} else {
-		ret = string(r.token.byteValue)
+	switch r.token.kind {
+	case tokenString:
+		if err := r.unescapeStringToken(); err != nil {
+			r.errInvalidToken("string")
+			return ""
+		}
+		var ret string
+		if r.token.byteValueCloned {
+			ret = bytesToStr(r.token.byteValue)
+		} else {
+			ret = string(r.token.byteValue)
+		}
+		r.consume()
+		return ret
+	case tokenBool:
+		ret := r.token.boolValue
+		r.consume()
+		return strconv.FormatBool(ret)
+	case tokenNumber:
+		ret := bytesToStr(r.token.byteValue)
+		r.consume()
+		return ret
+	default:
+		r.errInvalidToken("string")
+		return ""
 	}
-	r.consume()
-	return ret
 }
 
 // StringIntern reads a string literal, and performs string interning on it.

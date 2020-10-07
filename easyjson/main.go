@@ -31,6 +31,7 @@ var specifiedName = flag.String("output_filename", "", "specify the filename of 
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
 var update = flag.Bool("update", false, "only update changed files")
+var coerceToString = flag.Bool("coerce_to_string", false, "tolerate bools and numbers when we expect strings and coerce them")
 var skipMemberNameUnescaping = flag.Bool("disable_members_unescape", false, "don't perform unescaping of member names to improve performance")
 
 func generate(fname string) (err error) {
@@ -94,6 +95,7 @@ func generate(fname string) (err error) {
 		LowerCamelCase:           *lowerCamelCase,
 		NoStdMarshalers:          *noStdMarshalers,
 		DisallowUnknownFields:    *disallowUnknownFields,
+		CoerceToString:           *coerceToString,
 		SkipMemberNameUnescaping: *skipMemberNameUnescaping,
 		OmitEmpty:                *omitEmpty,
 		LeaveTemps:               *leaveTemps,

@@ -569,7 +569,7 @@ func (g *Generator) genStructUnmarshaler(t reflect.Type) error {
 	if !g.noStdMarshalers {
 		fmt.Fprintln(g.out, "// UnmarshalJSON supports json.Unmarshaler interface")
 		fmt.Fprintln(g.out, "func (v *"+typ+") UnmarshalJSON(data []byte) error {")
-		fmt.Fprintln(g.out, "  r := jlexer.Lexer{Data: data}")
+		fmt.Fprintf(g.out, "  r := jlexer.Lexer{Data: data, CoerceToString: %v}\n", g.coerceToString)
 		fmt.Fprintln(g.out, "  "+fname+"(&r, v)")
 		fmt.Fprintln(g.out, "  return r.Error()")
 		fmt.Fprintln(g.out, "}")

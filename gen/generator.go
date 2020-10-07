@@ -36,6 +36,7 @@ type Generator struct {
 	noStdMarshalers          bool
 	omitEmpty                bool
 	disallowUnknownFields    bool
+	coerceToString           bool
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
@@ -116,6 +117,11 @@ func (g *Generator) NoStdMarshalers() {
 // DisallowUnknownFields instructs not to skip unknown fields in json and return error.
 func (g *Generator) DisallowUnknownFields() {
 	g.disallowUnknownFields = true
+}
+
+// CoerceToString instructs not to coorce bools and numbers to strings
+func (g *Generator) CoerceToString() {
+	g.coerceToString = true
 }
 
 // SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance

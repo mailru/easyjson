@@ -3,15 +3,17 @@ package jlexer
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 )
 
 func TestString(t *testing.T) {
 	for i, test := range []struct {
-		toParse   string
-		want      string
-		wantError bool
+		toParse        string
+		coerceToString bool
+		want           string
+		wantError      bool
 	}{
 		{toParse: `"simple string"`, want: "simple string"},
 		{toParse: " \r\r\n\t  " + `"test"`, want: "test"},
@@ -25,38 +27,47 @@ func TestString(t *testing.T) {
 
 		{toParse: `"test"junk`, want: "test"},
 
-		{toParse: `5`, wantError: true},    // not a string
+		{toParse: `5`, wantError: true}, // not a string
+		{toParse: `5`, coerceToString: true, want: "5"},
+		{toParse: `true`, coerceToString: true, want: "true"},
+		{toParse: `false`, coerceToString: true, want: "false"},
 		{toParse: `"\x"`, wantError: true}, // invalid escape
 		{toParse: `"\ud800"`, want: "�"},   // invalid utf-8 char; return replacement char
 	} {
-		{
-			l := Lexer{Data: []byte(test.toParse)}
+		t.Run(fmt.Sprintf("toParse=%v,coerceToString=%v", test.toParse, test.coerceToString), func(t *testing.T) {
+			if !test.coerceToString {
+				t.SkipNow()
+			}
+			{
+				l := Lexer{Data: []byte(test.toParse), CoerceToString: test.coerceToString}
 
-			got := l.String()
-			if got != test.want {
-				t.Errorf("[%d, %q] String() = %v; want %v", i, test.toParse, got, test.want)
+				got := l.String()
+				if got != test.want {
+					t.Errorf("[%d, %q] String() = %v; want %v", i, test.toParse, got, test.want)
+				}
+				err := l.Error()
+				if err != nil && !test.wantError {
+					t.Errorf("[%d, %q] String() error: %v", i, test.toParse, err)
+				} else if err == nil && test.wantError {
+					t.Errorf("[%d, %q] String() ok; want error", i, test.toParse)
+				}
 			}
-			err := l.Error()
-			if err != nil && !test.wantError {
-				t.Errorf("[%d, %q] String() error: %v", i, test.toParse, err)
-			} else if err == nil && test.wantError {
-				t.Errorf("[%d, %q] String() ok; want error", i, test.toParse)
-			}
-		}
-		{
-			l := Lexer{Data: []byte(test.toParse)}
 
-			got := l.StringIntern()
-			if got != test.want {
-				t.Errorf("[%d, %q] String() = %v; want %v", i, test.toParse, got, test.want)
+			{
+				l := Lexer{Data: []byte(test.toParse)}
+
+				got := l.StringIntern()
+				if got != test.want {
+					t.Errorf("[%d, %q] String() = %v; want %v", i, test.toParse, got, test.want)
+				}
+				err := l.Error()
+				if err != nil && !test.wantError {
+					t.Errorf("[%d, %q] String() error: %v", i, test.toParse, err)
+				} else if err == nil && test.wantError {
+					t.Errorf("[%d, %q] String() ok; want error", i, test.toParse)
+				}
 			}
-			err := l.Error()
-			if err != nil && !test.wantError {
-				t.Errorf("[%d, %q] String() error: %v", i, test.toParse, err)
-			} else if err == nil && test.wantError {
-				t.Errorf("[%d, %q] String() ok; want error", i, test.toParse)
-			}
-		}
+		})
 	}
 }
 

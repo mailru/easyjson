@@ -30,6 +30,7 @@ type Generator struct {
 	SnakeCase                bool
 	LowerCamelCase           bool
 	OmitEmpty                bool
+	CoerceToString           bool
 	DisallowUnknownFields    bool
 	SkipMemberNameUnescaping bool
 
@@ -130,6 +131,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.DisallowUnknownFields {
 		fmt.Fprintln(f, "  g.DisallowUnknownFields()")
+	}
+	if g.CoerceToString {
+		fmt.Fprintln(f, "  g.CoerceToString()")
 	}
 	if g.SimpleBytes {
 		fmt.Fprintln(f, "  g.SimpleBytes()")
