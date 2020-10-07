@@ -74,6 +74,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.name = s
 		case s == "omitempty":
 			ret.omitEmpty = true
+		// the remaining tags are invalid json tags, you'd be better off using `easyjson:"!omitempty"`
+		// if you want to use `staticcheck` to lint your code
 		case s == "!omitempty":
 			ret.noOmitEmpty = true
 		case s == "string":
@@ -86,7 +88,20 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.noCopy = true
 		}
 	}
-
+	for _, s := range strings.Split(f.Tag.Get("easyjson"), ",") {
+		switch {
+		case s == "!omitempty":
+			ret.noOmitEmpty = true
+		case s == "string":
+			ret.asString = true
+		case s == "required":
+			ret.required = true
+		case s == "intern":
+			ret.intern = true
+		case s == "nocopy":
+			ret.noCopy = true
+		}
+	}
 	return ret
 }
 

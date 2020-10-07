@@ -59,6 +59,8 @@ Usage of easyjson:
     	only generate stubs for marshaler/unmarshaler funcs
   -disallow_unknown_fields
         return error if some unknown field in json appeared
+  -update
+        only update changed files
   -disable_members_unescape
         disable unescaping of \uXXXX string sequences in member names
 ```
@@ -180,7 +182,7 @@ fields, e.g.:
 ```go
 type Foo struct {
   UUID  string `json:"uuid"`         // will not be interned during unmarshaling
-  State string `json:"state,intern"` // will be interned during unmarshaling
+  State string `json:"state" easyjson:"intern"` // will be interned during unmarshaling
 }
 ```
 

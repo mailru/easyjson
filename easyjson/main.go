@@ -30,6 +30,7 @@ var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output fil
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
+var update = flag.Bool("update", false, "only update changed files")
 var skipMemberNameUnescaping = flag.Bool("disable_members_unescape", false, "don't perform unescaping of member names to improve performance")
 
 func generate(fname string) (err error) {
@@ -51,6 +52,21 @@ func generate(fname string) (err error) {
 			return errors.New("Filename must end in '.go'")
 		} else {
 			outName = s + "_easyjson.go"
+		}
+	}
+
+	if *update {
+		stat, err := os.Stat(outName)
+		if err != nil {
+			if !os.IsNotExist(err) {
+
+				return err
+			}
+		} else {
+			if stat.ModTime().After(fInfo.ModTime()) {
+				println("Skipping JSON marshallers/unmarshallers for file:", fname, "up to date")
+				return nil
+			}
 		}
 	}
 
@@ -86,6 +102,8 @@ func generate(fname string) (err error) {
 		NoFormat:                 *noformat,
 		SimpleBytes:              *simpleBytes,
 	}
+
+	println("Generating JSON marshallers/unmarshallers for file:", fname)
 
 	if err := g.Run(); err != nil {
 		return fmt.Errorf("Bootstrap failed: %v", err)
