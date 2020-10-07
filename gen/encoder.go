@@ -90,6 +90,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 	}
 	for _, s := range strings.Split(f.Tag.Get("easyjson"), ",") {
 		switch {
+		case s == "omitempty":
+			ret.omitEmpty = true
 		case s == "!omitempty":
 			ret.noOmitEmpty = true
 		case s == "string":
