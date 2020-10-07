@@ -35,9 +35,6 @@ func TestString(t *testing.T) {
 		{toParse: `"\ud800"`, want: "�"},   // invalid utf-8 char; return replacement char
 	} {
 		t.Run(fmt.Sprintf("toParse=%v,coerceToString=%v", test.toParse, test.coerceToString), func(t *testing.T) {
-			if !test.coerceToString {
-				t.SkipNow()
-			}
 			{
 				l := Lexer{Data: []byte(test.toParse), CoerceToString: test.coerceToString}
 

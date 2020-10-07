@@ -29,18 +29,28 @@ invokes `go run` on a temporary file (an approach to code generation borrowed
 from [ffjson](https://github.com/pquerna/ffjson)).
 
 ## Options
+
+<!-- run `go run ./easyjson` to update this -->
 ```txt
 Usage of easyjson:
   -all
     	generate marshaler/unmarshalers for all structs in a file
   -build_tags string
-        build tags to add to generated file
-  -gen_build_flags string
-        build flags when running the generator while bootstrapping
+    	build tags to add to generated file
   -byte
-        use simple bytes instead of Base64Bytes for slice of bytes
+    	use simple bytes instead of Base64Bytes for slice of bytes
+  -coerce_to_string
+    	tolerate bools and numbers when we expect strings and coerce them
+  -disable_members_unescape
+    	don't perform unescaping of member names to improve performance
+  -disallow_unknown_fields
+    	return error if any unknown field in json appeared
+  -gen_build_flags string
+    	build flags when running the generator while bootstrapping
   -leave_temps
     	do not delete temporary files
+  -lower_camel_case
+    	use lowerCamelCase names instead of CamelCase by default
   -no_std_marshalers
     	don't generate MarshalJSON/UnmarshalJSON funcs
   -noformat
@@ -53,16 +63,10 @@ Usage of easyjson:
     	process the whole package instead of just the given file
   -snake_case
     	use snake_case names instead of CamelCase by default
-  -lower_camel_case
-        use lowerCamelCase instead of CamelCase by default
   -stubs
     	only generate stubs for marshaler/unmarshaler funcs
-  -disallow_unknown_fields
-        return error if some unknown field in json appeared
   -update
-        only update changed files
-  -disable_members_unescape
-        disable unescaping of \uXXXX string sequences in member names
+    	only update changed files
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
