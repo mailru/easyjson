@@ -51,7 +51,7 @@ func TestString(t *testing.T) {
 			}
 
 			{
-				l := Lexer{Data: []byte(test.toParse)}
+				l := Lexer{Data: []byte(test.toParse), CoerceToString: test.coerceToString}
 
 				got := l.StringIntern()
 				if got != test.want {

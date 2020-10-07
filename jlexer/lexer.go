@@ -701,11 +701,31 @@ func (r *Lexer) StringIntern() string {
 	if r.token.kind == tokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != tokenString {
+	if !r.Ok() {
 		r.errInvalidToken("string")
 		return ""
 	}
-	if err := r.unescapeStringToken(); err != nil {
+	if r.token.kind != tokenString && !r.CoerceToString {
+		r.errInvalidToken("string")
+		return ""
+	}
+	switch r.token.kind {
+	case tokenString:
+		if err := r.unescapeStringToken(); err != nil {
+			r.errInvalidToken("string")
+			return ""
+		}
+	case tokenBool:
+		var ret string
+		if r.token.boolValue {
+			ret = "true"
+		} else {
+			ret = "false"
+		}
+		r.consume()
+		return ret
+	case tokenNumber:
+	default:
 		r.errInvalidToken("string")
 		return ""
 	}
