@@ -663,7 +663,6 @@ func (r *Lexer) String() string {
 		r.errInvalidToken("string")
 		return ""
 	}
-
 	if r.token.kind != tokenString && !r.CoerceToString {
 		r.errInvalidToken("string")
 		return ""

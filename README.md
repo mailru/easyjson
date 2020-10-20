@@ -65,8 +65,6 @@ Usage of easyjson:
     	use snake_case names instead of CamelCase by default
   -stubs
     	only generate stubs for marshaler/unmarshaler funcs
-  -update
-    	only update changed files
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
@@ -186,7 +184,7 @@ fields, e.g.:
 ```go
 type Foo struct {
   UUID  string `json:"uuid"`         // will not be interned during unmarshaling
-  State string `json:"state" easyjson:"intern"` // will be interned during unmarshaling
+  State string `json:"state,intern"` // will be interned during unmarshaling
 }
 ```
 
