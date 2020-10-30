@@ -7,6 +7,9 @@ go:
 matrix:
   allow_failures:
     - go: tip
-
+    # added power support arch.
+  allow_failures:
+    - go: tip
+      arch: - ppc64le
 install:
   - go get golang.org/x/lint/golint
