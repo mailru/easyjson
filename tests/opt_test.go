@@ -30,6 +30,9 @@ type OptsVanilla struct {
 
 	Bool   opt.Bool
 	String opt.String
+
+	Time     opt.Time
+	Duration opt.Duration
 }
 
 var optsVanillaValue = OptsVanilla{
@@ -51,6 +54,9 @@ var optsVanillaValue = OptsVanilla{
 
 	Bool:   opt.OBool(true),
 	String: opt.OString("foo"),
+
+	Time:     opt.OTime(currentTime),
+	Duration: opt.ODuration(5),
 }
 
 func TestOptsVanilla(t *testing.T) {

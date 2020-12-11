@@ -4,6 +4,7 @@ package jwriter
 import (
 	"io"
 	"strconv"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mailru/easyjson/buffer"
@@ -266,6 +267,24 @@ func (w *Writer) Bool(v bool) {
 	} else {
 		w.Buffer.Buf = append(w.Buffer.Buf, "false"...)
 	}
+}
+
+func (w *Writer) Time(n time.Time) {
+	formattedTime := n.Format(time.RFC3339Nano)
+	w.Buffer.EnsureSpace(21)
+	w.Buffer.Buf = append(w.Buffer.Buf, `"`+formattedTime+`"`...)
+}
+
+func (w *Writer) Duration(n time.Duration) {
+	w.Buffer.EnsureSpace(21)
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+}
+
+func (w *Writer) DurationStr(n time.Duration) {
+	w.Buffer.EnsureSpace(21)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
 }
 
 const chars = "0123456789abcdef"

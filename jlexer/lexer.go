@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
@@ -1108,6 +1109,50 @@ func (r *Lexer) Float64Str() float64 {
 		})
 	}
 	return n
+}
+
+func (r *Lexer) Time() time.Time {
+	if r.token.kind == tokenUndef && r.Ok() {
+		r.FetchToken()
+	}
+	if !r.Ok() {
+		r.errInvalidToken("time.Time")
+		return time.Time{}
+	}
+
+	ret := r.token.byteValue
+	r.consume()
+
+	t, err := time.Parse(time.RFC3339Nano, string(ret))
+	if err != nil {
+		return time.Time{}
+	}
+
+	return t
+}
+
+func (r *Lexer) TimeStr() time.Time {
+	s, b := r.unsafeString(false)
+	if !r.Ok() {
+		return time.Time{}
+	}
+
+	t, err := time.Parse(s, string(b))
+	if err != nil {
+		return time.Time{}
+	}
+
+	return t
+}
+
+func (r *Lexer) Duration() time.Duration {
+	n := r.Int64()
+	return time.Duration(n)
+}
+
+func (r *Lexer) DurationStr() time.Duration {
+	n := r.Int64Str()
+	return time.Duration(n)
 }
 
 func (r *Lexer) Error() error {

@@ -14,6 +14,9 @@ type PrimitiveTypes struct {
 	String string
 	Bool   bool
 
+	Time     time.Time
+	Duration time.Duration
+
 	Int   int
 	Int8  int8
 	Int16 int16
@@ -48,10 +51,14 @@ type PrimitiveTypes struct {
 	PtrNil *string
 }
 
+var currentTime = time.Now().Local()
 var str = "bla"
 
 var primitiveTypesValue = PrimitiveTypes{
 	String: "test", Bool: true,
+
+	Time:     currentTime,
+	Duration: 5,
 
 	Int:   math.MinInt32,
 	Int8:  math.MinInt8,
@@ -88,7 +95,8 @@ var primitiveTypesValue = PrimitiveTypes{
 
 var primitiveTypesString = "{" +
 	`"String":"test","Bool":true,` +
-
+	`"Time":"` + fmt.Sprint(currentTime.Format(time.RFC3339Nano)) + `",` +
+	`"Duration":` + fmt.Sprint(5) + `,` +
 	`"Int":` + fmt.Sprint(math.MinInt32) + `,` +
 	`"Int8":` + fmt.Sprint(math.MinInt8) + `,` +
 	`"Int16":` + fmt.Sprint(math.MinInt16) + `,` +
@@ -771,6 +779,18 @@ type MapMyIntString map[MyInt]string
 
 var mapMyIntStringValue = MapMyIntString{MyInt(42): "life"}
 var mapMyIntStringValueString = `{"42":"life"}`
+
+//easyjson:json
+type MapTimeString map[time.Time]string
+
+var mapTimeStringValue = MapTimeString{currentTime: "life"}
+var mapTimeStringValueString = `{"` + currentTime.Format(time.RFC3339Nano) + `":"life"}`
+
+//easyjson:json
+type MapDurationString map[time.Duration]string
+
+var mapDurationStringValue = MapDurationString{5: "life"}
+var mapDurationStringValueString = `{"5":"life"}`
 
 //easyjson:json
 type IntKeyedMapStruct struct {
