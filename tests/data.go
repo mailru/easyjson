@@ -51,7 +51,7 @@ type PrimitiveTypes struct {
 	PtrNil *string
 }
 
-var currentTime = time.Now().Local()
+var currentTime = time.Now().UTC()
 var str = "bla"
 
 var primitiveTypesValue = PrimitiveTypes{
