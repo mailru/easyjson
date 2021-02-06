@@ -89,6 +89,7 @@ func TestBytes(t *testing.T) {
 	}{
 		{toParse: `"c2ltcGxlIHN0cmluZw=="`, want: "simple string"},
 		{toParse: " \r\r\n\t  " + `"dGVzdA=="`, want: "test"},
+		{toParse: `"c3ViamVjdHM\/X2Q9MQ=="`, want: "subjects?_d=1"}, // base64 with forward slash escaped
 
 		{toParse: `5`, wantError: true},                     // not a JSON string
 		{toParse: `"foobar"`, wantError: true},              // not base64 encoded
