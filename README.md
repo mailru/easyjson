@@ -136,6 +136,14 @@ that satisfy the `easyjson.Marshaler` / `easyjson.Unmarshaler` interfaces.
 These will be used by `easyjson.Marshal` and `easyjson.Unmarshal` when defined
 for a Go type.
 
+Note: easyjson does not currently skip code generation for types which already define their own `MarshalEasyJSON`/`UnmarshalEasyJSON`
+functions, meaning that code generation will result in duplicate method errors like:
+
+`(*MyStruct).UnmarshalEasyJSON redeclared in this block`
+
+This can be avoided by excluding types with custom marshalling behavior from easyjson code generation, either using
+`//easyjson:skip` (with `-all`) or by simply not including them in the `easyjson` invocation. 
+
 Go types can also satisfy the `easyjson.Optional` interface, which allows the
 type to define its own `omitempty` logic.
 
