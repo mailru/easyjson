@@ -49,6 +49,8 @@ var testCases = []struct {
 	{&mapUint32StringValue, mapUint32StringValueString},
 	{&mapUint64StringValue, mapUint64StringValueString},
 	{&mapUintptrStringValue, mapUintptrStringValueString},
+	{&mapTimeStringValue, mapTimeStringValueString},
+	{&mapDurationStringValue, mapDurationStringValueString},
 	{&intKeyedMapStructValue, intKeyedMapStructValueString},
 	{&intArrayStructValue, intArrayStructValueString},
 	{&myUInt8SliceValue, myUInt8SliceString},
@@ -244,7 +246,7 @@ func TestNestedMarshaler(t *testing.T) {
 		t.Errorf("Can't marshal NestedMarshaler: %s", err)
 	}
 
-	s2 := NestedMarshaler {
+	s2 := NestedMarshaler{
 		Value: &StructWithMarshaler{},
 	}
 
