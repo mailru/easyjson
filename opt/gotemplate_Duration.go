@@ -3,27 +3,25 @@
 package opt
 
 import (
-	"fmt"
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
-	"time"
 )
 
 // template type Optional(A)
 
 // A 'gotemplate'-based type for providing optional semantics without using pointers.
 type Duration struct {
-	V       time.Duration
+	V       string
 	Defined bool
 }
 
 // Creates an optional type with a given value.
-func ODuration(v time.Duration) Duration {
+func ODuration(v string) Duration {
 	return Duration{V: v, Defined: true}
 }
 
 // Get returns the value or given default in the case the value is undefined.
-func (v Duration) Get(deflt time.Duration) time.Duration {
+func (v Duration) Get(deflt string) string {
 	if !v.Defined {
 		return deflt
 	}
@@ -75,5 +73,5 @@ func (v Duration) String() string {
 	if !v.Defined {
 		return "<undefined>"
 	}
-	return fmt.Sprint(v.V)
+	return v.V
 }

@@ -56,7 +56,7 @@ var optsVanillaValue = OptsVanilla{
 	String: opt.OString("foo"),
 
 	Time:     opt.OTime(currentTime),
-	Duration: opt.ODuration(5),
+	Duration: opt.ODuration("5"),
 }
 
 func TestOptsVanilla(t *testing.T) {

@@ -1145,14 +1145,14 @@ func (r *Lexer) TimeStr() time.Time {
 	return t
 }
 
-func (r *Lexer) Duration() time.Duration {
+func (r *Lexer) Duration() string {
 	n := r.Int64()
-	return time.Duration(n)
+	return strconv.FormatInt(n, 10)
 }
 
-func (r *Lexer) DurationStr() time.Duration {
+func (r *Lexer) DurationStr() string {
 	n := r.Int64Str()
-	return time.Duration(n)
+	return strconv.FormatInt(n, 10)
 }
 
 func (r *Lexer) Error() error {

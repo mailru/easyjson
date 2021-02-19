@@ -275,9 +275,9 @@ func (w *Writer) Time(n time.Time) {
 	w.Buffer.Buf = append(w.Buffer.Buf, `"`+formattedTime+`"`...)
 }
 
-func (w *Writer) Duration(n time.Duration) {
+func (w *Writer) Duration(n string) {
 	w.Buffer.EnsureSpace(21)
-	w.Buffer.Buf = strconv.AppendInt(w.Buffer.Buf, int64(n), 10)
+	w.Buffer.Buf = append(w.Buffer.Buf, n...)
 }
 
 func (w *Writer) DurationStr(n time.Duration) {
