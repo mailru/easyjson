@@ -61,10 +61,11 @@ type Generator struct {
 func NewGenerator(filename string) *Generator {
 	ret := &Generator{
 		imports: map[string]string{
-			pkgWriter:       "jwriter",
-			pkgLexer:        "jlexer",
-			pkgEasyJSON:     "easyjson",
-			"encoding/json": "json",
+			pkgWriter:                        "jwriter",
+			pkgLexer:                         "jlexer",
+			pkgEasyJSON:                      "easyjson",
+			"encoding/json":                  "json",
+			"github.com/mailru/easyjson/gen": "_",
 		},
 		fieldNamer:    DefaultFieldNamer{},
 		marshalers:    make(map[reflect.Type]bool),
