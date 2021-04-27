@@ -89,6 +89,7 @@ func TestBytes(t *testing.T) {
 	}{
 		{toParse: `"c2ltcGxlIHN0cmluZw=="`, want: "simple string"},
 		{toParse: " \r\r\n\t  " + `"dGVzdA=="`, want: "test"},
+		{toParse: `"c3ViamVjdHM\/X2Q9MQ=="`, want: "subjects?_d=1"}, // base64 with forward slash escaped
 
 		{toParse: `5`, wantError: true},                     // not a JSON string
 		{toParse: `"foobar"`, wantError: true},              // not base64 encoded
@@ -201,6 +202,10 @@ func TestSkipRecursive(t *testing.T) {
 
 		// object with double slashes at the end of string
 		{toParse: `{"a":"hey\\"}, 4`, left: ", 4"},
+
+		// make sure skipping an invalid json results in an error
+		{toParse: `{"a": [ ##invalid json## ]}, 4`, wantError: true},
+		{toParse: `{"a": [ [1], [ ##invalid json## ]]}, 4`, wantError: true},
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
