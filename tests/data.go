@@ -820,3 +820,27 @@ type MyUInt8Array [2]MyUInt8
 var myUInt8ArrayValue = MyUInt8Array{1, 2}
 
 var myUInt8ArrayString = `[1,2]`
+
+type GrandChild struct {
+	V string `json:"v"`
+}
+
+//easyjson:json
+type EmbedAnonWithEmbed struct {
+	Child struct {
+		GrandChild
+		Sibling string `json:"sibling"`
+	} `json:"child"`
+}
+
+var embedAnonWithEmbedValue = EmbedAnonWithEmbed{
+	Child: struct {
+		GrandChild
+		Sibling string `json:"sibling"`
+	}{
+		GrandChild: GrandChild{V: "val"},
+		Sibling:    "joe",
+	},
+}
+
+var embedAnonWithEmbedString = `{"child":{"sibling":"joe","v":"val"}}`

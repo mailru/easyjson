@@ -61,26 +61,34 @@ var customDecoders = map[string]string{
 func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, indent int) error {
 	ws := strings.Repeat("  ", indent)
 
-	unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"("+out+").UnmarshalEasyJSON(in)")
-		return nil
-	}
+	// If the type is unnamed, then this is an anonymous struct. If that anon
+	// struct embeds another, named struct that implements one of these
+	// interfaces, then Implements(...) will return true, even if the anon
+	// struct has other fields. That causes us to skip code gen for those
+	// extra fields. This addresses
+	// https://github.com/mailru/easyjson/issues/337.
+	if t.Name() != "" {
+		unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(unmarshalerIface) {
+			fmt.Fprintln(g.out, ws+"("+out+").UnmarshalEasyJSON(in)")
+			return nil
+		}
 
-	unmarshalerIface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
-		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
-		fmt.Fprintln(g.out, ws+"}")
-		return nil
-	}
+		unmarshalerIface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(unmarshalerIface) {
+			fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
+			fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
+			fmt.Fprintln(g.out, ws+"}")
+			return nil
+		}
 
-	unmarshalerIface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
-		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalText(data) )")
-		fmt.Fprintln(g.out, ws+"}")
-		return nil
+		unmarshalerIface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(unmarshalerIface) {
+			fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
+			fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalText(data) )")
+			fmt.Fprintln(g.out, ws+"}")
+			return nil
+		}
 	}
 
 	err := g.genTypeDecoderNoCheck(t, out, tags, indent)
