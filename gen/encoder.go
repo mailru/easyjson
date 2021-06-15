@@ -269,7 +269,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 				fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
 				fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
 				fmt.Fprintln(g.out, ws+"} else {")
-				fmt.Fprintln(g.out, ws+in+".MarshalJSON(out)")
+				fmt.Fprintln(g.out, ws+in+".MarshalJSON()")
 				fmt.Fprintln(g.out, ws+"}")
 			} else {
 				return fmt.Errorf("interface type %v not supported: only interface{} and interfaces that implement json or easyjson Marshaling are allowed", t)
