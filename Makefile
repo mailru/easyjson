@@ -62,6 +62,14 @@ test: generate
 	cd benchmark && go test -benchmem -tags use_easyjson -bench .
 	golint -set_exit_status ./tests/*_easyjson.go
 
+tiny-generate: build
+	bin/easyjson -all \
+		./tiny-tests/cosmwasm.go
+
+tiny-test: tiny-generate
+	go test ./tiny-tests
+	# golint -set_exit_status ./tiny-tests/*_easyjson.go
+
 bench-other: generate
 	cd benchmark && make
 
