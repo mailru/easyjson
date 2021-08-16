@@ -59,11 +59,7 @@ func TestInfoEncoding(t *testing.T) {
 		"empty": {
 			input:    `{}`,
 			expected: MessageInfo{},
-			// TODO: where to set this?
-			// desired behavior can be set by
-			// writer := &jwriter.Writer{Flags: jwriter.NilSliceAsEmpty}
-			// output: `{"signer":"","funds":[]}`,
-			output: `{"signer":"","funds":null}`,
+			output:   `{"signer":"","funds":[]}`,
 		},
 		"top fields": {
 			input: `{"signer":"cosmos1234","funds":[]}`,
