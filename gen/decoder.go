@@ -53,9 +53,7 @@ var primitiveStringDecoders = map[reflect.Kind]string{
 	reflect.Float64: "in.Float64Str()",
 }
 
-var customDecoders = map[string]string{
-	"json.Number": "in.JsonNumber()",
-}
+var customDecoders = map[string]string{}
 
 // genTypeDecoder generates decoding code for the type t, but uses unmarshaler interface if implemented by t.
 func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, indent int) error {
