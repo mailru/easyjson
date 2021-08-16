@@ -6,7 +6,7 @@ clean:
 	rm -rf benchmark/*_easyjson.go
 
 build:
-	go build -i -o ./bin/easyjson ./easyjson
+	go build -o ./bin/easyjson ./easyjson
 
 generate: build
 	bin/easyjson -stubs \
@@ -67,7 +67,7 @@ tiny-generate: build
 		./tiny-tests/cosmwasm.go
 
 tiny-test: tiny-generate
-	go test ./tiny-tests
+	go test -v ./tiny-tests
 	# golint -set_exit_status ./tiny-tests/*_easyjson.go
 
 bench-other: generate
