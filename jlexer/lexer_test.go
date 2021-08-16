@@ -2,7 +2,6 @@ package jlexer
 
 import (
 	"bytes"
-	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -289,68 +288,6 @@ func TestConsumed(t *testing.T) {
 			t.Errorf("[%d, %q] Consumed() error: %v", i, test.toParse, err)
 		} else if err == nil && test.wantError {
 			t.Errorf("[%d, %q] Consumed() ok; want error", i, test.toParse)
-		}
-	}
-}
-
-func TestJsonNumber(t *testing.T) {
-	for i, test := range []struct {
-		toParse        string
-		want           json.Number
-		wantLexerError bool
-		wantValue      interface{}
-		wantValueError bool
-	}{
-		{toParse: `10`, want: json.Number("10"), wantValue: int64(10)},
-		{toParse: `0`, want: json.Number("0"), wantValue: int64(0)},
-		{toParse: `0.12`, want: json.Number("0.12"), wantValue: 0.12},
-		{toParse: `25E-4`, want: json.Number("25E-4"), wantValue: 25e-4},
-
-		{toParse: `"10"`, want: json.Number("10"), wantValue: int64(10)},
-		{toParse: `"0"`, want: json.Number("0"), wantValue: int64(0)},
-		{toParse: `"0.12"`, want: json.Number("0.12"), wantValue: 0.12},
-		{toParse: `"25E-4"`, want: json.Number("25E-4"), wantValue: 25e-4},
-
-		{toParse: `"foo"`, want: json.Number("foo"), wantValueError: true},
-		{toParse: `null`, want: json.Number(""), wantValueError: true},
-
-		{toParse: `"a""`, want: json.Number("a"), wantValueError: true},
-
-		{toParse: `[1]`, want: json.Number(""), wantLexerError: true, wantValueError: true},
-		{toParse: `{}`, want: json.Number(""), wantLexerError: true, wantValueError: true},
-		{toParse: `a`, want: json.Number(""), wantLexerError: true, wantValueError: true},
-	} {
-		l := Lexer{Data: []byte(test.toParse)}
-
-		got := l.JsonNumber()
-		if got != test.want {
-			t.Errorf("[%d, %q] JsonNumber() = %v; want %v", i, test.toParse, got, test.want)
-		}
-
-		err := l.Error()
-		if err != nil && !test.wantLexerError {
-			t.Errorf("[%d, %q] JsonNumber() lexer error: %v", i, test.toParse, err)
-		} else if err == nil && test.wantLexerError {
-			t.Errorf("[%d, %q] JsonNumber() ok; want lexer error", i, test.toParse)
-		}
-
-		var valueErr error
-		var gotValue interface{}
-		switch test.wantValue.(type) {
-		case float64:
-			gotValue, valueErr = got.Float64()
-		default:
-			gotValue, valueErr = got.Int64()
-		}
-
-		if !reflect.DeepEqual(gotValue, test.wantValue) && !test.wantLexerError && !test.wantValueError {
-			t.Errorf("[%d, %q] JsonNumber() = %v; want %v", i, test.toParse, gotValue, test.wantValue)
-		}
-
-		if valueErr != nil && !test.wantValueError {
-			t.Errorf("[%d, %q] JsonNumber() value error: %v", i, test.toParse, valueErr)
-		} else if valueErr == nil && test.wantValueError {
-			t.Errorf("[%d, %q] JsonNumber() ok; want value error", i, test.toParse)
 		}
 	}
 }

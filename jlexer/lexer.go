@@ -1148,31 +1148,6 @@ func (r *Lexer) GetNonFatalErrors() []*LexerError {
 	return r.multipleErrors
 }
 
-// JsonNumber fetches and json.Number from 'encoding/json' package.
-// Both int, float or string, contains them are valid values
-func (r *Lexer) JsonNumber() json.Number {
-	if r.token.kind == tokenUndef && r.Ok() {
-		r.FetchToken()
-	}
-	if !r.Ok() {
-		r.errInvalidToken("json.Number")
-		return json.Number("")
-	}
-
-	switch r.token.kind {
-	case tokenString:
-		return json.Number(r.String())
-	case tokenNumber:
-		return json.Number(r.Raw())
-	case tokenNull:
-		r.Null()
-		return json.Number("")
-	default:
-		r.errSyntax()
-		return json.Number("")
-	}
-}
-
 // Interface fetches an interface{} analogous to the 'encoding/json' package.
 func (r *Lexer) Interface() interface{} {
 	if r.token.kind == tokenUndef && r.Ok() {
