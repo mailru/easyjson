@@ -63,7 +63,7 @@ test: generate
 	golint -set_exit_status ./tests/*_easyjson.go
 
 tiny-generate: build
-	bin/easyjson -all \
+	bin/easyjson -all -snake_case \
 		./tiny-tests/cosmwasm.go
 
 tiny-test: tiny-generate
