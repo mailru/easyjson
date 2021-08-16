@@ -67,8 +67,9 @@ tiny-generate: build
 		./tiny-tests/cosmwasm.go
 
 tiny-test: tiny-generate
-	go test -v ./tiny-tests
-	# golint -set_exit_status ./tiny-tests/*_easyjson.go
+	# look into nounsafe later, this uses reflect, so I remove it just in case
+	go test -v -tags easyjson_nounsafe ./tiny-tests
+	golint -set_exit_status ./tiny-tests/*_easyjson.go
 
 bench-other: generate
 	cd benchmark && make

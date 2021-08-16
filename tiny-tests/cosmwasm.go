@@ -24,6 +24,29 @@ type MessageInfo struct {
 	Funds []Coin
 }
 
+type Coin struct {
+	Denom  string
+	Amount string
+}
+
+// emulate Rust enum, only one should ever be set
+type ExecuteMsg struct {
+	Deposit  *DepositMsg  `json:",omitempty"`
+	Withdraw *WithdrawMsg `json:",omitempty"`
+}
+type DepositMsg struct {
+	ToAccount string
+	Amount    string
+}
+
+// withdraws all funds
+type WithdrawMsg struct {
+	// use a different field here to ensure we have proper types (json must not overlap)
+	FromAccount string
+}
+
+/**** Test Helpers ****/
+
 // For Testing
 func (a *MessageInfo) Equals(b *MessageInfo) bool {
 	if a.Signer != b.Signer {
@@ -39,17 +62,6 @@ func (a *MessageInfo) Equals(b *MessageInfo) bool {
 		}
 	}
 	return true
-}
-
-type Coin struct {
-	Denom  string
-	Amount string
-}
-
-// emulate Rust enum, only one should ever be set
-type ExecuteMsg struct {
-	Deposit  *DepositMsg  `json:",omitempty"`
-	Withdraw *WithdrawMsg `json:",omitempty"`
 }
 
 // For Testing
@@ -79,15 +91,4 @@ func (a *ExecuteMsg) Equals(b *ExecuteMsg) bool {
 	}
 
 	return true
-}
-
-type DepositMsg struct {
-	ToAccount string
-	Amount    string
-}
-
-// withdraws all funds
-type WithdrawMsg struct {
-	// use a different field here to ensure we have proper types (json must not overlap)
-	FromAccount string
 }
