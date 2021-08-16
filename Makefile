@@ -69,7 +69,9 @@ tiny-generate: build
 tiny-test: tiny-generate
 	# look into nounsafe later, this uses reflect, so I remove it just in case
 	go test -v -tags easyjson_nounsafe ./tiny-tests
-	golint -set_exit_status ./tiny-tests/*_easyjson.go
+	@ golint -set_exit_status ./tiny-tests/*_easyjson.go
+	@ echo "No files should be listed below:"
+	@ grep -l encoding/json ./tiny-tests/*.go
 
 bench-other: generate
 	cd benchmark && make
