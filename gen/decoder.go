@@ -306,6 +306,9 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 				return fmt.Errorf("interface type %v not supported: only interface{} and easyjson/json Unmarshaler are allowed", t)
 			}
 		} else {
+			// we enable this only when needed
+			g.imports["encoding/json"] = "json"
+
 			fmt.Fprintln(g.out, ws+"if m, ok := "+out+".(easyjson.Unmarshaler); ok {")
 			fmt.Fprintln(g.out, ws+"m.UnmarshalEasyJSON(in)")
 			fmt.Fprintln(g.out, ws+"} else if m, ok := "+out+".(json.Unmarshaler); ok {")

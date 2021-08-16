@@ -71,7 +71,7 @@ tiny-test: tiny-generate
 	go test -v -tags easyjson_nounsafe ./tiny-tests
 	@ golint -set_exit_status ./tiny-tests/*_easyjson.go
 	@ echo "No files should be listed below:"
-	@ grep -l encoding/json ./tiny-tests/*.go
+	@ grep -l encoding/json ./tiny-tests/*.go || true
 
 bench-other: generate
 	cd benchmark && make
