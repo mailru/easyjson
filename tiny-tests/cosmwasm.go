@@ -20,8 +20,8 @@ type ContractInfo struct {
 // another important struct that includes a slice of structs (which caused issues with another parser)
 type MessageInfo struct {
 	Signer string
-	// TODO: how to ensure empty funds -> [] not nil
-	Funds []Coin
+	// Note: added custom tag "emptyslice" to never encode to nil, but rather []
+	Funds []Coin `json:",emptyslice"`
 }
 
 type Coin struct {

@@ -53,13 +53,14 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 type fieldTags struct {
 	name string
 
-	omit        bool
-	omitEmpty   bool
-	noOmitEmpty bool
-	asString    bool
-	required    bool
-	intern      bool
-	noCopy      bool
+	omit            bool
+	omitEmpty       bool
+	noOmitEmpty     bool
+	asString        bool
+	required        bool
+	intern          bool
+	noCopy          bool
+	nilSliceAsEmpty bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -84,6 +85,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.intern = true
 		case s == "nocopy":
 			ret.noCopy = true
+		case s == "emptyslice":
+			ret.nilSliceAsEmpty = true
 		}
 	}
 
@@ -152,7 +155,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 				fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+")")
 			}
 		} else {
-			if !assumeNonEmpty {
+			if !assumeNonEmpty && !tags.nilSliceAsEmpty {
 				fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilSliceAsEmpty) == 0 {")
 				fmt.Fprintln(g.out, ws+`  out.RawString("null")`)
 				fmt.Fprintln(g.out, ws+"} else {")
