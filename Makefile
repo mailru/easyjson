@@ -6,7 +6,7 @@ clean:
 	rm -rf benchmark/*_easyjson.go
 
 build:
-	go build -i -o ./bin/easyjson ./easyjson
+	go build -o ./bin/easyjson ./easyjson
 
 generate: build
 	bin/easyjson -stubs \
@@ -61,6 +61,17 @@ test: generate
 		./buffer
 	cd benchmark && go test -benchmem -tags use_easyjson -bench .
 	golint -set_exit_status ./tests/*_easyjson.go
+
+tiny-generate: build
+	bin/easyjson -all -snake_case \
+		./tiny-tests/cosmwasm.go
+
+tiny-test: tiny-generate
+	# look into nounsafe later, this uses reflect, so I remove it just in case
+	go test -v -tags easyjson_nounsafe ./tiny-tests
+	@ golint -set_exit_status ./tiny-tests/*_easyjson.go
+	@ echo "No files should be listed below:"
+	@ grep -l encoding/json ./tiny-tests/*.go || true
 
 bench-other: generate
 	cd benchmark && make

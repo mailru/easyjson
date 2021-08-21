@@ -22,7 +22,7 @@ jobs:
           command: make clean
       - run:
           name: Generate files
-          command: make generate
+          command: make generate && make tiny-generate
       - run:
           name: Run tests
           command: |
