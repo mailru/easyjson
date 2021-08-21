@@ -7,9 +7,6 @@ package jlexer
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"strconv"
 	"unicode"
@@ -335,7 +332,7 @@ func getu4(s []byte) rune {
 // decodeEscape processes a single escape sequence and returns number of bytes processed.
 func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 	if len(data) < 2 {
-		return 0, 0, errors.New("incorrect escape symbol \\ at the end of token")
+		return 0, 0, NewError("incorrect escape symbol \\ at the end of token")
 	}
 
 	c := data[1]
@@ -355,7 +352,7 @@ func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 	case 'u':
 		rr := getu4(data)
 		if rr < 0 {
-			return 0, 0, errors.New("incorrectly escaped \\uXXXX sequence")
+			return 0, 0, NewError("incorrectly escaped \\uXXXX sequence")
 		}
 
 		read := 6
@@ -371,7 +368,7 @@ func decodeEscape(data []byte) (decoded rune, bytesProcessed int, err error) {
 		return rr, read, nil
 	}
 
-	return 0, 0, errors.New("incorrectly escaped bytes")
+	return 0, 0, NewError("incorrectly escaped bytes")
 }
 
 // fetchString scans a string literal token.
@@ -449,7 +446,7 @@ func (r *Lexer) errInvalidToken(expected string) {
 			r.token.kind = tokenDelim
 		}
 		r.addNonfatalError(&LexerError{
-			Reason: fmt.Sprintf("expected %s", expected),
+			Reason: "expected " + expected,
 			Offset: r.start,
 			Data:   string(r.Data[r.start:r.pos]),
 		})
@@ -463,7 +460,7 @@ func (r *Lexer) errInvalidToken(expected string) {
 		str = string(r.token.byteValue[:maxErrorContextLen-3]) + "..."
 	}
 	r.fatalError = &LexerError{
-		Reason: fmt.Sprintf("expected %s", expected),
+		Reason: "expected " + expected,
 		Offset: r.pos,
 		Data:   str,
 	}
@@ -555,7 +552,7 @@ func (r *Lexer) SkipRecursive() {
 			level--
 			if level == 0 {
 				r.pos += i + 1
-				if !json.Valid(r.Data[startPos:r.pos]) {
+				if !ValidJSON(r.Data[startPos:r.pos]) {
 					r.pos = len(r.Data)
 					r.fatalError = &LexerError{
 						Reason: "skipped array/object json value is invalid",
