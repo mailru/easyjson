@@ -232,16 +232,16 @@ func TestInterface(t *testing.T) {
 		{toParse: "null", want: nil},
 		{toParse: "true", want: true},
 		{toParse: `"a"`, want: "a"},
-		{toParse: "5", want: float64(5)},
+		{toParse: "5", want: uint64(5)},
 
 		{toParse: `{}`, want: map[string]interface{}{}},
 		{toParse: `[]`, want: []interface{}{}},
 
 		{toParse: `{"a": "b"}`, want: map[string]interface{}{"a": "b"}},
-		{toParse: `[5]`, want: []interface{}{float64(5)}},
+		{toParse: `[5]`, want: []interface{}{uint64(5)}},
 
-		{toParse: `{"a":5 , "b" : "string"}`, want: map[string]interface{}{"a": float64(5), "b": "string"}},
-		{toParse: `["a", 5 , null, true]`, want: []interface{}{"a", float64(5), nil, true}},
+		{toParse: `{"a":5 , "b" : "string"}`, want: map[string]interface{}{"a": uint64(5), "b": "string"}},
+		{toParse: `["a", 5 , null, true]`, want: []interface{}{"a", uint64(5), nil, true}},
 
 		{toParse: `{"a" "b"}`, wantError: true},
 		{toParse: `{"a": "b",}`, wantError: true},

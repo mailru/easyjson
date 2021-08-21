@@ -1045,72 +1045,6 @@ func (r *Lexer) IntStr() int {
 	return int(r.Int64Str())
 }
 
-func (r *Lexer) Float32() float32 {
-	s := r.number()
-	if !r.Ok() {
-		return 0
-	}
-
-	n, err := strconv.ParseFloat(s, 32)
-	if err != nil {
-		r.addNonfatalError(&LexerError{
-			Offset: r.start,
-			Reason: err.Error(),
-			Data:   s,
-		})
-	}
-	return float32(n)
-}
-
-func (r *Lexer) Float32Str() float32 {
-	s, b := r.unsafeString(false)
-	if !r.Ok() {
-		return 0
-	}
-	n, err := strconv.ParseFloat(s, 32)
-	if err != nil {
-		r.addNonfatalError(&LexerError{
-			Offset: r.start,
-			Reason: err.Error(),
-			Data:   string(b),
-		})
-	}
-	return float32(n)
-}
-
-func (r *Lexer) Float64() float64 {
-	s := r.number()
-	if !r.Ok() {
-		return 0
-	}
-
-	n, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		r.addNonfatalError(&LexerError{
-			Offset: r.start,
-			Reason: err.Error(),
-			Data:   s,
-		})
-	}
-	return n
-}
-
-func (r *Lexer) Float64Str() float64 {
-	s, b := r.unsafeString(false)
-	if !r.Ok() {
-		return 0
-	}
-	n, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		r.addNonfatalError(&LexerError{
-			Offset: r.start,
-			Reason: err.Error(),
-			Data:   string(b),
-		})
-	}
-	return n
-}
-
 func (r *Lexer) Error() error {
 	return r.fatalError
 }
@@ -1158,7 +1092,7 @@ func (r *Lexer) Interface() interface{} {
 	case tokenString:
 		return r.String()
 	case tokenNumber:
-		return r.Float64()
+		return r.Uint64()
 	case tokenBool:
 		return r.Bool()
 	case tokenNull:
