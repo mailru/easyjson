@@ -59,8 +59,9 @@ test: generate
 		./jlexer \
 		./gen \
 		./buffer
-	cd benchmark && go test -benchmem -tags use_easyjson -bench .
 	golint -set_exit_status ./tests/*_easyjson.go
+	# TODO: fix benchmarks to not need float
+	# cd benchmark && go test -benchmem -tags use_easyjson -bench .
 
 tiny-generate: build
 	bin/easyjson -all -snake_case \
@@ -69,7 +70,6 @@ tiny-generate: build
 tiny-test: tiny-generate
 	# look into nounsafe later, this uses reflect, so I remove it just in case
 	go test -v -tags easyjson_nounsafe ./tiny-tests
-	cd benchmark && go test -benchmem -tags use_easyjson -bench .
 	@ golint -set_exit_status ./tiny-tests/*_easyjson.go
 	@ echo "No files should be listed below:"
 	@ grep -l encoding/json ./tiny-tests/*.go || true

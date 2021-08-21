@@ -25,9 +25,6 @@ type OptsVanilla struct {
 	Uint32 opt.Uint32
 	Uint64 opt.Uint64
 
-	Float32 opt.Float32
-	Float64 opt.Float64
-
 	Bool   opt.Bool
 	String opt.String
 }
@@ -45,9 +42,6 @@ var optsVanillaValue = OptsVanilla{
 	Uint16: opt.OUint16(math.MaxUint16),
 	Uint32: opt.OUint32(math.MaxUint32),
 	Uint64: opt.OUint64(math.MaxUint64),
-
-	Float32: opt.OFloat32(math.MaxFloat32),
-	Float64: opt.OFloat64(math.MaxFloat64),
 
 	Bool:   opt.OBool(true),
 	String: opt.OString("foo"),

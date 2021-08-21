@@ -37,12 +37,6 @@ type PrimitiveTypes struct {
 	Uint32String uint32 `json:",string"`
 	Uint64String uint64 `json:",string"`
 
-	Float32 float32
-	Float64 float64
-
-	Float32String float32 `json:",string"`
-	Float64String float64 `json:",string"`
-
 	Ptr    *string
 	PtrNil *string
 }
@@ -76,12 +70,6 @@ var primitiveTypesValue = PrimitiveTypes{
 	Uint32String: math.MaxUint32,
 	Uint64String: math.MaxUint64,
 
-	Float32: 1.5,
-	Float64: math.MaxFloat64,
-
-	Float32String: 1.5,
-	Float64String: math.MaxFloat64,
-
 	Ptr: &str,
 }
 
@@ -112,12 +100,6 @@ var primitiveTypesString = "{" +
 	`"Uint32String":"` + fmt.Sprint(uint32(math.MaxUint32)) + `",` +
 	`"Uint64String":"` + fmt.Sprint(uint64(math.MaxUint64)) + `",` +
 
-	`"Float32":` + fmt.Sprint(1.5) + `,` +
-	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
-
-	`"Float32String":"` + fmt.Sprint(1.5) + `",` +
-	`"Float64String":"` + fmt.Sprint(math.MaxFloat64) + `",` +
-
 	`"Ptr":"bla",` +
 	`"PtrNil":null` +
 
@@ -139,9 +121,6 @@ type (
 	NamedUint32 uint32
 	NamedUint64 uint64
 
-	NamedFloat32 float32
-	NamedFloat64 float64
-
 	NamedStrPtr *string
 )
 
@@ -160,9 +139,6 @@ type NamedPrimitiveTypes struct {
 	Uint16 NamedUint16
 	Uint32 NamedUint32
 	Uint64 NamedUint64
-
-	Float32 NamedFloat32
-	Float64 NamedFloat64
 
 	Ptr    NamedStrPtr
 	PtrNil NamedStrPtr
@@ -184,9 +160,6 @@ var namedPrimitiveTypesValue = NamedPrimitiveTypes{
 	Uint32: math.MaxUint32,
 	Uint64: math.MaxUint64,
 
-	Float32: 1.5,
-	Float64: math.MaxFloat64,
-
 	Ptr: NamedStrPtr(&str),
 }
 
@@ -205,9 +178,6 @@ var namedPrimitiveTypesString = "{" +
 	`"Uint16":` + fmt.Sprint(math.MaxUint16) + `,` +
 	`"Uint32":` + fmt.Sprint(uint32(math.MaxUint32)) + `,` +
 	`"Uint64":` + fmt.Sprint(uint64(math.MaxUint64)) + `,` +
-
-	`"Float32":` + fmt.Sprint(1.5) + `,` +
-	`"Float64":` + fmt.Sprint(math.MaxFloat64) + `,` +
 
 	`"Ptr":"bla",` +
 	`"PtrNil":null` +
@@ -510,7 +480,7 @@ type Maps struct {
 
 var mapsValue = Maps{
 	Map:          map[string]string{"A": "b"}, // only one item since map iteration is randomized
-	InterfaceMap: map[string]interface{}{"G": float64(1)},
+	InterfaceMap: map[string]interface{}{"G": uint64(1)},
 
 	CustomMap: map[Str]Str{"c": "d"},
 }
