@@ -53,8 +53,8 @@ func TestNocopy(t *testing.T) {
 			t.Fatalf("wrong value: %q", res.B)
 		}
 	})
-	if allocsPerRun != 1 {
-		t.Fatalf("noCopy field unmarshal: expected 1 allocs, got %f", allocsPerRun)
+	if allocsPerRun != 0 {
+		t.Fatalf("noCopy field unmarshal: expected 0 allocs, got %f", allocsPerRun)
 	}
 
 	data = []byte(`{"a": "valueNoCopy"}`)
@@ -67,7 +67,7 @@ func TestNocopy(t *testing.T) {
 			t.Fatalf("wrong value: %q", res.A)
 		}
 	})
-	if allocsPerRun != 2 {
-		t.Fatalf("copy field unmarshal: expected 2 allocs, got %f", allocsPerRun)
+	if allocsPerRun != 1 {
+		t.Fatalf("copy field unmarshal: expected 1 allocs, got %f", allocsPerRun)
 	}
 }
