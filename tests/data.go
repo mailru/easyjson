@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"math"
-	"net"
 	"time"
 
 	"github.com/mailru/easyjson"
@@ -402,53 +401,14 @@ var rawString = `{` +
 	`}`
 
 type StdMarshaler struct {
-	T  time.Time
-	IP net.IP
+	T time.Time
 }
 
 var stdMarshalerValue = StdMarshaler{
-	T:  time.Date(2016, 01, 02, 14, 15, 10, 0, time.UTC),
-	IP: net.IPv4(192, 168, 0, 1),
+	T: time.Date(2016, 01, 02, 14, 15, 10, 0, time.UTC),
 }
 var stdMarshalerString = `{` +
 	`"T":"2016-01-02T14:15:10Z",` +
-	`"IP":"192.168.0.1"` +
-	`}`
-
-type UserMarshaler struct {
-	V vMarshaler
-	T tMarshaler
-}
-
-type vMarshaler net.IP
-
-func (v vMarshaler) MarshalJSON() ([]byte, error) {
-	return []byte(`"0::0"`), nil
-}
-
-func (v *vMarshaler) UnmarshalJSON([]byte) error {
-	*v = vMarshaler(net.IPv6zero)
-	return nil
-}
-
-type tMarshaler net.IP
-
-func (v tMarshaler) MarshalText() ([]byte, error) {
-	return []byte(`[0::0]`), nil
-}
-
-func (v *tMarshaler) UnmarshalText([]byte) error {
-	*v = tMarshaler(net.IPv6zero)
-	return nil
-}
-
-var userMarshalerValue = UserMarshaler{
-	V: vMarshaler(net.IPv6zero),
-	T: tMarshaler(net.IPv6zero),
-}
-var userMarshalerString = `{` +
-	`"V":"0::0",` +
-	`"T":"[0::0]"` +
 	`}`
 
 type unexportedStruct struct {

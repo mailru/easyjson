@@ -3,7 +3,6 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
-	"net/http/httptest"
 	"reflect"
 	"testing"
 
@@ -244,7 +243,7 @@ func TestNestedMarshaler(t *testing.T) {
 		t.Errorf("Can't marshal NestedMarshaler: %s", err)
 	}
 
-	s2 := NestedMarshaler {
+	s2 := NestedMarshaler{
 		Value: &StructWithMarshaler{},
 	}
 
@@ -315,17 +314,6 @@ func TestNil(t *testing.T) {
 	}
 
 	if s := b.String(); s != "null" {
-		t.Errorf("Wanted null, got %q", s)
-	}
-
-	w := httptest.NewRecorder()
-	started, written, err := easyjson.MarshalToHTTPResponseWriter(p, w)
-	if !started || written != 4 || err != nil {
-		t.Errorf("easyjson.MarshalToHTTPResponseWriter() error: %v, written %d, started %t",
-			err, written, started)
-	}
-
-	if s := w.Body.String(); s != "null" {
 		t.Errorf("Wanted null, got %q", s)
 	}
 }
