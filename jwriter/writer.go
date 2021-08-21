@@ -235,30 +235,6 @@ func (w *Writer) Int64Str(n int64) {
 	w.Buffer.Buf = append(w.Buffer.Buf, '"')
 }
 
-func (w *Writer) Float32(n float32) {
-	w.Buffer.EnsureSpace(20)
-	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 32)
-}
-
-func (w *Writer) Float32Str(n float32) {
-	w.Buffer.EnsureSpace(20)
-	w.Buffer.Buf = append(w.Buffer.Buf, '"')
-	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 32)
-	w.Buffer.Buf = append(w.Buffer.Buf, '"')
-}
-
-func (w *Writer) Float64(n float64) {
-	w.Buffer.EnsureSpace(20)
-	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, n, 'g', -1, 64)
-}
-
-func (w *Writer) Float64Str(n float64) {
-	w.Buffer.EnsureSpace(20)
-	w.Buffer.Buf = append(w.Buffer.Buf, '"')
-	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'g', -1, 64)
-	w.Buffer.Buf = append(w.Buffer.Buf, '"')
-}
-
 func (w *Writer) Bool(v bool) {
 	w.Buffer.EnsureSpace(5)
 	if v {
