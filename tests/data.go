@@ -408,7 +408,7 @@ var stdMarshalerValue = StdMarshaler{
 	T: time.Date(2016, 01, 02, 14, 15, 10, 0, time.UTC),
 }
 var stdMarshalerString = `{` +
-	`"T":"2016-01-02T14:15:10Z",` +
+	`"T":"2016-01-02T14:15:10Z"` +
 	`}`
 
 type unexportedStruct struct {
