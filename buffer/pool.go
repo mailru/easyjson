@@ -4,7 +4,6 @@ package buffer
 
 import (
 	"io"
-	"net"
 	"sync"
 )
 
@@ -168,7 +167,7 @@ func (b *Buffer) Size() int {
 
 // DumpTo outputs the contents of a buffer to a writer and resets the buffer.
 func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
-	bufs := net.Buffers(b.bufs)
+	bufs := Buffers(b.bufs)
 	if len(b.Buf) > 0 {
 		bufs = append(bufs, b.Buf)
 	}

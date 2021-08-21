@@ -4,8 +4,6 @@ package easyjson
 import (
 	"io"
 	"io/ioutil"
-	"net/http"
-	"strconv"
 	"unsafe"
 
 	"github.com/mailru/easyjson/jlexer"
@@ -68,31 +66,6 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 	jw := jwriter.Writer{}
 	v.MarshalEasyJSON(&jw)
 	return jw.DumpTo(w)
-}
-
-// MarshalToHTTPResponseWriter sets Content-Length and Content-Type headers for the
-// http.ResponseWriter, and send the data to the writer. started will be equal to
-// false if an error occurred before any http.ResponseWriter methods were actually
-// invoked (in this case a 500 reply is possible).
-func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bool, written int, err error) {
-	if isNilInterface(v) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Content-Length", strconv.Itoa(len(nullBytes)))
-		written, err = w.Write(nullBytes)
-		return true, written, err
-	}
-
-	jw := jwriter.Writer{}
-	v.MarshalEasyJSON(&jw)
-	if jw.Error != nil {
-		return false, 0, jw.Error
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(jw.Size()))
-
-	started = true
-	written, err = jw.DumpTo(w)
-	return
 }
 
 // Unmarshal decodes the JSON in data into the object.
