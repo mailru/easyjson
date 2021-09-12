@@ -96,7 +96,7 @@ Additional option notes:
 
 ## Structure json tag options
 
-Besides standart json tag options like 'omitempty' the following are supported:
+Besides standard json tag options like 'omitempty' the following are supported:
 
 * 'nocopy' - disables allocation and copying of string values, making them
   refer to original json buffer memory. This works great for short lived
