@@ -28,6 +28,27 @@ environment variable to be set. This is because easyjson code generation
 invokes `go run` on a temporary file (an approach to code generation borrowed
 from [ffjson](https://github.com/pquerna/ffjson)).
 
+
+
+### Serialize
+```go
+yourDto := &YourDto{Field1: "val1", Field2: "val2"}
+rawBytes, err := easyjson.Marshal(yourDto)
+```
+
+But internally it will create a new byte array so if you can dump to a `Writer` then use `easyjson.MarshalToWriter()` or even `easyjson.MarshalToHTTPResponseWriter()` for HTTP server `HandleFunc()`:
+```go
+started, written, err = easyjson.MarshalToHTTPResponseWriter(yourDto, w)
+```
+
+### Deserialize
+```go
+yourDto := &YourDto{} // create an empty DTO
+err = easyjson.Unmarshal(rawBytes, yourDto)
+```
+
+See their [documentation of this functions](https://pkg.go.dev/github.com/mailru/easyjson@v0.7.7#Marshal)
+
 ## Options
 ```txt
 Usage of easyjson:
