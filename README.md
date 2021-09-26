@@ -12,11 +12,18 @@ standard `encoding/json` package, such as generating "snake_case" names or
 enabling `omitempty` behavior by default.
 
 ## Usage
+### Install: 
 ```sh
-# install
+# for Go < 1.17
 go get -u github.com/mailru/easyjson/...
-
-# run
+```
+#### or
+```sh
+# for Go >= 1.17
+go get github.com/mailru/easyjson && go install github.com/mailru/easyjson/...@latest
+```
+### Run:
+```sh
 easyjson -all <file>.go
 ```
 
@@ -28,6 +35,20 @@ environment variable to be set. This is because easyjson code generation
 invokes `go run` on a temporary file (an approach to code generation borrowed
 from [ffjson](https://github.com/pquerna/ffjson)).
 
+### Serialize
+```go
+someStruct := &SomeStruct{Field1: "val1", Field2: "val2"}
+rawBytes, err := easyjson.Marshal(someStruct)
+```
+
+### Deserialize
+```go
+someStruct := &SomeStruct{}
+err := easyjson.Unmarshal(rawBytes, someStruct)
+```
+
+Please see the [GoDoc](https://godoc.org/github.com/mailru/easyjson)
+for more information and features.
 ## Options
 ```txt
 Usage of easyjson:
