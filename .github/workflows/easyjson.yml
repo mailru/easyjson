@@ -2,13 +2,14 @@ name: easyjson
 
 on:
   push:
-    branches: [ master, upd_ci ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    name: Test with Go ${{ matrix.go }}
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +35,7 @@ jobs:
 
   test-non-amd64:
     runs-on: ubuntu-latest
-    name: Build on ${{ matrix.distro }} ${{ matrix.arch }}
+    name: Test on ${{ matrix.distro }} ${{ matrix.arch }}
     strategy:
       matrix:
         include:
