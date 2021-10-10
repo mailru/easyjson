@@ -1,0 +1,59 @@
+name: easyjson
+
+on:
+  push:
+    branches: [ master, upd_ci ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.17', '1.16', '1.15' ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Install golint
+        run: go get golang.org/x/lint/golint && go mod tidy
+
+      - name: Build and Run tests
+        run: make
+
+  test-non-amd64:
+    strategy:
+      matrix:
+        arch:
+          - name: POWER8
+            architecture: "ppc64le"
+    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.arch.name }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: uraimo/run-on-arch-action@master
+        env:
+          GOARCH: ${{ matrix.arch.architecture }}
+        with:
+          architecture: ${{ matrix.arch.architecture }}
+          distribution: ubuntu20.04
+          additionalArgs: -e GOARCH
+          install: |
+            apt-get update
+            apt install -y curl wget
+            latestGo=$(curl "https://golang.org/VERSION?m=text")
+            wget "https://dl.google.com/go/${latestGo}.linux-${GOARCH}.tar.gz"
+            rm -f $(which go)
+            rm -rf /usr/local/go
+            tar -C /usr/local -xzf "${latestGo}.linux-${GOARCH}.tar.gz"
+            export PATH=/usr/local/go/bin:$PATH
+            printf "Go Version: $(go version)\n"
+          run: |
+            go get golang.org/x/lint/golint && go mod tidy
+            make
