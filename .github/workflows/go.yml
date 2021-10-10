@@ -23,7 +23,7 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Install golint
-        run: go install golang.org/x/lint/golint
+        run: go get golang.org/x/lint/golint && go install golang.org/x/lint/golint
 
       - name: Build and Run tests
         run: make
