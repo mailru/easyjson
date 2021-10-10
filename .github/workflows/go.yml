@@ -11,6 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         go: [ '1.17', '1.16', '1.15' ]
     steps:
@@ -22,7 +23,7 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Install golint
-        run: go get golang.org/x/lint/golint
+        run: go install golang.org/x/lint/golint
 
       - name: Build and Run tests
         run: make
