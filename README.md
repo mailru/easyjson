@@ -1,4 +1,4 @@
-# easyjson [![Build Status](https://github.com/mailru/easyjson/actions/workflows/easyjson.yml/badge.svg)](https://travis-ci.org/mailru/easyjson) [![Go Report Card](https://goreportcard.com/badge/github.com/mailru/easyjson)](https://goreportcard.com/report/github.com/mailru/easyjson)
+# easyjson [![Build Status](https://github.com/mailru/easyjson/actions/workflows/easyjson.yml/badge.svg)](https://github.com/mailru/easyjson/actions/workflows/easyjson.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/mailru/easyjson)](https://goreportcard.com/report/github.com/mailru/easyjson)
 
 Package easyjson provides a fast and easy way to marshal/unmarshal Go structs
 to/from JSON without the use of reflection. In performance tests, easyjson
