@@ -712,6 +712,10 @@ func (r *Lexer) Bytes() []byte {
 		r.errInvalidToken("string")
 		return nil
 	}
+	if err := r.unescapeStringToken(); err != nil {
+		r.errInvalidToken("string")
+		return nil
+	}
 	ret := make([]byte, base64.StdEncoding.DecodedLen(len(r.token.byteValue)))
 	n, err := base64.StdEncoding.Decode(ret, r.token.byteValue)
 	if err != nil {
