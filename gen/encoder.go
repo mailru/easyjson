@@ -452,11 +452,7 @@ func (g *Generator) genStructMarshaler(t reflect.Type) error {
 	if !g.noStdMarshalers {
 		fmt.Fprintln(g.out, "// MarshalJSON supports json.Marshaler interface")
 		fmt.Fprintln(g.out, "func (v "+typ+") MarshalJSON() ([]byte, error) {")
-		if g.floatFmt != "" {
-			fmt.Fprintf(g.out, "  w := jwriter.Writer{FloatFmt:\"%s\"}\n", g.floatFmt)
-		} else {
-			fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
-		}
+		fmt.Fprintf(g.out, "  w := jwriter.Writer{FloatFmt:\"%s\"}\n", g.floatFmt)
 		fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
 		fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), w.Error")
 		fmt.Fprintln(g.out, "}")
