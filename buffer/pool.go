@@ -179,7 +179,7 @@ func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
 	}
 	putBuf(b.toPool)
 
-	b.bufs = nil
+	b.bufs = b.bufs[:0]
 	b.Buf = nil
 	b.toPool = nil
 
@@ -214,7 +214,7 @@ func (b *Buffer) BuildBytes(reuse ...[]byte) []byte {
 	ret = append(ret, b.Buf...)
 	putBuf(b.toPool)
 
-	b.bufs = nil
+	b.bufs = b.bufs[:0]
 	b.toPool = nil
 	b.Buf = nil
 
