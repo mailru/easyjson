@@ -331,7 +331,7 @@ func (g *Generator) interfaceIsJsonUnmarshaller(t reflect.Type) bool {
 	return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
 }
 
-func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField) error {
+func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField, caseSensitive bool) error {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
@@ -342,7 +342,11 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 		return errors.New("Mutually exclusive tags are specified: 'intern' and 'nocopy'")
 	}
 
-	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
+	if caseSensitive {
+		fmt.Fprintf(g.out, "    case %q:\n", jsonName)
+	} else {
+		fmt.Fprintf(g.out, "    case %q:\n", strings.ToLower(jsonName))
+	}
 	if err := g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3); err != nil {
 		return err
 	}
@@ -522,12 +526,20 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 
 	fmt.Fprintln(g.out, "    switch key {")
 	for _, f := range fs {
-		if err := g.genStructFieldDecoder(t, f); err != nil {
+		if err := g.genStructFieldDecoder(t, f, true); err != nil {
 			return err
 		}
 	}
 
 	fmt.Fprintln(g.out, "    default:")
+	fmt.Fprintln(g.out, "      switch strings.ToLower(key) {")
+	for _, f := range fs {
+		if err := g.genStructFieldDecoder(t, f, false); err != nil {
+			return err
+		}
+	}
+	fmt.Fprintln(g.out, "      default:")
+
 	if g.disallowUnknownFields {
 		fmt.Fprintln(g.out, `      in.AddError(&jlexer.LexerError{
           Offset: in.GetPos(),
@@ -539,6 +551,7 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	} else {
 		fmt.Fprintln(g.out, "      in.SkipRecursive()")
 	}
+	fmt.Fprintln(g.out, "      }")
 	fmt.Fprintln(g.out, "    }")
 	fmt.Fprintln(g.out, "    in.WantComma()")
 	fmt.Fprintln(g.out, "  }")
