@@ -14,13 +14,19 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 )
 
-const genPackage = "github.com/mailru/easyjson/gen"
-const pkgWriter = "github.com/mailru/easyjson/jwriter"
-const pkgLexer = "github.com/mailru/easyjson/jlexer"
+const (
+	genPackage = "github.com/mailru/easyjson/gen"
+	pkgWriter  = "github.com/mailru/easyjson/jwriter"
+	pkgLexer   = "github.com/mailru/easyjson/jlexer"
+)
 
-var buildFlagsRegexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
+var (
+	buildFlagsRegexp    = regexp.MustCompile("'.+'|\".+\"|\\S+")
+	tagsBuildFlagRegexp = regexp.MustCompile("^-?-tags=")
+)
 
 type Generator struct {
 	PkgPath, PkgName string
@@ -158,6 +164,21 @@ func (g *Generator) writeMain() (path string, err error) {
 	return dest, os.Rename(src, dest)
 }
 
+func findBuildTags(buildFlags []string) string {
+	for _, flag := range buildFlags {
+		prefix := tagsBuildFlagRegexp.FindString(flag)
+
+		if prefix == "" {
+			continue
+		}
+
+		res, _ := strings.CutPrefix(flag, prefix)
+
+		return " " + strings.ReplaceAll(res, ",", " ")
+	}
+	return ""
+}
+
 func (g *Generator) Run() error {
 	if err := g.writeStub(); err != nil {
 		return err
@@ -185,9 +206,11 @@ func (g *Generator) Run() error {
 	execArgs := []string{"run"}
 	if g.GenBuildFlags != "" {
 		buildFlags := buildFlagsRegexp.FindAllString(g.GenBuildFlags, -1)
+		g.BuildTags += findBuildTags(buildFlags)
 		execArgs = append(execArgs, buildFlags...)
 	}
 	execArgs = append(execArgs, "-tags", g.BuildTags, filepath.Base(path))
+
 	cmd := exec.Command("go", execArgs...)
 
 	cmd.Stdout = f
