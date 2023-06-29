@@ -517,7 +517,7 @@ func camelToSnake(name string) string {
 	if lastUpper != 0 {
 		ret.WriteRune(unicode.ToLower(lastUpper))
 	}
-	return string(ret.Bytes())
+	return ret.String()
 }
 
 func (SnakeCaseFieldNamer) GetJSONFieldName(t reflect.Type, f reflect.StructField) string {
