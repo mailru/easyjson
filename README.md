@@ -19,8 +19,13 @@ go get -u github.com/mailru/easyjson/...
 ```
 #### or
 ```sh
-# for Go >= 1.17
+# for Go >= 1.17 and Go < 1.18
 go get github.com/mailru/easyjson && go install github.com/mailru/easyjson/...@latest
+```
+#### or
+```sh
+# for Go >= 1.18
+go install github.com/mailru/easyjson/...@latest
 ```
 ### Run:
 ```sh
