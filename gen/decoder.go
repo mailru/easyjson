@@ -343,11 +343,17 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	}
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
+	if g.disallowDuplicateFields {
+		g.imports["fmt"] = "fmt"
+		fmt.Fprintf(g.out, "        if %sSet {\n", f.Name)
+		fmt.Fprintf(g.out, "            in.AddError(fmt.Errorf(\"duplicate field %s\"))\n", f.Name)
+		fmt.Fprintf(g.out, "        }\n")
+	}
 	if err := g.genTypeDecoder(f.Type, "out."+f.Name, tags, 3); err != nil {
 		return err
 	}
 
-	if tags.required {
+	if g.disallowDuplicateFields || tags.required {
 		fmt.Fprintf(g.out, "%sSet = true\n", f.Name)
 	}
 
@@ -357,7 +363,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
 	tags := parseFieldTags(f)
 
-	if !tags.required {
+	if !g.disallowDuplicateFields && !tags.required {
 		return
 	}
 

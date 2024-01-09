@@ -32,6 +32,7 @@ type Generator struct {
 	OmitEmpty                bool
 	DisallowUnknownFields    bool
 	SkipMemberNameUnescaping bool
+	DisallowDuplicateFields  bool
 
 	OutName       string
 	BuildTags     string
@@ -136,6 +137,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.SkipMemberNameUnescaping {
 		fmt.Fprintln(f, "  g.SkipMemberNameUnescaping()")
+	}
+	if g.DisallowDuplicateFields {
+		fmt.Fprintln(f, "  g.DisallowDuplicateFields()")
 	}
 
 	sort.Strings(g.Types)
