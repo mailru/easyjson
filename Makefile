@@ -46,7 +46,8 @@ generate: build
 		./tests/intern.go \
 		./tests/nocopy.go \
 		./tests/escaping.go \
-		./tests/nested_marshaler.go
+		./tests/nested_marshaler.go \
+		./tests/defined_null.go
 	bin/easyjson -snake_case ./tests/snake.go
 	bin/easyjson -omit_empty ./tests/omitempty.go
 	bin/easyjson -build_tags=use_easyjson -disable_members_unescape ./benchmark/data.go
