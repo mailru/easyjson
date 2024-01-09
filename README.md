@@ -53,35 +53,37 @@ for more information and features.
 ```txt
 Usage of easyjson:
   -all
-    	generate marshaler/unmarshalers for all structs in a file
+        generate marshaler/unmarshalers for all structs in a file
   -build_tags string
         build tags to add to generated file
-  -gen_build_flags string
-        build flags when running the generator while bootstrapping
   -byte
         use simple bytes instead of Base64Bytes for slice of bytes
-  -leave_temps
-    	do not delete temporary files
-  -no_std_marshalers
-    	don't generate MarshalJSON/UnmarshalJSON funcs
-  -noformat
-    	do not run 'gofmt -w' on output file
-  -omit_empty
-    	omit empty fields by default
-  -output_filename string
-    	specify the filename of the output
-  -pkg
-    	process the whole package instead of just the given file
-  -snake_case
-    	use snake_case names instead of CamelCase by default
-  -lower_camel_case
-        use lowerCamelCase instead of CamelCase by default
-  -stubs
-    	only generate stubs for marshaler/unmarshaler funcs
-  -disallow_unknown_fields
-        return error if some unknown field in json appeared
   -disable_members_unescape
-        disable unescaping of \uXXXX string sequences in member names
+        don't perform unescaping of member names to improve performance
+  -disallow_unknown_fields
+        return error if any unknown field in json appeared
+  -float_format string
+        float format to be used in json writer
+  -gen_build_flags string
+        build flags when running the generator while bootstrapping
+  -leave_temps
+        do not delete temporary files
+  -lower_camel_case
+        use lowerCamelCase names instead of CamelCase by default
+  -no_std_marshalers
+        don't generate MarshalJSON/UnmarshalJSON funcs
+  -noformat
+        do not run 'gofmt -w' on output file
+  -omit_empty
+        omit empty fields by default
+  -output_filename string
+        specify the filename of the output
+  -pkg
+        process the whole package instead of just the given file
+  -snake_case
+        use snake_case names instead of CamelCase by default
+  -stubs
+        only generate stubs for marshaler/unmarshaler funcs
 ```
 
 Using `-all` will generate marshalers/unmarshalers for all Go structs in the
