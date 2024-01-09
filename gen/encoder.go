@@ -94,22 +94,25 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, indent int, assumeNonEmpty bool) error {
 	ws := strings.Repeat("  ", indent)
 
-	marshalerIface := reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"("+in+").MarshalEasyJSON(out)")
-		return nil
-	}
+	// See the comment in genTypeDecoder for why we check the name.
+	if t.Name() != "" {
+		marshalerIface := reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(marshalerIface) {
+			fmt.Fprintln(g.out, ws+"("+in+").MarshalEasyJSON(out)")
+			return nil
+		}
 
-	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
-		return nil
-	}
+		marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(marshalerIface) {
+			fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
+			return nil
+		}
 
-	marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"out.RawText( ("+in+").MarshalText() )")
-		return nil
+		marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+		if reflect.PtrTo(t).Implements(marshalerIface) {
+			fmt.Fprintln(g.out, ws+"out.RawText( ("+in+").MarshalText() )")
+			return nil
+		}
 	}
 
 	err := g.genTypeEncoderNoCheck(t, in, tags, indent, assumeNonEmpty)
