@@ -11,7 +11,7 @@ func TestHTML(t *testing.T) {
 		Test: "<b>test</b>",
 	}
 
-	j := jwriter.Writer{
+	j := jwriter.BufWriter{
 		NoEscapeHTML: false,
 	}
 	s.MarshalEasyJSON(&j)

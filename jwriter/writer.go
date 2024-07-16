@@ -103,6 +103,11 @@ type BufWriter struct {
 }
 
 // Size returns the size of the data that was written out.
+func (w *BufWriter) SetFlags(f Flags) {
+	w.flags = f
+}
+
+// Size returns the size of the data that was written out.
 func (w *BufWriter) Flags() Flags {
 	return w.flags
 }

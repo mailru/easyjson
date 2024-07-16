@@ -150,7 +150,7 @@ var testSpecialCases = []struct {
 
 func TestSpecialCases(t *testing.T) {
 	for i, test := range testSpecialCases {
-		w := jwriter.Writer{}
+		w := jwriter.BufWriter{}
 		w.String(test.Value)
 		got := string(w.Buffer.BuildBytes())
 		if got != test.EncodedString {
@@ -192,8 +192,12 @@ func TestEncodingFlags(t *testing.T) {
 		{jwriter.NilMapAsEmpty, EncodingFlagsTestMap{}, `{"F":{}}`},
 		{jwriter.NilSliceAsEmpty, EncodingFlagsTestSlice{}, `{"F":[]}`},
 	} {
-		w := &jwriter.Writer{Flags: test.Flags}
-		test.In.MarshalEasyJSON(w)
+		w := &jwriter.BufWriter{}
+		w.SetFlags(test.Flags)
+		err := test.In.MarshalEasyJSON(w)
+		if err != nil {
+			return
+		}
 
 		data, err := w.BuildBytes()
 		if err != nil {
@@ -222,7 +226,10 @@ func TestNestedEasyJsonMarshal(t *testing.T) {
 		Slice: []interface{}{n["Slice1"], n["Slice2"]},
 		Map:   map[string]interface{}{"1": n["Map1"], "2": n["Map2"]},
 	}
-	easyjson.Marshal(ni)
+	_, err := easyjson.Marshal(ni)
+	if err != nil {
+		return
+	}
 
 	for k, v := range n {
 		if !v.EasilyMarshaled {
