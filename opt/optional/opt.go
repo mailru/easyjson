@@ -1,3 +1,4 @@
+//go:build none
 // +build none
 
 package optional
@@ -32,11 +33,11 @@ func (v Optional) Get(deflt A) A {
 }
 
 // MarshalEasyJSON does JSON marshaling using easyjson interface.
-func (v Optional) MarshalEasyJSON(w *jwriter.Writer) {
+func (v Optional) MarshalEasyJSON(w jwriter.Writer) error {
 	if v.Defined {
-		w.Optional(v.V)
+		return w.Optional(v.V)
 	} else {
-		w.RawString("null")
+		return w.RawString("null")
 	}
 }
 

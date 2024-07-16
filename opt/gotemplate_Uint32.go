@@ -31,11 +31,11 @@ func (v Uint32) Get(deflt uint32) uint32 {
 }
 
 // MarshalEasyJSON does JSON marshaling using easyjson interface.
-func (v Uint32) MarshalEasyJSON(w *jwriter.Writer) {
+func (v Uint32) MarshalEasyJSON(w jwriter.Writer) error {
 	if v.Defined {
-		w.Uint32(v.V)
+		return w.Uint32(v.V)
 	} else {
-		w.RawString("null")
+		return w.RawString("null")
 	}
 }
 
@@ -52,9 +52,11 @@ func (v *Uint32) UnmarshalEasyJSON(l *jlexer.Lexer) {
 
 // MarshalJSON implements a standard json marshaler interface.
 func (v Uint32) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	v.MarshalEasyJSON(&w)
-	return w.Buffer.BuildBytes(), w.Error
+	w := jwriter.BufWriter{}
+	if err := v.MarshalEasyJSON(&w); err != nil {
+		return nil, err
+	}
+	return w.Buffer.BuildBytes(), nil
 }
 
 // UnmarshalJSON implements a standard json unmarshaler interface.

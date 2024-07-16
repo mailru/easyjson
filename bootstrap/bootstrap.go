@@ -77,7 +77,7 @@ func (g *Generator) writeStub() error {
 			fmt.Fprintln(f, "func (*", t, ") UnmarshalJSON([]byte) error { return nil }")
 		}
 
-		fmt.Fprintln(f, "func (", t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
+		fmt.Fprintln(f, "func (", t, ") MarshalEasyJSON(w jwriter.Writer) error { return nil}")
 		fmt.Fprintln(f, "func (*", t, ") UnmarshalEasyJSON(l *jlexer.Lexer) {}")
 		fmt.Fprintln(f)
 		fmt.Fprintln(f, "type EasyJSON_exporter_"+t+" *"+t)
@@ -189,6 +189,7 @@ func (g *Generator) Run() error {
 	}
 	execArgs = append(execArgs, "-tags", g.BuildTags, filepath.Base(path))
 	cmd := exec.Command("go", execArgs...)
+	fmt.Printf("cmd:%v\n", cmd)
 
 	cmd.Stdout = f
 	cmd.Stderr = os.Stderr

@@ -18,15 +18,22 @@ func (s *UnknownFieldsProxy) UnmarshalUnknown(in *jlexer.Lexer, key string) {
 	s.unknownFields[key] = in.Raw()
 }
 
-func (s UnknownFieldsProxy) MarshalUnknowns(out *jwriter.Writer, first bool) {
+func (s UnknownFieldsProxy) MarshalUnknowns(out jwriter.Writer, first bool) error {
 	for key, val := range s.unknownFields {
 		if first {
 			first = false
 		} else {
-			out.RawByte(',')
+			if err := out.RawByte(','); err != nil {
+				return err
+			}
 		}
-		out.String(string(key))
-		out.RawByte(':')
-		out.Raw(val, nil)
+		if err := out.String(string(key)); err != nil {
+			return err
+		}
+		if err := out.RawByte(':'); err != nil {
+			return err
+		}
+		return out.RawBytes(val)
 	}
+	return nil
 }

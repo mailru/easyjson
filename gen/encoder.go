@@ -49,6 +49,15 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 	reflect.Float64: "out.Float64Str(float64(%v))",
 }
 
+func init() {
+	for t, funcStr := range primitiveEncoders {
+		primitiveEncoders[t] = fmt.Sprintf("if err := %s;err != nil { return err}", funcStr)
+	}
+	for t, funcStr := range primitiveStringEncoders {
+		primitiveEncoders[t] = fmt.Sprintf("if err := %s;err != nil { return err}", funcStr)
+	}
+}
+
 // fieldTags contains parsed version of json struct field tags.
 type fieldTags struct {
 	name string
@@ -102,13 +111,19 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 
 	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
+		// TODO: fixme MarshalJSON will return error?
+		fmt.Fprintln(g.out, ws+"if err := out.RawBytesWithErr( ("+in+").MarshalJSON() ); err != nil {")
+		fmt.Fprintln(g.out, "        return err")
+		fmt.Fprintln(g.out, "      }")
 		return nil
 	}
 
 	marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"out.RawText( ("+in+").MarshalText() )")
+		// TODO: fixme MarshalJSON will return error?
+		fmt.Fprintln(g.out, ws+"if err := out.RawBytesWithErr( ("+in+").MarshalText() ); err != nil {")
+		fmt.Fprintln(g.out, "        return err")
+		fmt.Fprintln(g.out, "      }")
 		return nil
 	}
 
@@ -153,16 +168,16 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			}
 		} else {
 			if !assumeNonEmpty {
-				fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilSliceAsEmpty) == 0 {")
-				fmt.Fprintln(g.out, ws+`  out.RawString("null")`)
+				fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags() & jwriter.NilSliceAsEmpty) == 0 {")
+				fmt.Fprintln(g.out, ws+`  if err := out.RawString("null");err != nil {return err}`)
 				fmt.Fprintln(g.out, ws+"} else {")
 			} else {
 				fmt.Fprintln(g.out, ws+"{")
 			}
-			fmt.Fprintln(g.out, ws+"  out.RawByte('[')")
+			fmt.Fprintln(g.out, ws+"  if err := out.RawByte('[');err != nil {return err}")
 			fmt.Fprintln(g.out, ws+"  for "+iVar+", "+vVar+" := range "+in+" {")
 			fmt.Fprintln(g.out, ws+"    if "+iVar+" > 0 {")
-			fmt.Fprintln(g.out, ws+"      out.RawByte(',')")
+			fmt.Fprintln(g.out, ws+"      if err := out.RawByte(',');err != nil {return err}")
 			fmt.Fprintln(g.out, ws+"    }")
 
 			if err := g.genTypeEncoder(elem, vVar, tags, indent+2, false); err != nil {
@@ -170,8 +185,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			}
 
 			fmt.Fprintln(g.out, ws+"  }")
-			fmt.Fprintln(g.out, ws+"  out.RawByte(']')")
-			fmt.Fprintln(g.out, ws+"}")
+			fmt.Fprintln(g.out, ws+"  if err := out.RawByte(']');err != nil {return err}")
 		}
 
 	case reflect.Array:
@@ -180,15 +194,15 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 
 		if t.Elem().Kind() == reflect.Uint8 && elem.Name() == "uint8" {
 			if g.simpleBytes {
-				fmt.Fprintln(g.out, ws+"out.String(string("+in+"[:]))")
+				fmt.Fprintln(g.out, ws+"if err := out.String(string("+in+"[:]));err != nil {return err}")
 			} else {
-				fmt.Fprintln(g.out, ws+"out.Base64Bytes("+in+"[:])")
+				fmt.Fprintln(g.out, ws+"if err := out.Base64Bytes("+in+"[:]);err != nil {return err}")
 			}
 		} else {
-			fmt.Fprintln(g.out, ws+"out.RawByte('[')")
+			fmt.Fprintln(g.out, ws+"if err := out.RawByte('[');err != nil {return err}")
 			fmt.Fprintln(g.out, ws+"for "+iVar+" := range "+in+" {")
 			fmt.Fprintln(g.out, ws+"  if "+iVar+" > 0 {")
-			fmt.Fprintln(g.out, ws+"    out.RawByte(',')")
+			fmt.Fprintln(g.out, ws+"    if err := out.RawByte(',');err != nil {return err}")
 			fmt.Fprintln(g.out, ws+"  }")
 
 			if err := g.genTypeEncoder(elem, "("+in+")["+iVar+"]", tags, indent+1, false); err != nil {
@@ -196,7 +210,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			}
 
 			fmt.Fprintln(g.out, ws+"}")
-			fmt.Fprintln(g.out, ws+"out.RawByte(']')")
+			fmt.Fprintln(g.out, ws+"if err := out.RawByte(']');err != nil {return err}")
 		}
 
 	case reflect.Struct:
@@ -208,7 +222,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 	case reflect.Ptr:
 		if !assumeNonEmpty {
 			fmt.Fprintln(g.out, ws+"if "+in+" == nil {")
-			fmt.Fprintln(g.out, ws+`  out.RawString("null")`)
+			fmt.Fprintln(g.out, ws+`  if err := out.RawString("null");err != nil {return err}`)
 			fmt.Fprintln(g.out, ws+"} else {")
 		}
 
@@ -229,20 +243,20 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		tmpVar := g.uniqueVarName()
 
 		if !assumeNonEmpty {
-			fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags & jwriter.NilMapAsEmpty) == 0 {")
-			fmt.Fprintln(g.out, ws+"  out.RawString(`null`)")
+			fmt.Fprintln(g.out, ws+"if "+in+" == nil && (out.Flags() & jwriter.NilMapAsEmpty) == 0 {")
+			fmt.Fprintln(g.out, ws+"  if err := out.RawString(`null`);err != nil {return err}")
 			fmt.Fprintln(g.out, ws+"} else {")
 		} else {
 			fmt.Fprintln(g.out, ws+"{")
 		}
-		fmt.Fprintln(g.out, ws+"  out.RawByte('{')")
+		fmt.Fprintln(g.out, ws+"  if err := out.RawByte('{');err != nil {return err}")
 		fmt.Fprintln(g.out, ws+"  "+tmpVar+"First := true")
 		fmt.Fprintln(g.out, ws+"  for "+tmpVar+"Name, "+tmpVar+"Value := range "+in+" {")
 		fmt.Fprintln(g.out, ws+"    if "+tmpVar+"First { "+tmpVar+"First = false } else { out.RawByte(',') }")
 
 		// NOTE: extra check for TextMarshaler. It overrides default methods.
 		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
-			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("out.RawText(("+tmpVar+"Name).MarshalText()"+")"))
+			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("if err := out.RawBytesWithErr(("+tmpVar+"Name).MarshalText()"+");err != nil {return err}"))
 		} else if keyEnc != "" {
 			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
 		} else {
@@ -251,14 +265,14 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 			}
 		}
 
-		fmt.Fprintln(g.out, ws+"    out.RawByte(':')")
+		fmt.Fprintln(g.out, ws+"    if err := out.RawByte(':');err != nil {return err}")
 
 		if err := g.genTypeEncoder(t.Elem(), tmpVar+"Value", tags, indent+2, false); err != nil {
 			return err
 		}
 
 		fmt.Fprintln(g.out, ws+"  }")
-		fmt.Fprintln(g.out, ws+"  out.RawByte('}')")
+		fmt.Fprintln(g.out, ws+"  if err := out.RawByte('}');err != nil {return err}")
 		fmt.Fprintln(g.out, ws+"}")
 
 	case reflect.Interface:
@@ -267,20 +281,22 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 				fmt.Fprintln(g.out, ws+in+".MarshalEasyJSON(out)")
 			} else if g.interfaceIsJSONMarshaller(t) {
 				fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
-				fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
+				fmt.Fprintln(g.out, ws+"  if err := m.MarshalEasyJSON(out);err !=nil { return err}")
 				fmt.Fprintln(g.out, ws+"} else {")
-				fmt.Fprintln(g.out, ws+in+".MarshalJSON(out)")
+				fmt.Fprintln(g.out, ws+"if err := "+in+".MarshalJSON(out);err !=nil { return err}")
 				fmt.Fprintln(g.out, ws+"}")
 			} else {
 				return fmt.Errorf("interface type %v not supported: only interface{} and interfaces that implement json or easyjson Marshaling are allowed", t)
 			}
 		} else {
 			fmt.Fprintln(g.out, ws+"if m, ok := "+in+".(easyjson.Marshaler); ok {")
-			fmt.Fprintln(g.out, ws+"  m.MarshalEasyJSON(out)")
+			fmt.Fprintln(g.out, ws+"  if err := m.MarshalEasyJSON(out);err !=nil { return err}")
 			fmt.Fprintln(g.out, ws+"} else if m, ok := "+in+".(json.Marshaler); ok {")
-			fmt.Fprintln(g.out, ws+"  out.Raw(m.MarshalJSON())")
+			fmt.Fprintln(g.out, ws+"  if err := out.RawBytesWithErr(m.MarshalJSON()); err !=nil {")
+			fmt.Fprintln(g.out, ws+"    return err}")
 			fmt.Fprintln(g.out, ws+"} else {")
-			fmt.Fprintln(g.out, ws+"  out.Raw(json.Marshal("+in+"))")
+			fmt.Fprintln(g.out, ws+"  if err := out.RawBytesWithErr(json.Marshal("+in+")); err !=nil {")
+			fmt.Fprintln(g.out, ws+"    return err}")
 			fmt.Fprintln(g.out, ws+"}")
 		}
 	default:
@@ -349,18 +365,26 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 			if !noOmitEmpty {
 				fmt.Fprintln(g.out, "      first = false")
 			}
-			fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+			fmt.Fprintln(g.out, "      if err := out.RawString(prefix[1:]); err != nil {")
+			fmt.Fprintln(g.out, "        return err")
+			fmt.Fprintln(g.out, "      }")
 		} else {
 			fmt.Fprintln(g.out, "    if first {")
 			fmt.Fprintln(g.out, "      first = false")
-			fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
+			fmt.Fprintln(g.out, "      if err := out.RawString(prefix[1:]); err != nil {")
+			fmt.Fprintln(g.out, "        return err")
+			fmt.Fprintln(g.out, "      }")
 			fmt.Fprintln(g.out, "    } else {")
-			fmt.Fprintln(g.out, "      out.RawString(prefix)")
+			fmt.Fprintln(g.out, "      if err := out.RawString(prefix); err != nil {")
+			fmt.Fprintln(g.out, "        return err")
+			fmt.Fprintln(g.out, "      }")
 			fmt.Fprintln(g.out, "    }")
 		}
 	} else {
 		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
-		fmt.Fprintln(g.out, "    out.RawString(prefix)")
+		fmt.Fprintln(g.out, "    if err := out.RawString(prefix); err != nil {")
+		fmt.Fprintln(g.out, "        return err")
+		fmt.Fprintln(g.out, "      }")
 	}
 
 	if err := g.genTypeEncoder(f.Type, "in."+f.Name, tags, 2, !noOmitEmpty); err != nil {
@@ -389,7 +413,7 @@ func (g *Generator) genSliceArrayMapEncoder(t reflect.Type) error {
 	fname := g.getEncoderName(t)
 	typ := g.getType(t)
 
-	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
+	fmt.Fprintln(g.out, "func "+fname+"(out jwriter.Writer, in "+typ+") {")
 	err := g.genTypeEncoderNoCheck(t, "in", fieldTags{}, 1, false)
 	if err != nil {
 		return err
@@ -406,8 +430,10 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	fname := g.getEncoderName(t)
 	typ := g.getType(t)
 
-	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
-	fmt.Fprintln(g.out, "  out.RawByte('{')")
+	fmt.Fprintln(g.out, "func "+fname+"(out jwriter.Writer, in "+typ+") error {")
+	fmt.Fprintln(g.out, "  if err := out.RawByte('{'); err != nil {")
+	fmt.Fprintln(g.out, "    return err")
+	fmt.Fprintln(g.out, "  }")
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
 
@@ -433,7 +459,7 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 		}
 	}
 
-	fmt.Fprintln(g.out, "  out.RawByte('}')")
+	fmt.Fprintln(g.out, "  return out.RawByte('}')")
 	fmt.Fprintln(g.out, "}")
 
 	return nil
@@ -452,15 +478,17 @@ func (g *Generator) genStructMarshaler(t reflect.Type) error {
 	if !g.noStdMarshalers {
 		fmt.Fprintln(g.out, "// MarshalJSON supports json.Marshaler interface")
 		fmt.Fprintln(g.out, "func (v "+typ+") MarshalJSON() ([]byte, error) {")
-		fmt.Fprintln(g.out, "  w := jwriter.Writer{}")
-		fmt.Fprintln(g.out, "  "+fname+"(&w, v)")
-		fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), w.Error")
+		fmt.Fprintln(g.out, "  w := jwriter.BufWriter{}")
+		fmt.Fprintln(g.out, "  if err :="+fname+"(&w, v); err != nil {")
+		fmt.Fprintln(g.out, "    return nil, err")
+		fmt.Fprintln(g.out, "  }")
+		fmt.Fprintln(g.out, "  return w.Buffer.BuildBytes(), nil")
 		fmt.Fprintln(g.out, "}")
 	}
 
 	fmt.Fprintln(g.out, "// MarshalEasyJSON supports easyjson.Marshaler interface")
-	fmt.Fprintln(g.out, "func (v "+typ+") MarshalEasyJSON(w *jwriter.Writer) {")
-	fmt.Fprintln(g.out, "  "+fname+"(w, v)")
+	fmt.Fprintln(g.out, "func (v "+typ+") MarshalEasyJSON(w jwriter.Writer) error {")
+	fmt.Fprintln(g.out, "  return "+fname+"(w, v)")
 	fmt.Fprintln(g.out, "}")
 
 	return nil

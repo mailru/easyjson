@@ -10,11 +10,11 @@ import (
 type RawMessage []byte
 
 // MarshalEasyJSON does JSON marshaling using easyjson interface.
-func (v *RawMessage) MarshalEasyJSON(w *jwriter.Writer) {
+func (v *RawMessage) MarshalEasyJSON(w jwriter.Writer) error {
 	if len(*v) == 0 {
-		w.RawString("null")
+		return w.RawString("null")
 	} else {
-		w.Raw(*v, nil)
+		return w.RawBytes(*v)
 	}
 }
 

@@ -14,7 +14,7 @@ import (
 
 // Marshaler is an easyjson-compatible marshaler interface.
 type Marshaler interface {
-	MarshalEasyJSON(w *jwriter.Writer)
+	MarshalEasyJSON(w jwriter.Writer) error
 }
 
 // Marshaler is an easyjson-compatible unmarshaler interface.
@@ -40,7 +40,7 @@ type UnknownsUnmarshaler interface {
 
 // UnknownsMarshaler provides a method to write additional struct fields
 type UnknownsMarshaler interface {
-	MarshalUnknowns(w *jwriter.Writer, first bool)
+	MarshalUnknowns(w jwriter.Writer, first bool)
 }
 
 func isNilInterface(i interface{}) bool {
@@ -54,7 +54,7 @@ func Marshal(v Marshaler) ([]byte, error) {
 		return nullBytes, nil
 	}
 
-	w := jwriter.Writer{}
+	w := jwriter.BufWriter{}
 	v.MarshalEasyJSON(&w)
 	return w.BuildBytes()
 }
@@ -65,7 +65,7 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 		return w.Write(nullBytes)
 	}
 
-	jw := jwriter.Writer{}
+	jw := jwriter.BufWriter{}
 	v.MarshalEasyJSON(&jw)
 	return jw.DumpTo(w)
 }
@@ -82,10 +82,9 @@ func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bo
 		return true, written, err
 	}
 
-	jw := jwriter.Writer{}
-	v.MarshalEasyJSON(&jw)
-	if jw.Error != nil {
-		return false, 0, jw.Error
+	jw := jwriter.BufWriter{}
+	if err := v.MarshalEasyJSON(&jw); err != nil {
+		return false, 0, err
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(jw.Size()))
