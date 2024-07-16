@@ -1,3 +1,4 @@
+//go:build use_easyjson
 // +build use_easyjson
 
 package benchmark
@@ -60,10 +61,10 @@ func BenchmarkEJ_Marshal_L_ToWriter(b *testing.B) {
 	var l int64
 	out := &DummyWriter{}
 	for i := 0; i < b.N; i++ {
-		w := jwriter.Writer{}
-		xlStructData.MarshalEasyJSON(&w)
-		if w.Error != nil {
-			b.Error(w.Error)
+		w := jwriter.BufWriter{}
+		err := xlStructData.MarshalEasyJSON(&w)
+		if err != nil {
+			b.Error(err)
 		}
 
 		l = int64(w.Size())
@@ -89,7 +90,7 @@ func BenchmarkEJ_Marshal_M_ToWriter(b *testing.B) {
 	var l int64
 	out := &DummyWriter{}
 	for i := 0; i < b.N; i++ {
-		w := jwriter.Writer{}
+		w := jwriter.BufWriter{}
 		largeStructData.MarshalEasyJSON(&w)
 		if w.Error != nil {
 			b.Error(w.Error)
@@ -107,7 +108,7 @@ func BenchmarkEJ_Marshal_M_ToWriter_Parallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		var l int64
 		for pb.Next() {
-			w := jwriter.Writer{}
+			w := jwriter.BufWriter{}
 			largeStructData.MarshalEasyJSON(&w)
 			if w.Error != nil {
 				b.Error(w.Error)
@@ -142,7 +143,7 @@ func BenchmarkEJ_Marshal_L_ToWriter_Parallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		var l int64
 		for pb.Next() {
-			w := jwriter.Writer{}
+			w := jwriter.BufWriter{}
 
 			xlStructData.MarshalEasyJSON(&w)
 			if w.Error != nil {
