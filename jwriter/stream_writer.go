@@ -73,12 +73,18 @@ func (w *tokenWriter) RawBytes(data []byte) error {
 	return w.maybeFlush()
 }
 
+func (w *tokenWriter) RawTextWithErr(data []byte, err error) error {
+	if err != nil {
+		return err
+	}
+	return w.String(string(data))
+}
+
 func (w *tokenWriter) RawBytesWithErr(data []byte, err error) error {
 	if err != nil {
 		return err
 	}
-	w.RawBytes(data)
-	return nil
+	return w.RawBytes(data)
 }
 
 // RawByte appends raw binary data to the buffer.

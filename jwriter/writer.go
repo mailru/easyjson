@@ -33,6 +33,8 @@ type Writer interface {
 
 	RawBytesWithErr(data []byte, err error) error
 
+	RawTextWithErr(data []byte, err error) error
+
 	// RawByte appends raw binary data to the buffer.
 	RawString(s string) error
 
@@ -146,12 +148,18 @@ func (w *BufWriter) RawBytes(data []byte) error {
 	return nil
 }
 
+func (w *BufWriter) RawTextWithErr(data []byte, err error) error {
+	if err != nil {
+		return err
+	}
+	return w.String(string(data))
+}
+
 func (w *BufWriter) RawBytesWithErr(data []byte, err error) error {
 	if err != nil {
 		return err
 	}
-	w.RawBytes(data)
-	return nil
+	return w.RawBytes(data)
 }
 
 // RawByte appends raw binary data to the buffer.

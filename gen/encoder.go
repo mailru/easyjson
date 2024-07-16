@@ -119,7 +119,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 
 	marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(marshalerIface) {
-		fmt.Fprintln(g.out, ws+"if err := out.RawBytesWithErr( ("+in+").MarshalText() ); err != nil {")
+		fmt.Fprintln(g.out, ws+"if err := out.RawTextWithErr( ("+in+").MarshalText() ); err != nil {")
 		fmt.Fprintln(g.out, "        return err")
 		fmt.Fprintln(g.out, "      }")
 		return nil
@@ -256,7 +256,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 
 		// NOTE: extra check for TextMarshaler. It overrides default methods.
 		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
-			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("if err := out.RawBytesWithErr(("+tmpVar+"Name).MarshalText()"+");err != nil {return err}"))
+			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("if err := out.RawTextWithErr(("+tmpVar+"Name).MarshalText()"+");err != nil {return err}"))
 		} else if keyEnc != "" {
 			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
 		} else {
@@ -344,9 +344,12 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
+	fmt.Fprintf(g.out, "    //"+strconv.Quote(jsonName)+"\n")
+
 	if tags.omit {
 		return firstCondition, nil
 	}
+	fmt.Fprintf(g.out, "    //1"+strconv.Quote(jsonName)+"\n")
 
 	toggleFirstCondition := firstCondition
 
@@ -358,6 +361,8 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
 		// can be any in runtime, so toggleFirstCondition stay as is
 	}
+
+	fmt.Fprintf(g.out, "    //2"+strconv.Quote(jsonName)+"\n")
 
 	if firstCondition {
 		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
