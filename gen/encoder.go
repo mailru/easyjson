@@ -459,9 +459,9 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 
 	if hasUnknownsMarshaler(t) {
 		if !firstCondition {
-			fmt.Fprintln(g.out, "  in.MarshalUnknowns(out, false)")
+			fmt.Fprintln(g.out, "  if err := in.MarshalUnknowns(out, false); err !=nil {return err}")
 		} else {
-			fmt.Fprintln(g.out, "  in.MarshalUnknowns(out, first)")
+			fmt.Fprintln(g.out, "  if err := in.MarshalUnknowns(out, first); err !=nil {return err}")
 		}
 	}
 

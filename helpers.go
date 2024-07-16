@@ -40,7 +40,7 @@ type UnknownsUnmarshaler interface {
 
 // UnknownsMarshaler provides a method to write additional struct fields
 type UnknownsMarshaler interface {
-	MarshalUnknowns(w jwriter.Writer, first bool)
+	MarshalUnknowns(w jwriter.Writer, first bool) error
 }
 
 func isNilInterface(i interface{}) bool {
