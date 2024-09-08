@@ -339,7 +339,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 		return nil
 	}
 	if tags.intern && tags.noCopy {
-		return errors.New("Mutually exclusive tags are specified: 'intern' and 'nocopy'")
+		return errors.New("mutually exclusive tags are specified: 'intern' and 'nocopy'")
 	}
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
@@ -354,7 +354,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	return nil
 }
 
-func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
+func (g *Generator) genRequiredFieldSet(_ reflect.Type, f reflect.StructField) {
 	tags := parseFieldTags(f)
 
 	if !tags.required {
