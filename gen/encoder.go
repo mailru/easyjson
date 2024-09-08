@@ -95,19 +95,19 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 	ws := strings.Repeat("  ", indent)
 
 	marshalerIface := reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
+	if reflect.PointerTo(t).Implements(marshalerIface) {
 		fmt.Fprintln(g.out, ws+"("+in+").MarshalEasyJSON(out)")
 		return nil
 	}
 
 	marshalerIface = reflect.TypeOf((*json.Marshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
+	if reflect.PointerTo(t).Implements(marshalerIface) {
 		fmt.Fprintln(g.out, ws+"out.Raw( ("+in+").MarshalJSON() )")
 		return nil
 	}
 
 	marshalerIface = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(marshalerIface) {
+	if reflect.PointerTo(t).Implements(marshalerIface) {
 		fmt.Fprintln(g.out, ws+"out.RawText( ("+in+").MarshalText() )")
 		return nil
 	}
@@ -118,7 +118,7 @@ func (g *Generator) genTypeEncoder(t reflect.Type, in string, tags fieldTags, in
 
 // returns true if the type t implements one of the custom marshaler interfaces
 func hasCustomMarshaler(t reflect.Type) bool {
-	t = reflect.PtrTo(t)
+	t = reflect.PointerTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.Marshaler)(nil)).Elem()) ||
 		t.Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem()) ||
 		t.Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem())
@@ -241,7 +241,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 		fmt.Fprintln(g.out, ws+"    if "+tmpVar+"First { "+tmpVar+"First = false } else { out.RawByte(',') }")
 
 		// NOTE: extra check for TextMarshaler. It overrides default methods.
-		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
+		if reflect.PointerTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
 			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("out.RawText(("+tmpVar+"Name).MarshalText()"+")"))
 		} else if keyEnc != "" {
 			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
@@ -299,7 +299,7 @@ func (g *Generator) interfaceIsJSONMarshaller(t reflect.Type) bool {
 
 func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	optionalIface := reflect.TypeOf((*easyjson.Optional)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(optionalIface) {
+	if reflect.PointerTo(t).Implements(optionalIface) {
 		return "(" + v + ").IsDefined()"
 	}
 

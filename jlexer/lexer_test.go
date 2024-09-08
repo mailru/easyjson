@@ -98,7 +98,7 @@ func TestBytes(t *testing.T) {
 		l := Lexer{Data: []byte(test.toParse)}
 
 		got := l.Bytes()
-		if bytes.Compare(got, []byte(test.want)) != 0 {
+		if !bytes.Equal(got, []byte(test.want)) {
 			t.Errorf("[%d, %q] Bytes() = %v; want: %v", i, test.toParse, got, []byte(test.want))
 		}
 		err := l.Error()

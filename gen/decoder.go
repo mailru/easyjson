@@ -62,13 +62,13 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 	ws := strings.Repeat("  ", indent)
 
 	unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
+	if reflect.PointerTo(t).Implements(unmarshalerIface) {
 		fmt.Fprintln(g.out, ws+"("+out+").UnmarshalEasyJSON(in)")
 		return nil
 	}
 
 	unmarshalerIface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
+	if reflect.PointerTo(t).Implements(unmarshalerIface) {
 		fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
 		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
 		fmt.Fprintln(g.out, ws+"}")
@@ -76,7 +76,7 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 	}
 
 	unmarshalerIface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-	if reflect.PtrTo(t).Implements(unmarshalerIface) {
+	if reflect.PointerTo(t).Implements(unmarshalerIface) {
 		fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
 		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalText(data) )")
 		fmt.Fprintln(g.out, ws+"}")
@@ -89,19 +89,19 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 
 // returns true if the type t implements one of the custom unmarshaler interfaces
 func hasCustomUnmarshaler(t reflect.Type) bool {
-	t = reflect.PtrTo(t)
+	t = reflect.PointerTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()) ||
 		t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()) ||
 		t.Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem())
 }
 
 func hasUnknownsUnmarshaler(t reflect.Type) bool {
-	t = reflect.PtrTo(t)
+	t = reflect.PointerTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.UnknownsUnmarshaler)(nil)).Elem())
 }
 
 func hasUnknownsMarshaler(t reflect.Type) bool {
-	t = reflect.PtrTo(t)
+	t = reflect.PointerTo(t)
 	return t.Implements(reflect.TypeOf((*easyjson.UnknownsMarshaler)(nil)).Elem())
 }
 
@@ -271,7 +271,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 
 		fmt.Fprintln(g.out, ws+"  for !in.IsDelim('}') {")
 		// NOTE: extra check for TextUnmarshaler. It overrides default methods.
-		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()) {
+		if reflect.PointerTo(key).Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()) {
 			fmt.Fprintln(g.out, ws+"    var key "+g.getType(key))
 			fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
 			fmt.Fprintln(g.out, ws+"  in.AddError(key.UnmarshalText(data) )")
@@ -339,7 +339,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 		return nil
 	}
 	if tags.intern && tags.noCopy {
-		return errors.New("Mutually exclusive tags are specified: 'intern' and 'nocopy'")
+		return errors.New("mutually exclusive tags are specified: 'intern' and 'nocopy'")
 	}
 
 	fmt.Fprintf(g.out, "    case %q:\n", jsonName)
@@ -354,7 +354,7 @@ func (g *Generator) genStructFieldDecoder(t reflect.Type, f reflect.StructField)
 	return nil
 }
 
-func (g *Generator) genRequiredFieldSet(t reflect.Type, f reflect.StructField) {
+func (g *Generator) genRequiredFieldSet(_ reflect.Type, f reflect.StructField) {
 	tags := parseFieldTags(f)
 
 	if !tags.required {

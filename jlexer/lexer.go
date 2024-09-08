@@ -16,7 +16,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/josharian/intern"
+	"github.com/mailru/easyjson/intern"
 )
 
 // TokenKind determines type of a token.
@@ -157,7 +157,6 @@ func (r *Lexer) FetchToken() {
 		}
 	}
 	r.fatalError = io.EOF
-	return
 }
 
 // isTokenEnd returns true if the char can follow a non-delimiter token

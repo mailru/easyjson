@@ -82,7 +82,7 @@ func (b *Buffer) EnsureSpace(s int) {
 	}
 }
 
-func (b *Buffer) ensureSpaceSlow(s int) {
+func (b *Buffer) ensureSpaceSlow(_ int) {
 	l := len(b.Buf)
 	if l > 0 {
 		if cap(b.toPool) != cap(b.Buf) {
