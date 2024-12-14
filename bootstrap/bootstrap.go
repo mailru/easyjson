@@ -32,6 +32,7 @@ type Generator struct {
 	OmitEmpty                bool
 	DisallowUnknownFields    bool
 	SkipMemberNameUnescaping bool
+	PtrReceivers             bool
 
 	OutName       string
 	BuildTags     string
@@ -69,15 +70,19 @@ func (g *Generator) writeStub() error {
 		fmt.Fprintln(f, ")")
 	}
 
+	inPtrPrefix := ""
+	if g.PtrReceivers {
+		inPtrPrefix = "*"
+	}
 	sort.Strings(g.Types)
 	for _, t := range g.Types {
 		fmt.Fprintln(f)
 		if !g.NoStdMarshalers {
-			fmt.Fprintln(f, "func (", t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
+			fmt.Fprintln(f, "func (", inPtrPrefix, t, ") MarshalJSON() ([]byte, error) { return nil, nil }")
 			fmt.Fprintln(f, "func (*", t, ") UnmarshalJSON([]byte) error { return nil }")
 		}
 
-		fmt.Fprintln(f, "func (", t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
+		fmt.Fprintln(f, "func (", inPtrPrefix, t, ") MarshalEasyJSON(w *jwriter.Writer) {}")
 		fmt.Fprintln(f, "func (*", t, ") UnmarshalEasyJSON(l *jlexer.Lexer) {}")
 		fmt.Fprintln(f)
 		fmt.Fprintln(f, "type EasyJSON_exporter_"+t+" *"+t)
@@ -136,6 +141,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	}
 	if g.SkipMemberNameUnescaping {
 		fmt.Fprintln(f, "  g.SkipMemberNameUnescaping()")
+	}
+	if g.PtrReceivers {
+		fmt.Fprintln(f, "  g.PtrReceivers()")
 	}
 
 	sort.Strings(g.Types)

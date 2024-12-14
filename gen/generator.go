@@ -39,6 +39,7 @@ type Generator struct {
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
+	ptrReceivers             bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -121,6 +122,11 @@ func (g *Generator) DisallowUnknownFields() {
 // SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance
 func (g *Generator) SkipMemberNameUnescaping() {
 	g.skipMemberNameUnescaping = true
+}
+
+// PtrReceivers instructs to use pointer receivers for marshaling methods of structs.
+func (g *Generator) PtrReceivers() {
+	g.ptrReceivers = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
