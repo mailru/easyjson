@@ -242,7 +242,7 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 
 		// NOTE: extra check for TextMarshaler. It overrides default methods.
 		if reflect.PtrTo(key).Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
-			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("out.RawText(("+tmpVar+"Name).MarshalText()"+")"))
+			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf("out.RawBytesString(("+tmpVar+"Name).MarshalText()"+")"))
 		} else if keyEnc != "" {
 			fmt.Fprintln(g.out, ws+"    "+fmt.Sprintf(keyEnc, tmpVar+"Name"))
 		} else {
