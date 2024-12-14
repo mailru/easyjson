@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ 1.17, 1.16, 1.15 ]
+        go: [ 1.23 ]
     steps:
       - uses: actions/checkout@v2
 
@@ -33,14 +33,14 @@ jobs:
       - name: Build and Run tests
         run: make
 
-  test-non-amd64:
+  test-arm64:
     runs-on: ubuntu-latest
     name: Test on ${{ matrix.distro }} ${{ matrix.arch }}
     strategy:
       matrix:
         include:
-          - arch: ppc64le
-            distro: ubuntu20.04
+          - arch: arm64
+            distro: ubuntu24.04
     steps:
       - uses: actions/checkout@v2
       - uses: uraimo/run-on-arch-action@master
