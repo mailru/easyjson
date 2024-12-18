@@ -52,6 +52,7 @@ generate: build
 	bin/easyjson -build_tags=use_easyjson -disable_members_unescape ./benchmark/data.go
 	bin/easyjson -disallow_unknown_fields ./tests/disallow_unknown.go
 	bin/easyjson -disable_members_unescape ./tests/members_unescaped.go
+	bin/easyjson -disallow_duplicate_fields ./tests/duplicate_fields.go
 
 test: generate
 	go test \
