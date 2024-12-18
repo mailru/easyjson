@@ -110,15 +110,26 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 	ws := strings.Repeat("  ", indent)
 	// Check whether type is primitive, needs to be done after interface check.
 	if dec := customDecoders[t.String()]; dec != "" {
+		fmt.Fprintln(g.out, "    if in.IsNull() {")
+		fmt.Fprintln(g.out, "       in.Skip()")
+		fmt.Fprintln(g.out, "    } else {")
 		fmt.Fprintln(g.out, ws+out+" = "+dec)
+		fmt.Fprintln(g.out, "    }")
 		return nil
 	} else if dec := primitiveStringDecoders[t.Kind()]; dec != "" && tags.asString {
+		fmt.Fprintln(g.out, "    if in.IsNull() {")
+		fmt.Fprintln(g.out, "       in.Skip()")
+		fmt.Fprintln(g.out, "    } else {")
 		if tags.intern && t.Kind() == reflect.String {
 			dec = "in.StringIntern()"
 		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, "    }")
 		return nil
 	} else if dec := primitiveDecoders[t.Kind()]; dec != "" {
+		fmt.Fprintln(g.out, "    if in.IsNull() {")
+		fmt.Fprintln(g.out, "       in.Skip()")
+		fmt.Fprintln(g.out, "    } else {")
 		if tags.intern && t.Kind() == reflect.String {
 			dec = "in.StringIntern()"
 		}
@@ -126,6 +137,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			dec = "in.UnsafeString()"
 		}
 		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, "    }")
 		return nil
 	}
 
@@ -514,12 +526,6 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
 	fmt.Fprintf(g.out, "    key := in.UnsafeFieldName(%v)\n", g.skipMemberNameUnescaping)
 	fmt.Fprintln(g.out, "    in.WantColon()")
-	fmt.Fprintln(g.out, "    if in.IsNull() {")
-	fmt.Fprintln(g.out, "       in.Skip()")
-	fmt.Fprintln(g.out, "       in.WantComma()")
-	fmt.Fprintln(g.out, "       continue")
-	fmt.Fprintln(g.out, "    }")
-
 	fmt.Fprintln(g.out, "    switch key {")
 	for _, f := range fs {
 		if err := g.genStructFieldDecoder(t, f); err != nil {
