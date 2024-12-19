@@ -320,7 +320,6 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		return fmt.Errorf("don't know how to decode %v", t)
 	}
 	return nil
-
 }
 
 func (g *Generator) interfaceIsEasyjsonUnmarshaller(t reflect.Type) bool {
@@ -514,11 +513,6 @@ func (g *Generator) genStructDecoder(t reflect.Type) error {
 	fmt.Fprintln(g.out, "  for !in.IsDelim('}') {")
 	fmt.Fprintf(g.out, "    key := in.UnsafeFieldName(%v)\n", g.skipMemberNameUnescaping)
 	fmt.Fprintln(g.out, "    in.WantColon()")
-	fmt.Fprintln(g.out, "    if in.IsNull() {")
-	fmt.Fprintln(g.out, "       in.Skip()")
-	fmt.Fprintln(g.out, "       in.WantComma()")
-	fmt.Fprintln(g.out, "       continue")
-	fmt.Fprintln(g.out, "    }")
 
 	fmt.Fprintln(g.out, "    switch key {")
 	for _, f := range fs {
