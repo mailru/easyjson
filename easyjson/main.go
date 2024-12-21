@@ -18,6 +18,7 @@ import (
 
 var buildTags = flag.String("build_tags", "", "build tags to add to generated file")
 var genBuildFlags = flag.String("gen_build_flags", "", "build flags when running the generator while bootstrapping")
+var floatFmt = flag.String("float_format", "", "float format to be used in json writer")
 var snakeCase = flag.Bool("snake_case", false, "use snake_case names instead of CamelCase by default")
 var lowerCamelCase = flag.Bool("lower_camel_case", false, "use lowerCamelCase names instead of CamelCase by default")
 var noStdMarshalers = flag.Bool("no_std_marshalers", false, "don't generate MarshalJSON/UnmarshalJSON funcs")
@@ -68,6 +69,11 @@ func generate(fname string) (err error) {
 		trimmedGenBuildFlags = strings.TrimSpace(*genBuildFlags)
 	}
 
+	var trimmedFloatFmt string
+	if *floatFmt != "" {
+		trimmedFloatFmt = strings.TrimSpace(*floatFmt)
+	}
+
 	g := bootstrap.Generator{
 		BuildTags:                trimmedBuildTags,
 		GenBuildFlags:            trimmedGenBuildFlags,
@@ -85,6 +91,7 @@ func generate(fname string) (err error) {
 		StubsOnly:                *stubs,
 		NoFormat:                 *noformat,
 		SimpleBytes:              *simpleBytes,
+		FloatFmt:                 trimmedFloatFmt,
 	}
 
 	if err := g.Run(); err != nil {
