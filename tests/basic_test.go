@@ -59,6 +59,7 @@ var testCases = []struct {
 	{&myTypeDeclaredValue, myTypeDeclaredString},
 	{&myTypeNotSkippedValue, myTypeNotSkippedString},
 	{&intern, internString},
+	{&embedAnonWithEmbedValue, embedAnonWithEmbedString},
 }
 
 func TestMarshal(t *testing.T) {
