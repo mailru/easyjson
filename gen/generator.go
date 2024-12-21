@@ -39,6 +39,7 @@ type Generator struct {
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
+	disallowDuplicateFields  bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -121,6 +122,11 @@ func (g *Generator) DisallowUnknownFields() {
 // SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance
 func (g *Generator) SkipMemberNameUnescaping() {
 	g.skipMemberNameUnescaping = true
+}
+
+// DisallowDuplicateFields instructs to error when a field is defined more than once
+func (g *Generator) DisallowDuplicateFields() {
+	g.disallowDuplicateFields = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.

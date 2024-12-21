@@ -30,6 +30,7 @@ var noformat = flag.Bool("noformat", false, "do not run 'gofmt -w' on output fil
 var specifiedName = flag.String("output_filename", "", "specify the filename of the output")
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
+var disallowDuplicateFields = flag.Bool("disallow_duplicate_fields", false, "return error if a field appears in the json more than once")
 var skipMemberNameUnescaping = flag.Bool("disable_members_unescape", false, "don't perform unescaping of member names to improve performance")
 
 func generate(fname string) (err error) {
@@ -78,6 +79,7 @@ func generate(fname string) (err error) {
 		LowerCamelCase:           *lowerCamelCase,
 		NoStdMarshalers:          *noStdMarshalers,
 		DisallowUnknownFields:    *disallowUnknownFields,
+		DisallowDuplicateFields:  *disallowDuplicateFields,
 		SkipMemberNameUnescaping: *skipMemberNameUnescaping,
 		OmitEmpty:                *omitEmpty,
 		LeaveTemps:               *leaveTemps,
