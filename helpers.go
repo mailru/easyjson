@@ -2,8 +2,8 @@
 package easyjson
 
 import (
+	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"unsafe"
@@ -45,6 +45,23 @@ type UnknownsMarshaler interface {
 
 func isNilInterface(i interface{}) bool {
 	return (*[2]uintptr)(unsafe.Pointer(&i))[1] == 0
+}
+
+// MarshalAny returns data as a single byte slice and is similar to Marshal.
+// It falls back to json.Marshal if the `easyjson` code has not been generated yet but otherwise will use the faster methods.
+func MarshalAny(v any) ([]byte, error) {
+	if isNilInterface(v) {
+		return nullBytes, nil
+	}
+	fM, ok := v.(Marshaler)
+	if ok {
+		return Marshal(fM)
+	}
+	j, ok := v.(json.Marshaler)
+	if ok {
+		return j.MarshalJSON()
+	}
+	return json.Marshal(v)
 }
 
 // Marshal returns data as a single byte slice. Method is suboptimal as the data is likely to be copied
@@ -102,9 +119,24 @@ func Unmarshal(data []byte, v Unmarshaler) error {
 	return l.Error()
 }
 
+// UnmarshalAny decodes the JSON in data into the object v and is similar to Unmarshal.
+// It falls back to json.Unmarshal if the `easyjson` code has not been generated yet but otherwise will use the faster methods.
+func UnmarshalAny(data []byte, v any) error {
+	fU, ok := v.(Unmarshaler)
+	if ok {
+		return Unmarshal(data, fU)
+	}
+
+	j, ok := v.(json.Unmarshaler)
+	if ok {
+		return j.UnmarshalJSON(data)
+	}
+	return json.Unmarshal(data, v)
+}
+
 // UnmarshalFromReader reads all the data in the reader and decodes as JSON into the object.
 func UnmarshalFromReader(r io.Reader, v Unmarshaler) error {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
