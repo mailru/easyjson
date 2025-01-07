@@ -148,10 +148,12 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"}")
 
 		} else {
-
 			capacity := 1
 			if elem.Size() > 0 {
 				capacity = minSliceBytes / int(elem.Size())
+			}
+			if tags.initialCapacity > 0 {
+				capacity = tags.initialCapacity
 			}
 
 			fmt.Fprintln(g.out, ws+"if in.IsNull() {")
