@@ -63,22 +63,34 @@ func (g *Generator) genTypeDecoder(t reflect.Type, out string, tags fieldTags, i
 
 	unmarshalerIface := reflect.TypeOf((*easyjson.Unmarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"("+out+").UnmarshalEasyJSON(in)")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  ("+out+").UnmarshalEasyJSON(in)")
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
 
 	unmarshalerIface = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"if data := in.Raw(); in.Ok() {")
-		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalJSON(data) )")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  if data := in.Raw(); in.Ok() {")
+		fmt.Fprintln(g.out, ws+"    in.AddError( ("+out+").UnmarshalJSON(data) )")
+		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
 
 	unmarshalerIface = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(unmarshalerIface) {
-		fmt.Fprintln(g.out, ws+"if data := in.UnsafeBytes(); in.Ok() {")
-		fmt.Fprintln(g.out, ws+"  in.AddError( ("+out+").UnmarshalText(data) )")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  if data := in.UnsafeBytes(); in.Ok() {")
+		fmt.Fprintln(g.out, ws+"    in.AddError( ("+out+").UnmarshalText(data) )")
+		fmt.Fprintln(g.out, ws+"  }")
 		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
@@ -110,13 +122,21 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 	ws := strings.Repeat("  ", indent)
 	// Check whether type is primitive, needs to be done after interface check.
 	if dec := customDecoders[t.String()]; dec != "" {
-		fmt.Fprintln(g.out, ws+out+" = "+dec)
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  "+out+" = "+dec)
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	} else if dec := primitiveStringDecoders[t.Kind()]; dec != "" && tags.asString {
 		if tags.intern && t.Kind() == reflect.String {
 			dec = "in.StringIntern()"
 		}
-		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  "+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	} else if dec := primitiveDecoders[t.Kind()]; dec != "" {
 		if tags.intern && t.Kind() == reflect.String {
@@ -125,7 +145,11 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		if tags.noCopy && t.Kind() == reflect.String {
 			dec = "in.UnsafeString()"
 		}
-		fmt.Fprintln(g.out, ws+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, ws+"if in.IsNull() {")
+		fmt.Fprintln(g.out, ws+"  in.Skip()")
+		fmt.Fprintln(g.out, ws+"} else {")
+		fmt.Fprintln(g.out, ws+"  "+out+" = "+g.getType(t)+"("+dec+")")
+		fmt.Fprintln(g.out, ws+"}")
 		return nil
 	}
 

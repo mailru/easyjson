@@ -330,12 +330,19 @@ func TestNil(t *testing.T) {
 }
 
 func TestUnmarshalNull(t *testing.T) {
-	p := primitiveTypesValue
+	p := PrimitiveTypes{
+		String: str,
+		Ptr:    &str,
+	}
 
-	data := `{"Ptr":null}`
+	data := `{"String":null,"Ptr":null}`
 
 	if err := easyjson.Unmarshal([]byte(data), &p); err != nil {
 		t.Errorf("easyjson.Unmarshal() error: %v", err)
+	}
+
+	if p.String != str {
+		t.Errorf("Wanted %q, got %q", str, p.String)
 	}
 
 	if p.Ptr != nil {
