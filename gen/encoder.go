@@ -53,18 +53,22 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 type fieldTags struct {
 	name string
 
-	omit        bool
-	omitEmpty   bool
-	noOmitEmpty bool
-	asString    bool
-	required    bool
-	intern      bool
-	noCopy      bool
+	omit            bool
+	omitEmpty       bool
+	noOmitEmpty     bool
+	asString        bool
+	required        bool
+	intern          bool
+	noCopy          bool
+	initialCapacity int
 }
+
+const defaultCapacity int = -1
 
 // parseFieldTags parses the json field tag into a structure.
 func parseFieldTags(f reflect.StructField) fieldTags {
 	var ret fieldTags
+	ret.initialCapacity = defaultCapacity
 
 	for i, s := range strings.Split(f.Tag.Get("json"), ",") {
 		switch {
@@ -84,6 +88,17 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.intern = true
 		case s == "nocopy":
 			ret.noCopy = true
+		}
+	}
+
+	for i, s := range strings.Split(f.Tag.Get("initialCap"), ",") {
+		switch {
+		case i == 0:
+			capacity, err := strconv.Atoi(s)
+			if err != nil || capacity <= 0 {
+				capacity = defaultCapacity
+			}
+			ret.initialCapacity = capacity
 		}
 	}
 

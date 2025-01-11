@@ -32,7 +32,8 @@ generate: build
  		./tests/nothing.go \
  		./tests/errors.go \
  		./tests/html.go \
- 		./tests/type_declaration_skip.go
+ 		./tests/type_declaration_skip.go \
+ 		./tests/init_cap.go
 	bin/easyjson \
 		./tests/nested_easy.go \
 		./tests/named_type.go \

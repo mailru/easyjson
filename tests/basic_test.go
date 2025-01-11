@@ -59,6 +59,9 @@ var testCases = []struct {
 	{&myTypeDeclaredValue, myTypeDeclaredString},
 	{&myTypeNotSkippedValue, myTypeNotSkippedString},
 	{&intern, internString},
+	{&noInitCap, noInitCapString},
+	{&initCap, initCapString},
+	{&invalidInitCap, invalidInitCapString},
 }
 
 func TestMarshal(t *testing.T) {
@@ -243,7 +246,7 @@ func TestNestedMarshaler(t *testing.T) {
 		t.Errorf("Can't marshal NestedMarshaler: %s", err)
 	}
 
-	s2 := NestedMarshaler {
+	s2 := NestedMarshaler{
 		Value: &StructWithMarshaler{},
 	}
 
