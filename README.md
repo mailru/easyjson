@@ -80,6 +80,8 @@ Usage of easyjson:
     	only generate stubs for marshaler/unmarshaler funcs
   -disallow_unknown_fields
         return error if some unknown field in json appeared
+  -disallow_duplicate_fields
+        return error if a field appears in the json more than once
   -disable_members_unescape
         disable unescaping of \uXXXX string sequences in member names
 ```
