@@ -36,6 +36,7 @@ type Generator struct {
 	OutName       string
 	BuildTags     string
 	GenBuildFlags string
+	FloatFmt      string
 
 	StubsOnly   bool
 	LeaveTemps  bool
@@ -115,6 +116,9 @@ func (g *Generator) writeMain() (path string, err error) {
 	fmt.Fprintf(f, "  g.SetPkg(%q, %q)\n", g.PkgName, g.PkgPath)
 	if g.BuildTags != "" {
 		fmt.Fprintf(f, "  g.SetBuildTags(%q)\n", g.BuildTags)
+	}
+	if g.FloatFmt != "" {
+		fmt.Fprintf(f, "  g.SetFloatFmt(%q)\n", g.FloatFmt)
 	}
 	if g.SnakeCase {
 		fmt.Fprintln(f, "  g.UseSnakeCase()")
