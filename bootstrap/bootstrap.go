@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+
+	"golang.org/x/tools/imports"
 )
 
 const genPackage = "github.com/mailru/easyjson/gen"
@@ -41,6 +43,8 @@ type Generator struct {
 	LeaveTemps  bool
 	NoFormat    bool
 	SimpleBytes bool
+
+	LocalPrefix *string
 }
 
 // writeStub outputs an initial stub for marshalers/unmarshalers so that the package
@@ -215,5 +219,17 @@ func (g *Generator) Run() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(g.OutName, out, 0644)
+
+	if g.LocalPrefix != nil {
+		imports.LocalPrefix = *g.LocalPrefix
+	}
+	impOuts, err := imports.Process(g.OutName, out, &imports.Options{
+		FormatOnly: true,
+		Comments:   true,
+	})
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(g.OutName, impOuts, 0644)
 }
