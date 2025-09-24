@@ -306,6 +306,15 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	switch t.Kind() {
 	case reflect.Slice, reflect.Map:
 		return "len(" + v + ") != 0"
+	case reflect.Struct:
+		if g.allowOmitEmptyStruct {
+			val, s := reflect.New(t).Elem(), "false"
+			for i := 0; i < val.NumField(); i++ {
+				s += " || " + g.notEmptyCheck(val.Field(i).Type(), v+"."+t.Field(i).Name)
+			}
+			return s
+		}
+		return "true"
 	case reflect.Interface, reflect.Ptr:
 		return v + " != nil"
 	case reflect.Bool:
@@ -339,7 +348,11 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 		fmt.Fprintln(g.out, "  {")
 		toggleFirstCondition = false
 	} else {
-		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
+		fmt.Fprintln(
+			g.out, "  if",
+			strings.ReplaceAll(g.notEmptyCheck(f.Type, "in."+f.Name), "|| false", ""),
+			"{",
+		)
 		// can be any in runtime, so toggleFirstCondition stay as is
 	}
 

@@ -39,6 +39,7 @@ type Generator struct {
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
+	allowOmitEmptyStruct     bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -121,6 +122,11 @@ func (g *Generator) DisallowUnknownFields() {
 // SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance
 func (g *Generator) SkipMemberNameUnescaping() {
 	g.skipMemberNameUnescaping = true
+}
+
+// AllowOmitEmptyStruct instructs to allow struct field emptiness check if omitempty tag is provided.
+func (g *Generator) AllowOmitEmptyStruct() {
+	g.allowOmitEmptyStruct = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
