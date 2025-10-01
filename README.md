@@ -111,7 +111,7 @@ Additional option notes:
 
 * `-build_tags` will add the specified build tags to generated Go sources.
 
-* `-gen_build_flags` will execute the easyjson bootstapping code to launch the 
+* `-gen_build_flags` will execute the easyjson bootstrapping code to launch the
   actual generator command with provided flags. Multiple arguments should be
   separated by space e.g. `-gen_build_flags="-mod=mod -x"`.
 
