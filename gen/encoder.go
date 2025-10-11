@@ -335,7 +335,7 @@ func (g *Generator) genStructFieldEncoder(i int, t reflect.Type, f reflect.Struc
 	toggleFirstCondition := firstCondition
 
 	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
-	if g.withFieldMask {
+	if g.useFieldMask {
 		fmt.Fprintf(g.out, "  if i >= lenMask || mask[%d] {\n", i)
 	} else if noOmitEmpty {
 		fmt.Fprintln(g.out, "  {")
@@ -409,8 +409,10 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
-	fmt.Fprintln(g.out, "mask := in.Mask")
-	fmt.Fprintln(g.out, "lenMask := len(mask)")
+	if g.useFieldMask {
+		fmt.Fprintln(g.out, "  mask := in.Mask")
+		fmt.Fprintln(g.out, "  lenMask := len(mask)")
+	}
 	fmt.Fprintln(g.out, "  out.RawByte('{')")
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
