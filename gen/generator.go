@@ -39,6 +39,7 @@ type Generator struct {
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
+	useFieldMask             bool
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -55,9 +56,6 @@ type Generator struct {
 	// function name to relevant type maps to track names of de-/encoders in
 	// case of a name clash or unnamed structs
 	functionNames map[string]reflect.Type
-
-	// use field mask when generating the marshaler
-	withFieldMask bool
 }
 
 // NewGenerator initializes and returns a Generator.
@@ -124,6 +122,11 @@ func (g *Generator) DisallowUnknownFields() {
 // SkipMemberNameUnescaping instructs to skip member names unescaping to improve performance
 func (g *Generator) SkipMemberNameUnescaping() {
 	g.skipMemberNameUnescaping = true
+}
+
+// UseFieldMask instructs to use the field mask if available in the struct.
+func (g *Generator) UseFieldMask() {
+	g.useFieldMask = true
 }
 
 // OmitEmpty triggers `json=",omitempty"` behaviour by default.
