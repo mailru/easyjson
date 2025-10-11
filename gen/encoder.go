@@ -324,7 +324,7 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	}
 }
 
-func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField, first, firstCondition bool) (bool, error) {
+func (g *Generator) genStructFieldEncoder(i int, t reflect.Type, f reflect.StructField, first, firstCondition bool) (bool, error) {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
 
@@ -335,7 +335,9 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 	toggleFirstCondition := firstCondition
 
 	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
-	if noOmitEmpty {
+	if g.withFieldMask {
+		fmt.Fprintf(g.out, "  if i >= lenMask || mask[%d] {\n", i)
+	} else if noOmitEmpty {
 		fmt.Fprintln(g.out, "  {")
 		toggleFirstCondition = false
 	} else {
@@ -407,6 +409,8 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 	typ := g.getType(t)
 
 	fmt.Fprintln(g.out, "func "+fname+"(out *jwriter.Writer, in "+typ+") {")
+	fmt.Fprintln(g.out, "mask := in.Mask")
+	fmt.Fprintln(g.out, "lenMask := len(mask)")
 	fmt.Fprintln(g.out, "  out.RawByte('{')")
 	fmt.Fprintln(g.out, "  first := true")
 	fmt.Fprintln(g.out, "  _ = first")
@@ -418,7 +422,7 @@ func (g *Generator) genStructEncoder(t reflect.Type) error {
 
 	firstCondition := true
 	for i, f := range fs {
-		firstCondition, err = g.genStructFieldEncoder(t, f, i == 0, firstCondition)
+		firstCondition, err = g.genStructFieldEncoder(i, t, f, i == 0, firstCondition)
 
 		if err != nil {
 			return err

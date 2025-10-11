@@ -55,6 +55,9 @@ type Generator struct {
 	// function name to relevant type maps to track names of de-/encoders in
 	// case of a name clash or unnamed structs
 	functionNames map[string]reflect.Type
+
+	// use field mask when generating the marshaler
+	withFieldMask bool
 }
 
 // NewGenerator initializes and returns a Generator.
