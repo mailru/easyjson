@@ -49,6 +49,16 @@ var primitiveStringEncoders = map[reflect.Kind]string{
 	reflect.Float64: "out.Float64Str(float64(%v))",
 }
 
+var primitiveNoExpEncoders = map[reflect.Kind]string{
+	reflect.Float32: "out.Float32NoExp(float32(%v))",
+	reflect.Float64: "out.Float64NoExp(float64(%v))",
+}
+
+var primitiveStringNoExpEncoders = map[reflect.Kind]string{
+	reflect.Float32: "out.Float32StrNoExp(float32(%v))",
+	reflect.Float64: "out.Float64StrNoExp(float64(%v))",
+}
+
 // fieldTags contains parsed version of json struct field tags.
 type fieldTags struct {
 	name string
@@ -60,6 +70,7 @@ type fieldTags struct {
 	required    bool
 	intern      bool
 	noCopy      bool
+	noExponent  bool
 }
 
 // parseFieldTags parses the json field tag into a structure.
@@ -84,6 +95,8 @@ func parseFieldTags(f reflect.StructField) fieldTags {
 			ret.intern = true
 		case s == "nocopy":
 			ret.noCopy = true
+		case s == "noexponent":
+			ret.noExponent = true
 		}
 	}
 
@@ -129,9 +142,22 @@ func (g *Generator) genTypeEncoderNoCheck(t reflect.Type, in string, tags fieldT
 	ws := strings.Repeat("  ", indent)
 
 	// Check whether type is primitive, needs to be done after interface check.
-	if enc := primitiveStringEncoders[t.Kind()]; enc != "" && tags.asString {
-		fmt.Fprintf(g.out, ws+enc+"\n", in)
-		return nil
+	// Check tag combinations in priority order
+	if tags.asString && tags.noExponent {
+		if enc := primitiveStringNoExpEncoders[t.Kind()]; enc != "" {
+			fmt.Fprintf(g.out, ws+enc+"\n", in)
+			return nil
+		}
+	} else if tags.asString {
+		if enc := primitiveStringEncoders[t.Kind()]; enc != "" {
+			fmt.Fprintf(g.out, ws+enc+"\n", in)
+			return nil
+		}
+	} else if tags.noExponent {
+		if enc := primitiveNoExpEncoders[t.Kind()]; enc != "" {
+			fmt.Fprintf(g.out, ws+enc+"\n", in)
+			return nil
+		}
 	}
 
 	if enc := primitiveEncoders[t.Kind()]; enc != "" {

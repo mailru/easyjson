@@ -275,6 +275,46 @@ func (w *Writer) Float64Str(n float64) {
 	w.Buffer.Buf = append(w.Buffer.Buf, '"')
 }
 
+func (w *Writer) Float32NoExp(n float32) {
+	if w.checkIsUnsupportedFloat(float64(n)) {
+		return
+	}
+
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'f', -1, 32)
+}
+
+func (w *Writer) Float32StrNoExp(n float32) {
+	if w.checkIsUnsupportedFloat(float64(n)) {
+		return
+	}
+
+	w.Buffer.EnsureSpace(22)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, float64(n), 'f', -1, 32)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
+func (w *Writer) Float64NoExp(n float64) {
+	if w.checkIsUnsupportedFloat(n) {
+		return
+	}
+
+	w.Buffer.EnsureSpace(20)
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, n, 'f', -1, 64)
+}
+
+func (w *Writer) Float64StrNoExp(n float64) {
+	if w.checkIsUnsupportedFloat(n) {
+		return
+	}
+
+	w.Buffer.EnsureSpace(22)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+	w.Buffer.Buf = strconv.AppendFloat(w.Buffer.Buf, n, 'f', -1, 64)
+	w.Buffer.Buf = append(w.Buffer.Buf, '"')
+}
+
 func (w *Writer) Bool(v bool) {
 	w.Buffer.EnsureSpace(5)
 	if v {

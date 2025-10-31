@@ -59,6 +59,7 @@ var testCases = []struct {
 	{&myTypeDeclaredValue, myTypeDeclaredString},
 	{&myTypeNotSkippedValue, myTypeNotSkippedString},
 	{&intern, internString},
+	{&noExpStruct, noExpString},
 }
 
 func TestMarshal(t *testing.T) {
