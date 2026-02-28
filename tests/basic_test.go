@@ -205,7 +205,6 @@ func TestEncodingFlags(t *testing.T) {
 			t.Errorf("[%v] easyjson.Marshal(%+v) = %v; want %v", i, test.In, v, test.Want)
 		}
 	}
-
 }
 
 func TestNestedEasyJsonMarshal(t *testing.T) {
@@ -327,5 +326,26 @@ func TestNil(t *testing.T) {
 
 	if s := w.Body.String(); s != "null" {
 		t.Errorf("Wanted null, got %q", s)
+	}
+}
+
+func TestUnmarshalNull(t *testing.T) {
+	p := PrimitiveTypes{
+		String: str,
+		Ptr:    &str,
+	}
+
+	data := `{"String":null,"Ptr":null}`
+
+	if err := easyjson.Unmarshal([]byte(data), &p); err != nil {
+		t.Errorf("easyjson.Unmarshal() error: %v", err)
+	}
+
+	if p.String != str {
+		t.Errorf("Wanted %q, got %q", str, p.String)
+	}
+
+	if p.Ptr != nil {
+		t.Errorf("Wanted nil, got %q", *p.Ptr)
 	}
 }

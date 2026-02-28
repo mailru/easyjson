@@ -545,21 +545,24 @@ type Maps struct {
 	InterfaceMap map[string]interface{}
 	NilMap       map[string]string
 
-	CustomMap map[Str]Str
+	CustomMap             map[Str]Str
+	CustomMapWithEmptyKey map[Str]Str
 }
 
 var mapsValue = Maps{
 	Map:          map[string]string{"A": "b"}, // only one item since map iteration is randomized
 	InterfaceMap: map[string]interface{}{"G": float64(1)},
 
-	CustomMap: map[Str]Str{"c": "d"},
+	CustomMap:             map[Str]Str{"c": "d"},
+	CustomMapWithEmptyKey: map[Str]Str{"": "d"},
 }
 
 var mapsString = `{` +
 	`"Map":{"A":"b"},` +
 	`"InterfaceMap":{"G":1},` +
 	`"NilMap":null,` +
-	`"CustomMap":{"c":"d"}` +
+	`"CustomMap":{"c":"d"},` +
+	`"CustomMapWithEmptyKey":{"":"d"}` +
 	`}`
 
 type NamedSlice []Str

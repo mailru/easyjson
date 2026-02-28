@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"math"
 	"testing"
 
 	"github.com/mailru/easyjson/jlexer"
@@ -280,6 +281,43 @@ func TestMultipleErrorsIntMap(t *testing.T) {
 			if e.Offset != test.Offsets[ii] {
 				t.Errorf("[%d] TestMultipleErrorsInt(): offset[%d]: want %d, got %d", i, ii, test.Offsets[ii], e.Offset)
 			}
+		}
+	}
+}
+
+func TestUnsupportedFloatValues(t *testing.T) {
+	for i, test := range []struct {
+		Value       ErrorFloatTypes
+		ExpectedErr string
+	}{
+		{
+			Value:       ErrorFloatTypes{Float64: math.NaN()},
+			ExpectedErr: "json: unsupported value: NaN",
+		},
+		{
+			Value:       ErrorFloatTypes{Float64: math.Inf(1)},
+			ExpectedErr: "json: unsupported value: +Inf",
+		},
+		{
+			Value:       ErrorFloatTypes{Float64: math.Inf(-1)},
+			ExpectedErr: "json: unsupported value: -Inf",
+		},
+		{
+			Value:       ErrorFloatTypes{Float32: float32(math.NaN())},
+			ExpectedErr: "json: unsupported value: NaN",
+		},
+		{
+			Value:       ErrorFloatTypes{Float32: float32(math.Inf(1))},
+			ExpectedErr: "json: unsupported value: +Inf",
+		},
+		{
+			Value:       ErrorFloatTypes{Float32: float32(math.Inf(-1))},
+			ExpectedErr: "json: unsupported value: -Inf",
+		},
+	} {
+		_, err := test.Value.MarshalJSON()
+		if err == nil || err.Error() != test.ExpectedErr {
+			t.Errorf("[%d] TestUnsupportedFloatValues(): error: want %s, got %v", i, test.ExpectedErr, err)
 		}
 	}
 }

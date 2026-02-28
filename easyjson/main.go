@@ -16,6 +16,11 @@ import (
 	"github.com/mailru/easyjson/parser"
 )
 
+var (
+	Version = "dev" //
+	Commit  = "none"
+)
+
 var buildTags = flag.String("build_tags", "", "build tags to add to generated file")
 var genBuildFlags = flag.String("gen_build_flags", "", "build flags when running the generator while bootstrapping")
 var snakeCase = flag.Bool("snake_case", false, "use snake_case names instead of CamelCase by default")
@@ -31,6 +36,7 @@ var specifiedName = flag.String("output_filename", "", "specify the filename of 
 var processPkg = flag.Bool("pkg", false, "process the whole package instead of just the given file")
 var disallowUnknownFields = flag.Bool("disallow_unknown_fields", false, "return error if any unknown field in json appeared")
 var skipMemberNameUnescaping = flag.Bool("disable_members_unescape", false, "don't perform unescaping of member names to improve performance")
+var showVersion = flag.Bool("version", false, "print version and exit")
 
 func generate(fname string) (err error) {
 	fInfo, err := os.Stat(fname)
@@ -97,6 +103,11 @@ func main() {
 	flag.Parse()
 
 	files := flag.Args()
+
+	if *showVersion {
+		fmt.Printf("easyjson generator\nversion: %s\ncommit:  %s\n", Version, Commit)
+		os.Exit(0)
+	}
 
 	gofile := os.Getenv("GOFILE")
 	if *processPkg {

@@ -24,3 +24,9 @@ type ErrorNestedStruct struct {
 
 //easyjson:json
 type ErrorIntMap map[uint32]string
+
+//easyjson:json
+type ErrorFloatTypes struct {
+	Float64 float64 `json:"float64"`
+	Float32 float32 `json:"float32"`
+}
