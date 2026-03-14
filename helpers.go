@@ -3,7 +3,6 @@ package easyjson
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"unsafe"
@@ -48,14 +47,14 @@ type UnknownsMarshaler interface {
 	MarshalUnknowns(w *jwriter.Writer, first bool)
 }
 
-func isNilInterface(i interface{}) bool {
+func IsNilInterface(i interface{}) bool {
 	return (*[2]uintptr)(unsafe.Pointer(&i))[1] == 0
 }
 
 // Marshal returns data as a single byte slice. Method is suboptimal as the data is likely to be copied
 // from a chain of smaller chunks.
 func Marshal(v Marshaler) ([]byte, error) {
-	if isNilInterface(v) {
+	if IsNilInterface(v) {
 		return nullBytes, nil
 	}
 
@@ -66,7 +65,7 @@ func Marshal(v Marshaler) ([]byte, error) {
 
 // MarshalToWriter marshals the data to an io.Writer.
 func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
-	if isNilInterface(v) {
+	if IsNilInterface(v) {
 		return w.Write(nullBytes)
 	}
 
@@ -80,7 +79,7 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 // false if an error occurred before any http.ResponseWriter methods were actually
 // invoked (in this case a 500 reply is possible).
 func MarshalToHTTPResponseWriter(v Marshaler, w http.ResponseWriter) (started bool, written int, err error) {
-	if isNilInterface(v) {
+	if IsNilInterface(v) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", strconv.Itoa(len(nullBytes)))
 		written, err = w.Write(nullBytes)
@@ -109,7 +108,7 @@ func Unmarshal(data []byte, v Unmarshaler) error {
 
 // UnmarshalFromReader reads all the data in the reader and decodes as JSON into the object.
 func UnmarshalFromReader(r io.Reader, v Unmarshaler) error {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

@@ -48,6 +48,7 @@ generate: build
 		./tests/unknown_fields.go \
 		./tests/type_declaration.go \
 		./tests/members_escaped.go \
+		./tests/interface_type.go \
 		./tests/intern.go \
 		./tests/nocopy.go \
 		./tests/escaping.go \
