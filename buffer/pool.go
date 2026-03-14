@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"unsafe"
 )
 
 // PoolConfig contains configuration for the allocation and reuse strategy.
@@ -47,9 +48,15 @@ func putBuf(buf []byte) {
 		return
 	}
 	if c := buffers[size]; c != nil {
-		c.Put(buf[:0])
+		// Save un unsafe pointer to the array instead of the slice to
+		// avoid an extra allocation.
+		// We don't care about the length and we know the capability so
+		// we don't need to save anything else.
+		c.Put(unsafe.Pointer(&buf[:1][0]))
 	}
 }
+
+const maxArraySize = uint((uint64(1) << 50 - 1) & uint64(^uint(0) >> 1))
 
 // getBuf gets a chunk from reuse pool or creates a new one if reuse failed.
 func getBuf(size int) []byte {
@@ -57,7 +64,11 @@ func getBuf(size int) []byte {
 		if c := buffers[size]; c != nil {
 			v := c.Get()
 			if v != nil {
-				return v.([]byte)
+				// Recreate back the original slice.
+				// Get back the array and add length and capability.
+				// Limiting the array to the proper capability will make this
+				// safe.
+				return (*[maxArraySize]byte)(v.(unsafe.Pointer))[:0:size]
 			}
 		}
 	}
