@@ -40,6 +40,7 @@ type Generator struct {
 	fieldNamer               FieldNamer
 	simpleBytes              bool
 	skipMemberNameUnescaping bool
+	floatFmt                 string
 
 	// package path to local alias map for tracking imports
 	imports map[string]string
@@ -137,6 +138,11 @@ func (g *Generator) OmitZero() {
 // SimpleBytes triggers generate output bytes as slice byte
 func (g *Generator) SimpleBytes() {
 	g.simpleBytes = true
+}
+
+// SetFloatFmt sets the format for formatting float numbers using strconv.
+func (g *Generator) SetFloatFmt(fmt string) {
+	g.floatFmt = fmt
 }
 
 // addTypes requests to generate encoding/decoding funcs for the given type.

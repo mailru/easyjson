@@ -27,6 +27,7 @@ var testCases = []struct {
 	{&omitZeroValue, omitZeroString},
 	{&omitEmptyAndZeroValue, omitEmptyAndZeroString},
 	{&snakeStructValue, snakeStructString},
+	{&floatFmtStruct, floatFmtString},
 	{&omitEmptyDefaultValue, omitEmptyDefaultString},
 	{&omitZeroDefaultValue, omitZeroDefaultString},
 	{&optsValue, optsString},
@@ -246,7 +247,7 @@ func TestNestedMarshaler(t *testing.T) {
 		t.Errorf("Can't marshal NestedMarshaler: %s", err)
 	}
 
-	s2 := NestedMarshaler {
+	s2 := NestedMarshaler{
 		Value: &StructWithMarshaler{},
 	}
 
