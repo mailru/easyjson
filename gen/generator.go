@@ -66,6 +66,7 @@ func NewGenerator(filename string) *Generator {
 			pkgLexer:        "jlexer",
 			pkgEasyJSON:     "easyjson",
 			"encoding/json": "json",
+			"strings":       "strings",
 		},
 		fieldNamer:    DefaultFieldNamer{},
 		marshalers:    make(map[reflect.Type]bool),
