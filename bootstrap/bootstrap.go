@@ -8,7 +8,6 @@ package bootstrap
 import (
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -88,7 +87,7 @@ func (g *Generator) writeStub() error {
 
 // writeMain creates a .go file that launches the generator if 'go run'.
 func (g *Generator) writeMain() (path string, err error) {
-	f, err := ioutil.TempFile(filepath.Dir(g.OutName), "easyjson-bootstrap-*")
+	f, err := os.CreateTemp(filepath.Dir(g.OutName), "easyjson-bootstrap-*")
 	if err != nil {
 		return "", err
 	}
@@ -211,7 +210,7 @@ func (g *Generator) Run() error {
 	}
 
 	// format file and write to out path
-	in, err := ioutil.ReadFile(f.Name())
+	in, err := os.ReadFile(f.Name())
 	if err != nil {
 		return err
 	}
@@ -219,5 +218,5 @@ func (g *Generator) Run() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(g.OutName, out, 0644)
+	return os.WriteFile(g.OutName, out, 0644)
 }
