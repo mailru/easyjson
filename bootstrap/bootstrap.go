@@ -88,7 +88,7 @@ func (g *Generator) writeStub() error {
 
 // writeMain creates a .go file that launches the generator if 'go run'.
 func (g *Generator) writeMain() (path string, err error) {
-	f, err := ioutil.TempFile(filepath.Dir(g.OutName), "easyjson-bootstrap")
+	f, err := ioutil.TempFile(filepath.Dir(g.OutName), "easyjson-bootstrap-*")
 	if err != nil {
 		return "", err
 	}
