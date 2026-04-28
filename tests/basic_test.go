@@ -124,6 +124,110 @@ func TestRawMessageSTD(t *testing.T) {
 	}
 }
 
+// TestByteSliceAsIntArray verifies that generated unmarshalers accept
+// the JSON array-of-integers form for []byte fields, matching the
+// reflective decoder in encoding/json. Tools like Goa emit []byte for
+// List<Byte> types and some clients serialize them as int arrays.
+func TestByteSliceAsIntArray(t *testing.T) {
+	tests := []struct {
+		name string
+		json string
+		want Slices
+	}{
+		{
+			name: "all int arrays",
+			json: `{` +
+				`"ByteSlice":[97,98,99],` +
+				`"EmptyByteSlice":[],` +
+				`"NilByteSlice":null,` +
+				`"IntSlice":[1,2,3,4,5],` +
+				`"EmptyIntSlice":[],` +
+				`"NilIntSlice":null` +
+				`}`,
+			want: Slices{
+				ByteSlice:      []byte("abc"),
+				EmptyByteSlice: []byte{},
+				NilByteSlice:   nil,
+				IntSlice:       []int{1, 2, 3, 4, 5},
+				EmptyIntSlice:  []int{},
+				NilIntSlice:    nil,
+			},
+		},
+		{
+			name: "boundary values 0 and 255",
+			json: `{` +
+				`"ByteSlice":[0,255,128],` +
+				`"EmptyByteSlice":"",` +
+				`"NilByteSlice":null,` +
+				`"IntSlice":[],` +
+				`"EmptyIntSlice":[],` +
+				`"NilIntSlice":null` +
+				`}`,
+			want: Slices{
+				ByteSlice:      []byte{0, 255, 128},
+				EmptyByteSlice: []byte{},
+				NilByteSlice:   nil,
+				IntSlice:       []int{},
+				EmptyIntSlice:  []int{},
+				NilIntSlice:    nil,
+			},
+		},
+		{
+			name: "base64 string still works",
+			json: `{` +
+				`"ByteSlice":"YWJj",` +
+				`"EmptyByteSlice":"",` +
+				`"NilByteSlice":null,` +
+				`"IntSlice":[],` +
+				`"EmptyIntSlice":[],` +
+				`"NilIntSlice":null` +
+				`}`,
+			want: Slices{
+				ByteSlice:      []byte("abc"),
+				EmptyByteSlice: []byte{},
+				NilByteSlice:   nil,
+				IntSlice:       []int{},
+				EmptyIntSlice:  []int{},
+				NilIntSlice:    nil,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var got Slices
+			if err := got.UnmarshalJSON([]byte(tc.json)); err != nil {
+				t.Fatalf("UnmarshalJSON() error: %v", err)
+			}
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("UnmarshalJSON() = %+v; want %+v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestByteSliceAsIntArrayErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		json string
+	}{
+		{"out of range", `{"ByteSlice":[256]}`},
+		{"negative", `{"ByteSlice":[-1]}`},
+		{"non-integer element", `{"ByteSlice":[1,"x",3]}`},
+		{"trailing comma", `{"ByteSlice":[1,2,3,]}`},
+		{"unterminated", `{"ByteSlice":[1,2`},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var got Slices
+			if err := got.UnmarshalJSON([]byte(tc.json)); err == nil {
+				t.Errorf("UnmarshalJSON(%q) = nil; want error (got value %+v)", tc.json, got)
+			}
+		})
+	}
+}
+
 func TestParseNull(t *testing.T) {
 	var got, want SubStruct
 	if err := easyjson.Unmarshal([]byte("null"), &got); err != nil {

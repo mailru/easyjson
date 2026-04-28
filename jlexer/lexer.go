@@ -703,30 +703,59 @@ func (r *Lexer) StringIntern() string {
 	return ret
 }
 
-// Bytes reads a string literal and base64 decodes it into a byte slice.
+// Bytes reads a byte slice. Accepts either a base64-encoded JSON string
+// (default form) or a JSON array of integers in [0,255].
 func (r *Lexer) Bytes() []byte {
 	if r.token.kind == TokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != TokenString {
+	if !r.Ok() {
 		r.errInvalidToken("string")
-		return nil
-	}
-	if err := r.unescapeStringToken(); err != nil {
-		r.errInvalidToken("string")
-		return nil
-	}
-	ret := make([]byte, base64.StdEncoding.DecodedLen(len(r.token.byteValue)))
-	n, err := base64.StdEncoding.Decode(ret, r.token.byteValue)
-	if err != nil {
-		r.fatalError = &LexerError{
-			Reason: err.Error(),
-		}
 		return nil
 	}
 
-	r.consume()
-	return ret[:n]
+	switch r.token.kind {
+	case TokenString:
+		if err := r.unescapeStringToken(); err != nil {
+			r.errInvalidToken("string")
+			return nil
+		}
+		ret := make([]byte, base64.StdEncoding.DecodedLen(len(r.token.byteValue)))
+		n, err := base64.StdEncoding.Decode(ret, r.token.byteValue)
+		if err != nil {
+			r.fatalError = &LexerError{
+				Reason: err.Error(),
+			}
+			return nil
+		}
+		r.consume()
+		return ret[:n]
+
+	case TokenDelim:
+		if r.token.delimValue != '[' {
+			r.errInvalidToken("string")
+			return nil
+		}
+		startErrors := len(r.multipleErrors)
+		r.Delim('[')
+		ret := []byte{}
+		for !r.IsDelim(']') {
+			ret = append(ret, r.Uint8())
+			r.WantComma()
+		}
+		r.Delim(']')
+		if !r.Ok() {
+			return nil
+		}
+		if !r.UseMultipleErrors && len(r.multipleErrors) > startErrors {
+			return nil
+		}
+		return ret
+
+	default:
+		r.errInvalidToken("string")
+		return nil
+	}
 }
 
 // Bool reads a true or false boolean keyword.

@@ -94,11 +94,22 @@ func TestBytes(t *testing.T) {
 		{toParse: `5`, wantError: true},                     // not a JSON string
 		{toParse: `"foobar"`, wantError: true},              // not base64 encoded
 		{toParse: `"c2ltcGxlIHN0cmluZw="`, wantError: true}, // invalid base64 padding
+
+		// Array-of-int form, matching encoding/json's reflective []byte path.
+		{toParse: `[]`, want: ""},
+		{toParse: `[97,98,99]`, want: "abc"},
+		{toParse: ` [ 97 , 98 , 99 ] `, want: "abc"}, // whitespace tolerated
+		{toParse: `[0,255]`, want: "\x00\xff"},       // boundary values
+		{toParse: `[256]`, wantError: true},          // out of uint8 range
+		{toParse: `[-1]`, wantError: true},           // negative
+		{toParse: `[1,"x",3]`, wantError: true},      // non-numeric element
+		{toParse: `[1,2,3,]`, wantError: true},       // trailing comma
+		{toParse: `[1,2`, wantError: true},           // unterminated
 	} {
 		l := Lexer{Data: []byte(test.toParse)}
 
 		got := l.Bytes()
-		if bytes.Compare(got, []byte(test.want)) != 0 {
+		if !bytes.Equal(got, []byte(test.want)) {
 			t.Errorf("[%d, %q] Bytes() = %v; want: %v", i, test.toParse, got, []byte(test.want))
 		}
 		err := l.Error()
