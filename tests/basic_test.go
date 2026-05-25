@@ -39,6 +39,7 @@ var testCases = []struct {
 	{&arrayValue, arrayString},
 	{&mapsValue, mapsString},
 	{&deepNestValue, deepNestString},
+	{&deepNestOptionalValue, deepNestOptionalString},
 	{&IntsValue, IntsString},
 	{&mapStringStringValue, mapStringStringString},
 	{&namedTypeValue, namedTypeValueString},

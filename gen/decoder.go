@@ -195,7 +195,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-			if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
+			if err := g.genTypeDecoder(elem, tmpVar, fieldTags{}, indent+2); err != nil {
 				return err
 			}
 
@@ -229,7 +229,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 			fmt.Fprintln(g.out, ws+"  for !in.IsDelim(']') {")
 			fmt.Fprintln(g.out, ws+"    if "+iterVar+" < "+fmt.Sprint(length)+" {")
 
-			if err := g.genTypeDecoder(elem, "("+out+")["+iterVar+"]", tags, indent+3); err != nil {
+			if err := g.genTypeDecoder(elem, "("+out+")["+iterVar+"]", fieldTags{}, indent+3); err != nil {
 				return err
 			}
 
@@ -312,7 +312,7 @@ func (g *Generator) genTypeDecoderNoCheck(t reflect.Type, out string, tags field
 		fmt.Fprintln(g.out, ws+"    in.WantColon()")
 		fmt.Fprintln(g.out, ws+"    var "+tmpVar+" "+g.getType(elem))
 
-		if err := g.genTypeDecoder(elem, tmpVar, tags, indent+2); err != nil {
+		if err := g.genTypeDecoder(elem, tmpVar, fieldTags{}, indent+2); err != nil {
 			return err
 		}
 
