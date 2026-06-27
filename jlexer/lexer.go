@@ -208,28 +208,65 @@ func (r *Lexer) fetchFalse() {
 	}
 }
 
-// fetchNumber scans a number literal token.
+// fetchNumber scans a number literal token, enforcing the RFC 8259 number
+// grammar: an integer part has no leading zeros, and the fraction ('.') and
+// exponent ('e'/'E') parts each require at least one digit.
 func (r *Lexer) fetchNumber() {
 	hasE := false
 	afterE := false
 	hasDot := false
 
+	// The first byte is r.Data[r.start] ('-' or a digit). leadingZero is true once
+	// the integer part's first digit is '0', after which no further integer digit
+	// is allowed (e.g. "01"/"-01" are invalid, "0"/"-0"/"0.5" are valid). For a
+	// negative number the leading digit is the loop's first iteration, so track
+	// whether that integer digit has been consumed yet.
+	negative := r.Data[r.start] == '-'
+	leadingZero := !negative && r.Data[r.start] == '0'
+	// needDigit is true while a digit is required to complete the current part.
+	// For a non-negative number the leading integer digit is r.Data[r.start],
+	// already consumed; for a negative number that digit is still pending.
+	needDigit := negative
+
 	r.pos++
 	for i, c := range r.Data[r.pos:] {
 		switch {
 		case c >= '0' && c <= '9':
+			if leadingZero && !hasDot && !hasE {
+				// digit following a leading zero in the integer part
+				r.pos += i
+				r.errSyntax()
+				return
+			}
+			if negative && needDigit && !hasDot && !hasE {
+				// first integer digit of a negative number
+				leadingZero = c == '0'
+			}
+			needDigit = false
 			afterE = false
-		case c == '.' && !hasDot:
+		case c == '.' && !hasDot && !hasE:
+			if needDigit {
+				r.pos += i
+				r.errSyntax()
+				return
+			}
 			hasDot = true
+			needDigit = true
 		case (c == 'e' || c == 'E') && !hasE:
+			if needDigit {
+				r.pos += i
+				r.errSyntax()
+				return
+			}
 			hasE = true
 			hasDot = true
 			afterE = true
+			needDigit = true
 		case (c == '+' || c == '-') && afterE:
 			afterE = false
 		default:
 			r.pos += i
-			if !isTokenEnd(c) {
+			if !isTokenEnd(c) || needDigit {
 				r.errSyntax()
 			} else {
 				r.token.byteValue = r.Data[r.start:r.pos]
@@ -239,6 +276,10 @@ func (r *Lexer) fetchNumber() {
 	}
 
 	r.pos = len(r.Data)
+	if needDigit {
+		r.errSyntax()
+		return
+	}
 	r.token.byteValue = r.Data[r.start:]
 }
 
