@@ -242,16 +242,28 @@ func (r *Lexer) fetchNumber() {
 	r.token.byteValue = r.Data[r.start:]
 }
 
+// hasControlChar reports whether data contains a raw control byte (< 0x20),
+// which is not permitted unescaped inside a JSON string literal per RFC 8259.
+func hasControlChar(data []byte) bool {
+	for _, c := range data {
+		if c < 0x20 {
+			return true
+		}
+	}
+	return false
+}
+
 // findStringLen tries to scan into the string literal for ending quote char to determine required size.
 // The size will be exact if no escapes are present and may be inexact if there are escaped chars.
-func findStringLen(data []byte) (isValid bool, length int) {
+// hasCtrl reports whether the scanned literal contains a raw control byte, which is invalid JSON.
+func findStringLen(data []byte) (isValid bool, length int, hasCtrl bool) {
 	for {
 		idx := bytes.IndexByte(data, '"')
 		if idx == -1 {
-			return false, len(data)
+			return false, len(data), hasCtrl || hasControlChar(data)
 		}
 		if idx == 0 || (idx > 0 && data[idx-1] != '\\') {
-			return true, length + idx
+			return true, length + idx, hasCtrl || hasControlChar(data[:idx])
 		}
 
 		// count \\\\\\\ sequences. even number of slashes means quote is not really escaped
@@ -260,9 +272,10 @@ func findStringLen(data []byte) (isValid bool, length int) {
 			cnt++
 		}
 		if cnt%2 == 0 {
-			return true, length + idx
+			return true, length + idx, hasCtrl || hasControlChar(data[:idx])
 		}
 
+		hasCtrl = hasCtrl || hasControlChar(data[:idx])
 		length += idx + 1
 		data = data[idx+1:]
 	}
@@ -379,10 +392,14 @@ func (r *Lexer) fetchString() {
 	r.pos++
 	data := r.Data[r.pos:]
 
-	isValid, length := findStringLen(data)
+	isValid, length, hasCtrl := findStringLen(data)
 	if !isValid {
 		r.pos += length
 		r.errParse("unterminated string literal")
+		return
+	}
+	if hasCtrl {
+		r.errParse("invalid control character in string literal")
 		return
 	}
 	r.token.byteValue = data[:length]
