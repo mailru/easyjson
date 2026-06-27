@@ -72,6 +72,9 @@ func MarshalToWriter(v Marshaler, w io.Writer) (written int, err error) {
 
 	jw := jwriter.Writer{}
 	v.MarshalEasyJSON(&jw)
+	if jw.Error != nil {
+		return 0, jw.Error
+	}
 	return jw.DumpTo(w)
 }
 
