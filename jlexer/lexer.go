@@ -52,6 +52,8 @@ type Lexer struct {
 	firstElement bool // Whether current element is the first in array or an object.
 	wantSep      byte // A comma or a colon character, which need to occur before a token.
 
+	depth int // Current nesting depth of arrays/objects, to guard against stack overflow.
+
 	UseMultipleErrors bool          // If we want to use multiple errors.
 	fatalError        error         // Fatal error occurred during lexing. It is usually a syntax error.
 	multipleErrors    []*LexerError // Semantic errors occurred during lexing. Marshalling will be continued after finding this errors.
@@ -398,8 +400,29 @@ func (r *Lexer) scanToken() {
 	r.FetchToken()
 }
 
+// maxNestingDepth is the maximum nesting depth of arrays and objects that the
+// lexer will descend into. It guards against unbounded native recursion (both
+// in generated decoders for self-referential types and in Interface()) that
+// would otherwise cause an unrecoverable stack overflow on deeply-nested input.
+// The limit mirrors encoding/json's maxNestingDepth.
+const maxNestingDepth = 10000
+
 // consume resets the current token to allow scanning the next one.
 func (r *Lexer) consume() {
+	// Track array/object nesting as delimiters are consumed and fail
+	// gracefully before recursion can overflow the stack.
+	switch r.token.delimValue {
+	case '{', '[':
+		r.depth++
+		if r.depth > maxNestingDepth {
+			r.errParse("max nesting depth exceeded")
+		}
+	case '}', ']':
+		if r.depth > 0 {
+			r.depth--
+		}
+	}
+
 	r.token.kind = TokenUndef
 	r.token.byteValueCloned = false
 	r.token.delimValue = 0
@@ -542,6 +565,13 @@ func (r *Lexer) SkipRecursive() {
 	}
 
 	r.consume()
+	// SkipRecursive scans the whole array/object in a flat loop below without
+	// any native recursion, so it cannot overflow the stack. Cancel the depth
+	// increment that consuming the opening delimiter just added (the matching
+	// closing delimiter is skipped manually and never passes through consume).
+	if r.depth > 0 {
+		r.depth--
+	}
 
 	level := 1
 	inQuotes := false
