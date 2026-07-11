@@ -2,6 +2,7 @@
 package jwriter
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -95,6 +96,87 @@ func (w *Writer) RawText(data []byte, err error) {
 	default:
 		w.String(string(data))
 	}
+}
+
+// JsonNumber appends a json.Number to the buffer as a raw JSON number.
+// Mirroring encoding/json, the empty value is encoded as 0 and an invalid
+// number literal sets the writer error.
+func (w *Writer) JsonNumber(n json.Number) {
+	if w.Error != nil {
+		return
+	}
+	s := string(n)
+	if s == "" {
+		// encoding/json encodes the empty Number as 0.
+		w.Buffer.AppendString("0")
+		return
+	}
+	if !isValidNumber(s) {
+		w.Error = fmt.Errorf("invalid number literal %q", s)
+		return
+	}
+	w.Buffer.AppendString(s)
+}
+
+// isValidNumber reports whether s is a valid JSON number literal,
+// per the RFC 8259 grammar. Taken from encoding/json.
+func isValidNumber(s string) bool {
+	// This function implements the JSON numbers grammar.
+	// See https://tools.ietf.org/html/rfc8259#section-6
+	// and https://www.json.org/img/number.png
+
+	if s == "" {
+		return false
+	}
+
+	// Optional -
+	if s[0] == '-' {
+		s = s[1:]
+		if s == "" {
+			return false
+		}
+	}
+
+	// Digits
+	switch {
+	default:
+		return false
+
+	case s[0] == '0':
+		s = s[1:]
+
+	case '1' <= s[0] && s[0] <= '9':
+		s = s[1:]
+		for len(s) > 0 && '0' <= s[0] && s[0] <= '9' {
+			s = s[1:]
+		}
+	}
+
+	// . followed by 1 or more digits.
+	if len(s) >= 2 && s[0] == '.' && '0' <= s[1] && s[1] <= '9' {
+		s = s[2:]
+		for len(s) > 0 && '0' <= s[0] && s[0] <= '9' {
+			s = s[1:]
+		}
+	}
+
+	// e or E followed by an optional - or + and
+	// 1 or more digits.
+	if len(s) >= 2 && (s[0] == 'e' || s[0] == 'E') {
+		s = s[1:]
+		if s[0] == '+' || s[0] == '-' {
+			s = s[1:]
+			if s == "" {
+				return false
+			}
+		}
+		for len(s) > 0 && '0' <= s[0] && s[0] <= '9' {
+			s = s[1:]
+		}
+	}
+
+	// Make sure we are at the end.
+	return s == ""
 }
 
 // Base64Bytes appends data to the buffer after base64 encoding it

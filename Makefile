@@ -41,6 +41,7 @@ generate: build
 	bin/easyjson \
 		./tests/nested_easy.go \
 		./tests/named_type.go \
+		./tests/json_number.go \
 		./tests/custom_map_key_type.go \
 		./tests/embedded_type.go \
 		./tests/reference_to_pointer.go \
@@ -64,6 +65,7 @@ test: generate
 	go test \
 		./tests \
 		./jlexer \
+		./jwriter \
 		./gen \
 		./buffer
 	cd benchmark && go test -benchmem -tags use_easyjson -bench .
