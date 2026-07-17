@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/mailru/easyjson/bootstrap"
@@ -107,7 +108,8 @@ func main() {
 	files := flag.Args()
 
 	if *showVersion {
-		fmt.Printf("easyjson generator\nversion: %s\ncommit:  %s\n", Version, Commit)
+		version, commit := versionInfo()
+		fmt.Printf("easyjson generator\nversion: %s\ncommit:  %s\n", version, commit)
 		os.Exit(0)
 	}
 
@@ -129,4 +131,31 @@ func main() {
 			os.Exit(1)
 		}
 	}
+}
+
+func versionInfo() (version, commit string) {
+	version, commit = Version, Commit
+
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return version, commit
+	}
+
+	if version == "dev" && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		version = info.Main.Version
+	}
+
+	if commit == "none" {
+		for _, s := range info.Settings {
+			if s.Key == "vcs.revision" {
+				commit = s.Value
+				if len(commit) > 7 {
+					commit = commit[:7]
+				}
+				break
+			}
+		}
+	}
+
+	return version, commit
 }
