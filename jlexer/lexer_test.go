@@ -388,3 +388,16 @@ func TestCurrentToken(t *testing.T) {
 		l.Skip()
 	}
 }
+
+func TestBytesJSONArray(t *testing.T) {
+	// #434: []byte should accept JSON arrays of integers, like encoding/json.
+	l := Lexer{Data: []byte(`[1,2,255]`)}
+	got := l.Bytes()
+	if l.Error() != nil {
+		t.Fatalf("error: %v", l.Error())
+	}
+	want := []byte{1, 2, 255}
+	if string(got) != string(want) {
+		t.Fatalf("got %v want %v", got, want)
+	}
+}
