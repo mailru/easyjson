@@ -42,6 +42,7 @@ var testCases = []struct {
 	{&IntsValue, IntsString},
 	{&mapStringStringValue, mapStringStringString},
 	{&namedTypeValue, namedTypeValueString},
+	{&jsonNumberValue, jsonNumberString},
 	{&customMapKeyTypeValue, customMapKeyTypeValueString},
 	{&embeddedTypeValue, embeddedTypeValueString},
 	{&mapMyIntStringValue, mapMyIntStringValueString},
