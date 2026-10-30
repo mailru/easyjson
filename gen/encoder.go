@@ -303,6 +303,21 @@ func (g *Generator) interfaceIsJSONMarshaller(t reflect.Type) bool {
 	return t.Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem())
 }
 
+// isOpaqueMarshalerType reports whether the encoding of the type t is
+// produced by an opaque custom marshaler, i.e. it does not necessarily
+// reflect the struct fields.
+//
+// Types from the current generation set (g.marshalers) only implement the
+// marshaler interfaces through temporary bootstrap stubs and their final
+// encoding is still generated field-by-field, so for them the answer is
+// false and the field-wise emptiness check remains applicable.
+func (g *Generator) isOpaqueMarshalerType(t reflect.Type) bool {
+	if !hasCustomMarshaler(t) {
+		return false
+	}
+	return !g.marshalers[t]
+}
+
 func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	optionalIface := reflect.TypeOf((*easyjson.Optional)(nil)).Elem()
 	if reflect.PtrTo(t).Implements(optionalIface) {
@@ -312,6 +327,25 @@ func (g *Generator) notEmptyCheck(t reflect.Type, v string) string {
 	switch t.Kind() {
 	case reflect.Slice, reflect.Map:
 		return "len(" + v + ") != 0"
+	case reflect.Struct:
+		if g.allowOmitEmptyStruct && !g.isOpaqueMarshalerType(t) {
+			var conds []string
+			for i := 0; i < t.NumField(); i++ {
+				f := t.Field(i)
+				if f.PkgPath != "" || parseFieldTags(f).omit {
+					// Skip unexported and omitted fields: they are not
+					// represented in JSON output, so they must not affect
+					// the emptiness check.
+					continue
+				}
+				conds = append(conds, g.notEmptyCheck(f.Type, v+"."+f.Name))
+			}
+			if len(conds) == 0 {
+				return "false"
+			}
+			return strings.Join(conds, " || ")
+		}
+		return "true"
 	case reflect.Interface, reflect.Ptr:
 		return v + " != nil"
 	case reflect.Bool:
