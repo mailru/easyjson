@@ -169,6 +169,11 @@ func (b *Buffer) Size() int {
 // DumpTo outputs the contents of a buffer to a writer and resets the buffer.
 func (b *Buffer) DumpTo(w io.Writer) (written int, err error) {
 	bufs := net.Buffers(b.bufs)
+	if len(bufs) > 0 {
+		// WriteTo clears or advances slice entries, but pooling needs the original chunks.
+		bufs = make(net.Buffers, len(b.bufs), len(b.bufs)+1)
+		copy(bufs, b.bufs)
+	}
 	if len(b.Buf) > 0 {
 		bufs = append(bufs, b.Buf)
 	}
