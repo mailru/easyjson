@@ -1,8 +1,44 @@
 package gen
 
 import (
+	"bytes"
+	"errors"
+	"go/parser"
+	"go/token"
 	"testing"
 )
+
+func TestRunWritesCompleteSourceToWriter(t *testing.T) {
+	g := NewGenerator("output.go")
+	g.SetPkg("output", "example.com/output")
+	var out bytes.Buffer
+	if err := g.Run(&out); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := parser.ParseFile(token.NewFileSet(), "output.go", out.Bytes(), parser.AllErrors); err != nil {
+		t.Fatalf("writer did not receive a complete Go file: %v", err)
+	}
+}
+
+type nonEmptyErrorWriter struct {
+	err error
+}
+
+func (w nonEmptyErrorWriter) Write(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	return 0, w.err
+}
+
+func TestRunReturnsHeaderWriteError(t *testing.T) {
+	g := NewGenerator("output.go")
+	g.SetPkg("output", "example.com/output")
+	want := errors.New("header write failed")
+	if err := g.Run(nonEmptyErrorWriter{err: want}); !errors.Is(err, want) {
+		t.Fatalf("Run returned %v, want %v", err, want)
+	}
+}
 
 func TestCamelToSnake(t *testing.T) {
 	for i, test := range []struct {

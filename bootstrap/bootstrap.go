@@ -147,7 +147,22 @@ func (g *Generator) writeMain() (path string, err error) {
 		fmt.Fprintln(f, "  g.Add(pkg.EasyJSON_exporter_"+v+"(nil))")
 	}
 
-	fmt.Fprintln(f, "  if err := g.Run(os.Stdout); err != nil {")
+	fmt.Fprintln(f, "  out := os.Stdout")
+	fmt.Fprintln(f, "  if len(os.Args) > 1 {")
+	fmt.Fprintln(f, "    var err error")
+	fmt.Fprintln(f, "    out, err = os.Create(os.Args[1])")
+	fmt.Fprintln(f, "    if err != nil {")
+	fmt.Fprintln(f, "      fmt.Fprintln(os.Stderr, err)")
+	fmt.Fprintln(f, "      os.Exit(1)")
+	fmt.Fprintln(f, "    }")
+	fmt.Fprintln(f, "  }")
+	fmt.Fprintln(f, "  err := g.Run(out)")
+	fmt.Fprintln(f, "  if out != os.Stdout {")
+	fmt.Fprintln(f, "    if closeErr := out.Close(); err == nil {")
+	fmt.Fprintln(f, "      err = closeErr")
+	fmt.Fprintln(f, "    }")
+	fmt.Fprintln(f, "  }")
+	fmt.Fprintln(f, "  if err != nil {")
 	fmt.Fprintln(f, "    fmt.Fprintln(os.Stderr, err)")
 	fmt.Fprintln(f, "    os.Exit(1)")
 	fmt.Fprintln(f, "  }")
@@ -185,6 +200,9 @@ func (g *Generator) Run() error {
 	if !g.LeaveTemps {
 		defer os.Remove(f.Name()) // will not remove after rename
 	}
+	if err := f.Close(); err != nil {
+		return err
+	}
 
 	execArgs := []string{"run"}
 	if g.GenBuildFlags != "" {
@@ -194,17 +212,14 @@ func (g *Generator) Run() error {
 	if len(g.BuildTags) > 0 {
 		execArgs = append(execArgs, "-tags", g.BuildTags)
 	}
-	execArgs = append(execArgs, filepath.Base(path))
+	execArgs = append(execArgs, filepath.Base(path), filepath.Base(f.Name()))
 	cmd := exec.Command("go", execArgs...)
 
-	cmd.Stdout = f
 	cmd.Stderr = os.Stderr
 	cmd.Dir = filepath.Dir(path)
 	if err = cmd.Run(); err != nil {
 		return err
 	}
-	f.Close()
-
 	// move unformatted file to out path
 	if g.NoFormat {
 		return os.Rename(f.Name(), g.OutName)

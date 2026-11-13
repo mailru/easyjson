@@ -62,6 +62,7 @@ generate: build
 
 test: generate
 	go test \
+		./bootstrap \
 		./tests \
 		./jlexer \
 		./gen \
