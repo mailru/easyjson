@@ -2,6 +2,9 @@ package buffer
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
+	"io"
 	"testing"
 )
 
@@ -75,6 +78,78 @@ func TestDumpTo(t *testing.T) {
 
 	if n != len(want) {
 		t.Errorf("DumpTo() = %v; want %v", n, len(want))
+	}
+}
+
+type failingWriter struct {
+	out       bytes.Buffer
+	remaining int
+	err       error
+}
+
+func (w *failingWriter) Write(p []byte) (int, error) {
+	n := len(p)
+	if n > w.remaining {
+		n = w.remaining
+	}
+	n, _ = w.out.Write(p[:n])
+	w.remaining -= n
+	if n < len(p) {
+		return n, w.err
+	}
+	return n, nil
+}
+
+func TestDumpToWriteError(t *testing.T) {
+	data := make([]byte, 4096)
+	for i := range data {
+		data[i] = byte(i % 251)
+	}
+	for _, limit := range []int{0, 128, 300, 1700, len(data)} {
+		t.Run(fmt.Sprint(limit), func(t *testing.T) {
+			var b Buffer
+			b.AppendBytes(data)
+			wantErr := errors.New("write failed")
+			w := &failingWriter{remaining: limit, err: wantErr}
+			n, err := b.DumpTo(w)
+			if limit < len(data) {
+				if !errors.Is(err, wantErr) {
+					t.Fatalf("DumpTo() error = %v, want %v", err, wantErr)
+				}
+			} else if err != nil {
+				t.Fatal(err)
+			}
+			if n != limit || !bytes.Equal(w.out.Bytes(), data[:limit]) {
+				t.Fatalf("DumpTo() wrote %d bytes, want prefix of %d bytes", n, limit)
+			}
+			if b.Size() != 0 {
+				t.Fatalf("buffer not reset after DumpTo(): %d bytes remain", b.Size())
+			}
+			b.AppendBytes(data)
+			var out bytes.Buffer
+			n, err = b.DumpTo(&out)
+			if err != nil || n != len(data) || !bytes.Equal(out.Bytes(), data) {
+				t.Fatalf("reused buffer: wrote %d bytes, error %v", n, err)
+			}
+		})
+	}
+}
+
+func BenchmarkDumpToPooledChunks(b *testing.B) {
+	for _, size := range []int{0, 128, 16 * 1024} {
+		b.Run(fmt.Sprint(size), func(b *testing.B) {
+			data := bytes.Repeat([]byte("x"), size)
+			b.ReportAllocs()
+			b.SetBytes(int64(size))
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				var buf Buffer
+				buf.AppendBytes(data)
+				if n, err := buf.DumpTo(io.Discard); err != nil || n != size {
+					b.Fatalf("DumpTo() = %d, %v; want %d, nil", n, err, size)
+				}
+			}
+		})
 	}
 }
 
