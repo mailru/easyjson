@@ -403,6 +403,30 @@ func (g *Generator) notEmptyOrZeroCheck(t reflect.Type, v string) string {
 	}
 }
 
+func (g *Generator) embeddedPointerCheck(t reflect.Type, name string) string {
+	f, ok := t.FieldByName(name)
+	if !ok {
+		return ""
+	}
+
+	var checks []string
+	selector := "in"
+	for _, index := range f.Index[:len(f.Index)-1] {
+		parent := t.Field(index)
+		// Unexported fields in other packages cannot be selected directly.
+		if parent.PkgPath != "" && parent.PkgPath != g.pkgPath {
+			break
+		}
+		selector += "." + parent.Name
+		t = parent.Type
+		if t.Kind() == reflect.Ptr {
+			checks = append(checks, selector+" != nil")
+			t = t.Elem()
+		}
+	}
+	return strings.Join(checks, " && ")
+}
+
 func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField, first, firstCondition bool) (bool, error) {
 	jsonName := g.fieldNamer.GetJSONFieldName(t, f)
 	tags := parseFieldTags(f)
@@ -415,24 +439,33 @@ func (g *Generator) genStructFieldEncoder(t reflect.Type, f reflect.StructField,
 
 	noOmitEmpty := (!tags.omitEmpty && !g.omitEmpty) || tags.noOmitEmpty
 	noOmitZero := (!tags.omitZero && !g.omitZero) || tags.noOmitZero
-	if noOmitEmpty && noOmitZero {
+	condition := ""
+	if !noOmitEmpty && !noOmitZero {
+		condition = g.notEmptyOrZeroCheck(f.Type, "in."+f.Name)
+	} else if !noOmitEmpty {
+		condition = g.notEmptyCheck(f.Type, "in."+f.Name)
+	} else if !noOmitZero {
+		condition = g.notZeroCheck(f.Type, "in."+f.Name)
+	}
+	if check := g.embeddedPointerCheck(t, f.Name); check != "" {
+		if condition != "" {
+			condition = check + " && (" + condition + ")"
+		} else {
+			condition = check
+		}
+	}
+	if condition == "" {
 		fmt.Fprintln(g.out, "  {")
 		toggleFirstCondition = false
-	} else if noOmitZero {
-		fmt.Fprintln(g.out, "  if", g.notEmptyCheck(f.Type, "in."+f.Name), "{")
-		// can be any in runtime, so toggleFirstCondition stay as is
-	} else if noOmitEmpty {
-		fmt.Fprintln(g.out, "  if", g.notZeroCheck(f.Type, "in."+f.Name), "{")
-		// can be any in runtime, so toggleFirstCondition stay as is
 	} else {
-		fmt.Fprintln(g.out, "  if", g.notEmptyOrZeroCheck(f.Type, "in."+f.Name), "{")
+		fmt.Fprintln(g.out, "  if", condition, "{")
 		// can be any in runtime, so toggleFirstCondition stay as is
 	}
 
 	if firstCondition {
 		fmt.Fprintf(g.out, "    const prefix string = %q\n", ","+strconv.Quote(jsonName)+":")
 		if first {
-			if !noOmitEmpty || !noOmitZero {
+			if condition != "" {
 				fmt.Fprintln(g.out, "      first = false")
 			}
 			fmt.Fprintln(g.out, "      out.RawString(prefix[1:])")
