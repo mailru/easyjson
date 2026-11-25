@@ -708,7 +708,14 @@ func (r *Lexer) Bytes() []byte {
 	if r.token.kind == TokenUndef && r.Ok() {
 		r.FetchToken()
 	}
-	if !r.Ok() || r.token.kind != TokenString {
+	if !r.Ok() {
+		return nil
+	}
+	// encoding/json also accepts a JSON array of integers for []byte fields.
+	if r.token.kind == TokenDelim && r.token.delimValue == '[' {
+		return r.bytesFromArray()
+	}
+	if r.token.kind != TokenString {
 		r.errInvalidToken("string")
 		return nil
 	}
@@ -727,6 +734,26 @@ func (r *Lexer) Bytes() []byte {
 
 	r.consume()
 	return ret[:n]
+}
+
+// bytesFromArray decodes an array of integers into bytes, matching the
+// encoding/json fallback used for []byte fields.
+func (r *Lexer) bytesFromArray() []byte {
+	r.consume()
+	ret := []byte{}
+	for !r.IsDelim(']') {
+		if !r.Ok() {
+			return nil
+		}
+		n := r.Uint8()
+		if !r.Ok() {
+			return nil
+		}
+		ret = append(ret, n)
+		r.WantComma()
+	}
+	r.Delim(']')
+	return ret
 }
 
 // Bool reads a true or false boolean keyword.
